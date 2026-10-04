@@ -1,14 +1,18 @@
 """Workbench QA renders of a building or estate .blend. Runs inside blender.exe; the .blend is never saved.
 
 Args (JSON): blend, out (folder, default <blend folder>/renders), views (default iso, top, aerial_NE, aerial_SW,
-cutaway, cutplan), storey (name or index of the cutaway storey; default the sixth storey from the ground,
-like the legacy L5 cutaway), cut_height (m above the storey's FFL, 1.5), width (1600), prefix (blend stem), result.
+cutaway, cutplan; [] renders only the cameras), storey (name or index of the cutaway storey; default the sixth
+storey from the ground, like the legacy L5 cutaway), cut_height (m above the storey's FFL, 1.5), width (1600),
+prefix (blend stem), cameras ({view: {eye, target, lens (24), clip ([0.1, 2000]), shift ([0, 0]), res
+([width, width * 9 / 16]), sky (views.SKY)}}, e.g. estate/report/street.py's bus-stop view), result.
 
 Bonsai is enabled so the IFC opens with the .blend and the cutaway can use each element's storey: an element is
 hidden when its storey is above the cut storey or its bounding box starts above the cut plane. Spaces, openings
 and spatial containers are never rendered. Linked estates (ESTATE.blend) have no storeys, so their cutaway is
 skipped. Views: iso = ortho from the south-east, top = ortho plan (north up), aerial_NE / aerial_SW = perspective
-from 30 degrees up, cutaway = ortho iso of the cut storey, cutplan = ortho plan of the cut storey.
+from 30 degrees up, cutaway = ortho iso of the cut storey, cutplan = ortho plan of the cut storey. Each placed
+camera renders {prefix}_{view}.png in perspective from its eye (views.look_camera: not fitted to the model, clip
+set explicitly) against a sky-coloured background, before the cut views hide anything.
 """
 from __future__ import annotations
 
@@ -86,7 +90,7 @@ def run(a: dict) -> dict:
     prefix = a.get("prefix") or blend.stem
     width = int(a.get("width", 1600))
     res = (width, int(width * 0.75))
-    wanted = list(a.get("views") or VIEWS)
+    wanted = list(VIEWS if a.get("views") is None else a["views"])     # [] = only the placed cameras
     bpy.ops.wm.open_mainfile(filepath=str(blend))
     scene = bpy.context.scene
     V.hide_non_render()
@@ -110,6 +114,17 @@ def run(a: dict) -> dict:
         elif view in ("aerial_NE", "aerial_SW"):
             az = 45.0 if view == "aerial_NE" else -135.0
             shot(view, V.fit_camera(f"R_{view}", bbox, V.direction(az, 30.0), False, res), res)
+    cameras = a.get("cameras") or {}
+    for view in sorted(cameras):        # placed cameras, before the cut views hide anything
+        c = cameras[view]
+        r = tuple(int(v) for v in c.get("res") or (width, round(width * 9 / 16)))
+        cam = V.look_camera(f"R_{view}", c["eye"], c["target"], c.get("lens", 24.0), c.get("clip", (0.1, 2000.0)),
+                            c.get("shift", (0.0, 0.0)))
+        restore = V.eye_level_look(scene, tuple(c.get("sky") or V.SKY))
+        try:
+            shot(view, cam, r)
+        finally:
+            restore()
     cut_views = [v for v in wanted if v in ("cutaway", "cutplan")]
     level = None
     if cut_views:
@@ -128,10 +143,10 @@ def run(a: dict) -> dict:
                 else:
                     cam = V.fit_camera("R_cutplan", cb, Vector((0.0, 0.0, 1.0)), True, (width, width))
                     shot(f"cutplan_{tag}", cam, (width, width))
-    unknown = [v for v in wanted if v not in VIEWS]
+    unknown = [v for v in wanted if v not in VIEWS and v not in cameras]
     return {"blend": str(blend), "out": str(out), "files": files, "render_seconds": timings,
             "storey": level[0] if level else None, "skipped": skipped + unknown,
-            "bbox": [list(bbox[0]), list(bbox[1])], "resolution": list(res)}
+            "bbox": [list(bbox[0]), list(bbox[1])], "resolution": list(res), "cameras": sorted(cameras)}
 
 
 if __name__ == "__main__":

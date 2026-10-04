@@ -207,15 +207,22 @@ def stage_estate(a, cfg, targets, state):
             st.save(state)
         else:
             failed.append(dict(target="ESTATE", stage="blend", error=f"estate-blend exit {rc}"))
-    # estate renders (the headline images of the report), redone whenever ESTATE.blend is
+    # estate renders (the headline images of the report) plus the street view from bus stop BS1, redone whenever
+    # ESTATE.blend, the view list or the street camera (it follows the masterplan and the site graph) changes.
+    # street.py sits outside every stage's code hash, so tuning it re-renders ESTATE alone, through this key.
     if out.exists():
         from estate.blender.run import BlenderError, run_blender
-        rkey = st.stage_key("render", {"target": "ESTATE"}, [out])
+        from estate.report import street
+        views, cameras = ["iso", "top", "aerial_NE", "aerial_SW"], {}
+        try:
+            cameras["street_BS1"] = street.camera("BS1", env.MODEL / "masterplan.json", env.MODEL / "SITE_graph.json")
+        except (KeyError, ValueError, FileNotFoundError) as e:      # BS1 dropped from config/estate.toml, ...
+            print(f"  ESTATE    render: no street view ({e})")
+        rkey = st.stage_key("render", {"target": "ESTATE", "views": views, "cameras": cameras}, [out])
         if getattr(a, "force", False) or not st.fresh(state, "ESTATE", "render", rkey):
             try:
                 r = run_blender("render", {"blend": str(out), "out": str(env.REPORTS / "renders" / "ESTATE"),
-                                           "width": 1600, "views": ["iso", "top", "aerial_NE", "aerial_SW"]},
-                                timeout=3600)
+                                           "width": 1600, "views": views, "cameras": cameras}, timeout=3600)
                 st.record(state, "ESTATE", "render", rkey, [Path(f) for f in r["files"]], r.get("wall_seconds", 0))
                 st.save(state)
                 print(f"  ESTATE    render: {len(r['files'])} images")

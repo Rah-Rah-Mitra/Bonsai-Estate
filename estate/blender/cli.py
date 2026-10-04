@@ -157,6 +157,9 @@ def cmd_render(a) -> int:
         args["views"] = a.views
     if a.storey is not None:
         args["storey"] = a.storey
+    if getattr(a, "street", None):
+        from estate.report import street
+        args["cameras"] = {f"street_{s}": street.camera(s) for s in a.street}
     try:
         r = run_blender("render", args, timeout=a.timeout)
     except BlenderError as e:
@@ -203,6 +206,8 @@ def register(sub) -> None:
     p.add_argument("--out", help="output folder (default <blend folder>/renders)")
     p.add_argument("--views", nargs="*", help="iso top aerial_NE aerial_SW cutaway cutplan")
     p.add_argument("--storey", help="cutaway storey name or index (default the sixth storey)")
+    p.add_argument("--street", nargs="*", metavar="STOP",
+                   help="eye-level views from these bus stops, e.g. BS1 (needs model/masterplan.json)")
     p.add_argument("--width", type=int, default=1600)
     p.add_argument("--timeout", type=float, default=1800)
     p.set_defaults(fn=cmd_render)

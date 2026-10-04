@@ -12,6 +12,7 @@ import bpy
 from mathutils import Matrix, Vector
 
 from estate.blender._boot import NON_RENDER_CLASSES
+from estate.report.street import SKY  # noqa: F401  (default eye-level background; bpy-free, so tests read it too)
 
 BACKGROUND = (0.93, 0.94, 0.96)
 
@@ -167,6 +168,48 @@ def fit_camera(name, bbox, view_dir: Vector, ortho=True, res=(1600, 1200), margi
     cam.matrix_world = Matrix.Translation(loc) @ rot.to_4x4()
     cam["estate_view"] = {"ortho": ortho, "res": list(res)}
     return cam
+
+
+def look_camera(name, eye, target, lens=24.0, clip=(0.1, 2000.0), shift=(0.0, 0.0)):
+    """Create/update perspective camera ``name`` at ``eye`` looking at ``target`` (an eye-level street view).
+
+    Not fitted to a bounding box: the eye is where a person stands. The orientation is a track-to through the
+    direction quaternion (local -Z towards the target, local +Y towards world up), so a level eye -> target line
+    keeps verticals vertical and ``shift`` (lens shift, in units of the larger image side) raises the frame the way
+    an architectural shift lens does. Clip distances are set explicitly: fit_camera's bounding-sphere clipping
+    would cut the shelter roof a metre above the eye.
+    """
+    eye, target = Vector(eye), Vector(target)
+    d = eye - target
+    assert d.length > 1e-6, f"camera {name}: eye and target coincide"
+    rot = d.normalized().to_track_quat("Z", "Y").to_matrix()
+    cam = _camera(name)
+    cd = cam.data
+    cd.type = "PERSP"
+    cd.lens = float(lens)
+    cd.sensor_fit = "AUTO"
+    cd.sensor_width = 36.0
+    cd.shift_x, cd.shift_y = (float(v) for v in shift)
+    cd.clip_start, cd.clip_end = (float(v) for v in clip)
+    cam.matrix_world = Matrix.Translation(eye) @ rot.to_4x4()
+    cam["estate_view"] = {"ortho": False, "eye": list(eye), "target": list(target), "lens": float(lens)}
+    return cam
+
+
+def eye_level_look(scene=None, sky=SKY):
+    """Sky-coloured background for an eye-level view; returns restore() for the QA views' pale studio background.
+
+    Everything else stays as setup_workbench left it (studio light, cavity, outline, shadows on): a towers-on-sky
+    street view reads well with it, and turning the Workbench shadow light towards the camera's back changed
+    under a tenth of the pixels, imperceptibly, so there is no per-view sun.
+    """
+    scene = scene or bpy.context.scene
+    saved = tuple(scene.world.color)
+    scene.world.color = sky
+
+    def restore():
+        scene.world.color = saved
+    return restore
 
 
 def qa_cameras(bbox, res=(1600, 1200)):
