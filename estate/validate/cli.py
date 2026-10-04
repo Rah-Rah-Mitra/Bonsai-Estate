@@ -27,12 +27,14 @@ def discover() -> list[Path]:
 
 
 def _crashed(path, check, e):
+    msg = f"{type(e).__name__}: {e}"
     return {"file": env.rel(path), "results": [{"check": check, "level": "error", "severity": "error", "count": 1,
-                                                "examples": [f"{type(e).__name__}: {e}"]}]}
+                                                "examples": [msg], "items": [{"guids": [], "xyz": None, "text": msg}]}]}
 
 
 def validate_one(path, schema=True, express_rules=False, ids=True, geometry=True, programme=True) -> dict:
-    """ifcqa (+ IDS), programme and geometry of one file; importable by spawn workers."""
+    """ifcqa (+ IDS), programme and geometry of one file; importable by spawn workers. The record also names the
+    file's IfcProject GlobalId (the BCF header of its issues, estate/report/bcf_out.py)."""
     import ifcopenshell
 
     from estate.validate import geometry as geom
@@ -41,6 +43,7 @@ def validate_one(path, schema=True, express_rules=False, ids=True, geometry=True
     t = time.time()
     rec = {"file": env.rel(path)}
     f = ifcopenshell.open(str(path))
+    rec["ifc_project"] = next((p.GlobalId for p in f.by_type("IfcProject")), None)
     rec["ifcqa"] = ifcqa.check_file(path, schema=schema, express_rules=express_rules, ids=ids, f=f)
     if programme:
         try:

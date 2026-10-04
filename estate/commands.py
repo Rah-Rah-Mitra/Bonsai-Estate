@@ -327,8 +327,8 @@ def cmd_build(a):
         meshcache.prune(keep=1)
         if not a.only:
             try:
-                from estate.report.html import write_report
-                print(f"report: {env.rel(write_report())}")
+                from estate.report.html import outputs_line, write_report
+                print(f"report: {outputs_line(write_report())}")
             except Exception as e:  # noqa: BLE001
                 print(f"report: not written ({type(e).__name__}: {e})")
     return 1 if failed else 0
@@ -336,9 +336,12 @@ def cmd_build(a):
 
 # ----------------------------------------------------------------------------- report
 def cmd_report(a):
-    from estate.report.html import write_report
-    p = write_report()
-    print(f"wrote {env.rel(p)}")
+    """reports/report.html, its JSON twin reports/report.json and reports/issues.bcf (BCF 2.1, one topic per failing
+    validation item) from the latest build artefacts; --out (when registered) writes the three into another folder."""
+    from estate.report.html import outputs_line, write_report
+    out = getattr(a, "out", None)
+    p = write_report(Path(out) / "report.html" if out else None)
+    print(f"wrote {outputs_line(p)}")
     return 0
 
 
@@ -424,7 +427,9 @@ def register(sub):
     p.add_argument("--verbose", "-v", action="store_true")
     p.set_defaults(fn=cmd_build)
 
-    p = sub.add_parser("report", help="write reports/report.html from the latest build artefacts")
+    p = sub.add_parser("report", help="write reports/report.html, report.json and issues.bcf from the latest build "
+                                      "artefacts")
+    p.add_argument("--out", help="folder for the three files (default reports/)")
     p.set_defaults(fn=cmd_report)
 
     import sys

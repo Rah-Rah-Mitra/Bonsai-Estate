@@ -23,7 +23,8 @@ bedroom. Two warnings compare what the file declares with what it draws: door Fr
 probe, and NetFloorArea against the footprint (a hand edit that moved one but not the other). Spaces outside flat
 zones (lobbies, corridors, void deck, stairs, refuse rooms, shops), grouped in a common-property zone or in none,
 are only used as the common side of entrances and are never checked themselves. Results use the {check, level,
-severity, count, examples} format of ifcqa.
+severity, count, examples, items} format of ifcqa; each item carries the GlobalIds of the space (or the flat zone,
+or the door and the spaces on either side) and a point inside the room at floor level for a BCF viewpoint.
 """
 from __future__ import annotations
 
@@ -44,7 +45,7 @@ import ifcopenshell.util.unit as uunit
 from estate import env
 from estate.flats.check import BATHS, BEDROOMS
 from estate.flats.template import ROOM_CODES
-from estate.validate.ifcqa import Report, canonical_flat_type, flat_pset, rules_config, summarize
+from estate.validate.ifcqa import Hits, Report, canonical_flat_type, flat_pset, rules_config, summarize, where
 
 HABITABLE = {c for c, (_, cat) in ROOM_CODES.items() if cat == "habitable"}
 LONG_NAMES = {v[0].lower(): c for c, v in ROOM_CODES.items()}
@@ -318,6 +319,33 @@ def _fmt(s, msg):
     return f"{s.name}: {msg}"
 
 
+def _at(s):
+    """A world point inside a space at floor level (its placement when it has no footprint) for a viewpoint."""
+    if s.poly.is_empty or not np.isfinite(s.z0):
+        return where(s.el)
+    p = s.poly.representative_point()
+    return (p.x, p.y, s.z0)
+
+
+def _flat_at(fl):
+    """A point in the first room of a flat that has a footprint, else the zone's first placed space."""
+    return next((_at(s) for v in fl.rooms.values() for s in v if not s.poly.is_empty), None) or where(fl.zone)
+
+
+def _door_at(X, d):
+    """The centre of a door / window leaf (its placement origin is at a jamb), halfway up to 1 m."""
+    if d.el.ObjectPlacement is None:
+        return None
+    M = upl.get_local_placement(d.el.ObjectPlacement)
+    m = M[:3, 3] * X.scale + M[:3, 0] * d.width / 2
+    return (m[0], m[1], m[2] + min(max(d.height / 2, 0.3), 1.0))
+
+
+def _room(hits, s, msg):
+    """Record a failure of one room: the example text '<space>: <msg>', the space's GlobalId and a point in it."""
+    return hits.add(_fmt(s, msg), s.el, xyz=_at(s))
+
+
 def check(f, rules=None, index=None) -> list:
     """All programme checks of one opened file; returns the list of result dicts."""
     R = rules_config() if rules is None else rules
@@ -332,41 +360,41 @@ def check(f, rules=None, index=None) -> list:
     ratio_min, vent_min = float(gz.get("habitable_ratio", 0.10)), float(gz.get("vent_min_area", 0.20))
     doors = R.get("doors", {})
 
-    unknown, missing, small, narrow, living, shelter, nogeom = [], [], [], [], [], [], []
-    glazing, vent, kitchen, main, reach, hs_access, ensuite, door_w = [], [], [], [], [], [], [], []
+    unknown, missing, small, narrow, living, shelter, nogeom = (Hits() for _ in range(7))
+    glazing, vent, kitchen, main, reach, hs_access, ensuite, door_w = (Hits() for _ in range(8))
     worst_ratio, flats_checked = None, 0
     for fl in X.flats:
         if fl.ftype is None:
-            unknown.append(f"{fl.name}: flat type {fl.label!r}")
+            unknown.add(f"{fl.name}: flat type {fl.label!r}", fl.zone, xyz=_flat_at(fl))
             continue
         flats_checked += 1
         codes = set(fl.rooms)
         for req in req_rules.get(fl.ftype, []):
             if not codes & set(req.split("|")):
-                missing.append(f"{fl.name}: {fl.ftype} needs {req}")
+                missing.add(f"{fl.name}: {fl.ftype} needs {req}", fl.zone, xyz=_flat_at(fl))
         G = X.adjacency(fl)
         glaze = {}
         for code, sps in sorted(fl.rooms.items()):
             for s in sps:
                 amin = min_area.get(code)
                 if amin and s.area < amin - 1e-6:
-                    small.append(_fmt(s, f"{s.area:.2f} m2 < {amin}"))
+                    _room(small, s, f"{s.area:.2f} m2 < {amin}")
                 glaze[s] = sum(o.width * o.height for o in X.served.get(s, ()) if o.kind == "window")
                 if s.poly.is_empty:
-                    nogeom.append(_fmt(s, "no footprint (no Body representation that can be read or tessellated)"))
+                    _room(nogeom, s, "no footprint (no Body representation that can be read or tessellated)")
                     continue
                 wmin = min_width.get(code)
                 if wmin and s.poly.buffer(-(wmin / 2 - 0.01), join_style="mitre").is_empty:
-                    narrow.append(_fmt(s, f"narrower than {wmin} m"))
+                    _room(narrow, s, f"narrower than {wmin} m")
         liv = fl.room("LD") or fl.room("LDK")
         lmin = living_min.get(fl.ftype)
         if liv is not None and lmin and liv.area < lmin - 1e-6:
-            living.append(_fmt(liv, f"{liv.area:.1f} m2 < {lmin}"))
+            _room(living, liv, f"{liv.area:.1f} m2 < {lmin}")
         hs = fl.room("HS")
         if hs is not None and bands and fl.ifa is not None:
             need = next((a for m, a in bands if fl.ifa <= m), bands[-1][1])
             if hs.area < need - 1e-6:
-                shelter.append(_fmt(hs, f"{hs.area:.2f} m2 < {need} m2 for IFA {fl.ifa:.1f} m2 ({fl.ifa_source})"))
+                _room(shelter, hs, f"{hs.area:.2f} m2 < {need} m2 for IFA {fl.ifa:.1f} m2 ({fl.ifa_source})")
         for code, sps in sorted(fl.rooms.items()):
             for s in sps:
                 if s.poly.is_empty:
@@ -375,49 +403,51 @@ def check(f, rules=None, index=None) -> list:
                     r = glaze[s] / s.area
                     worst_ratio = r if worst_ratio is None else min(worst_ratio, r)
                     if r < ratio_min - 1e-6:
-                        glazing.append(_fmt(s, f"glazing {glaze[s]:.2f} m2 = {r * 100:.1f}% of {s.area:.2f} m2"))
+                        _room(glazing, s, f"glazing {glaze[s]:.2f} m2 = {r * 100:.1f}% of {s.area:.2f} m2")
                 if code in BATHS and glaze[s] < vent_min and code not in fl.mech_vent:
-                    vent.append(_fmt(s, f"vent windows {glaze[s]:.2f} m2 < {vent_min} m2 and no mechanical_vent"))
+                    _room(vent, s, f"vent windows {glaze[s]:.2f} m2 < {vent_min} m2 and no mechanical_vent")
                 if code == "K" and glaze[s] <= 0:
                     nb = {n.code for n in G.neighbors(s) if isinstance(n, Space)} if s in G else set()
                     if not nb & {"SY", "LD", "LDK"}:
-                        kitchen.append(_fmt(s, "no window, service yard or opening to the living room"))
+                        _room(kitchen, s, "no window, service yard or opening to the living room")
         # entrance, reachability, door graph
         mains = [d for d in X.flat_doors.get(fl, ()) if d.door_kind == "main"]
         ok_main = [d for d in mains if any(x is OUTSIDE or (isinstance(x, Space) and x.flat is None) for x in d.sides)]
         if not ok_main:
-            main.append(f"{fl.name}: " + (f"main door '{mains[0].name}' does not open to a common space "
-                                          f"({' / '.join(str(x) for x in mains[0].sides)})" if mains else "no main door"))
+            main.add(f"{fl.name}: " + (f"main door '{mains[0].name}' does not open to a common space "
+                                       f"({' / '.join(str(x) for x in mains[0].sides)})" if mains else "no main door"),
+                     fl.zone, *(m.el for m in mains[:1]), xyz=_door_at(X, mains[0]) if mains else _flat_at(fl))
         if "@entry" in G:
             comp = nx.node_connected_component(G, "@entry")
             for s in sorted((n for n in G if n != "@entry" and n not in comp), key=lambda s: s.name):
-                reach.append(_fmt(s, "not reachable from the entrance"))
+                _room(reach, s, "not reachable from the entrance")
         hs_nb = {n.code for n in G.neighbors(hs) if isinstance(n, Space)} if hs in G else set()
         if hs_nb & (BEDROOMS | BATHS):
-            hs_access.append(_fmt(hs, f"entered from {sorted(hs_nb & (BEDROOMS | BATHS))}"))
+            _room(hs_access, hs, f"entered from {sorted(hs_nb & (BEDROOMS | BATHS))}")
         mba = fl.room("MBa")
         if mba is not None and mba in G:
             other = {n.code if isinstance(n, Space) else "common space" for n in G.neighbors(mba)} - {"MB"}
             if other:
-                ensuite.append(_fmt(mba, f"also opens to {sorted(other, key=str)}"))
+                _room(ensuite, mba, f"also opens to {sorted(other, key=str)}")
         for d in X.flat_doors.get(fl, ()):
             if d.door_kind == "lift":
                 continue
             mn = float(doors.get("main_min", 0.9) if d.door_kind == "main" else doors.get("internal_min", 0.8))
             if d.width < mn - 1e-6:
-                door_w.append(f"{d.name}: {d.width:.2f} m < {mn}")
+                door_w.add(f"{d.name}: {d.width:.2f} m < {mn}", d.el, xyz=_door_at(X, d))
 
     # declared door spaces against the probe; quantities against the drawn footprints
-    mism = []
+    mism = Hits()
     for d in X.doors:
         if d.declared and all(isinstance(x, Space) for x in d.probed):
             if {x.name for x in d.declared if isinstance(x, Space)} != {x.name for x in d.probed}:
-                mism.append(f"{d.name}: Navigation {d.declared[0]} / {d.declared[1]}, "
-                            f"geometry {d.probed[0]} / {d.probed[1]}")
-    qty = []
+                mism.add(f"{d.name}: Navigation {d.declared[0]} / {d.declared[1]}, "
+                         f"geometry {d.probed[0]} / {d.probed[1]}",
+                         d.el, *(x.el for x in (*d.declared, *d.probed) if isinstance(x, Space)), xyz=_door_at(X, d))
+    qty = Hits()
     for s in X.spaces:
         if s.flat is not None and not s.poly.is_empty and abs(s.area - s.poly.area) > max(0.05, 0.01 * s.poly.area):
-            qty.append(_fmt(s, f"NetFloorArea {s.area:.2f} m2, footprint {s.poly.area:.2f} m2"))
+            _room(qty, s, f"NetFloorArea {s.area:.2f} m2, footprint {s.poly.area:.2f} m2")
 
     note_rules = "config/rules.toml"
     rep.add("flat_type", "error", unknown, value=flats_checked,

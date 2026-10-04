@@ -17,7 +17,9 @@ generator defect nor a hand edit in Bonsai can hide behind its own property sets
   sits over a habitable room (<= 0.10 m2 per storey pair).
 
 Everything works on world-coordinate triangle meshes with shapely footprints and vectorised vertical ray casts
-(numpy + shapely STRtree; no scipy / trimesh).
+(numpy + shapely STRtree; no scipy / trimesh). Each failure also becomes an ifcqa item: the GlobalIds of the
+elements involved (a flight and its balustrade, both walls of an overlap, the slab of a falling edge) and a world
+point on the defect (the middle of an unguarded run at the slab top, the centre of an overlap) for a BCF viewpoint.
 """
 from __future__ import annotations
 
@@ -36,7 +38,7 @@ import ifcopenshell.util.element as uel
 import ifcopenshell.util.placement as upl
 
 from estate import env
-from estate.validate.ifcqa import Report, summarize
+from estate.validate.ifcqa import Hits, Report, summarize, where
 
 LIMITS = dict(riser_max=0.175, riser_var=0.005, going_min=0.275, risers_max=18, stair_width=1.0, headroom=2.0,
               barrier=1.0, wall_overlap_tol=1e-4, clash_area=1e-4, shaft_slab=0.01, space_overlap=0.05,
@@ -294,6 +296,22 @@ def _xy(p):
     return f"({p[0]:.2f}, {p[1]:.2f})"
 
 
+def _centre(e):
+    """Centre of an element's bounding box (world, m), the point a viewpoint looks at; None for an empty mesh."""
+    if not len(e.T):
+        return None
+    V = e.T.reshape(-1, 3)
+    return ((V.min(0) + V.max(0)) / 2).tolist()
+
+
+def _on(poly, z):
+    """A point on a (clash) polygon at height z: inside it when it has area, else its centroid."""
+    if poly is None or poly.is_empty:
+        return None
+    c = poly.representative_point() if poly.area > 0 else poly.centroid
+    return (c.x, c.y, z)
+
+
 # ----------------------------------------------------------------------------- stairs
 def _clusters(z, gap=0.005):
     order = np.argsort(z)
@@ -304,7 +322,7 @@ def _clusters(z, gap=0.005):
 
 def measure_flight(M: Model, e: El, ctx: dict, lim=LIMITS) -> dict:
     """Treads, risers, goings, width, headroom and balustrades of one IfcStairFlight from its solid."""
-    out = dict(flight=_tag(e), errors=[])
+    out = dict(flight=_tag(e), guid=e.guid, xyz=_centre(e), errors=[])
     up = e.N[:, 2] > 0.99
     Tu = e.T[up]
     if not len(Tu):
@@ -434,7 +452,8 @@ def measure_flight(M: Model, e: El, ctx: dict, lim=LIMITS) -> dict:
         st = s0 + 0.03
         hp = top_of(bar, [W(s, lr) for s in st], bar.owner(r)) - pitch(st)
         hp = hp[np.isfinite(hp)]
-        sides.append(dict(side=side, bound="balustrade", rail=_tag(r), height=float(hp.min()) if len(hp) else 0.0))
+        sides.append(dict(side=side, bound="balustrade", rail=_tag(r), rail_guid=r.guid,
+                          height=float(hp.min()) if len(hp) else 0.0))
     out["sides"] = sides
     return out
 
@@ -444,31 +463,35 @@ def check_stairs(M: Model, rep: Report, lim=LIMITS):
     obst = [o for o in M.of(*OBSTACLE) if not o.footprint.is_empty]
     ctx = dict(obst=obst, obst_tree=shapely.STRtree([o.footprint for o in obst]))
     meas = [measure_flight(M, e, ctx, lim) for e in flights]
-    rows = dict(riser=[], var=[], going=[], count=[], width=[], head=[], land=[], open=[], bal=[])
+    rows = {k: Hits() for k in ("riser", "var", "going", "count", "width", "head", "land", "open", "bal")}
     for m in meas:
         nm = m["flight"]
+
+        def hit(k, text, *more):
+            rows[k].add(text, m["guid"], *more, xyz=m["xyz"])
+
         for err in m["errors"]:
-            rows["land"].append(f"{nm}: {err}")
+            hit("land", f"{nm}: {err}")
         if "risers" not in m:
             continue
         r = np.array(m["risers"])
         if r.max() > lim["riser_max"] + TOL:
-            rows["riser"].append(f"{nm}: riser {r.max():.4f} m")
+            hit("riser", f"{nm}: riser {r.max():.4f} m")
         if r.max() - r.min() > lim["riser_var"] + TOL:
-            rows["var"].append(f"{nm}: risers {r.min():.4f}..{r.max():.4f} m")
+            hit("var", f"{nm}: risers {r.min():.4f}..{r.max():.4f} m")
         if m["going_min"] < lim["going_min"] - TOL:
-            rows["going"].append(f"{nm}: going {m['going_min']:.4f} m")
+            hit("going", f"{nm}: going {m['going_min']:.4f} m")
         if m["n_risers"] > lim["risers_max"]:
-            rows["count"].append(f"{nm}: {m['n_risers']} risers")
+            hit("count", f"{nm}: {m['n_risers']} risers")
         if "width" in m and m["width"] < lim["stair_width"] - TOL:
-            rows["width"].append(f"{nm}: clear width {m['width']:.3f} m")
+            hit("width", f"{nm}: clear width {m['width']:.3f} m")
         if "headroom" in m and m["headroom"] < lim["headroom"] - TOL:
-            rows["head"].append(f"{nm}: headroom {m['headroom']:.3f} m")
+            hit("head", f"{nm}: headroom {m['headroom']:.3f} m")
         for s in m.get("sides", []):
             if s["bound"] == "open":
-                rows["open"].append(f"{nm}: {s['side']} side open (no wall, no balustrade)")
+                hit("open", f"{nm}: {s['side']} side open (no wall, no balustrade)")
             elif s["bound"] == "balustrade" and s["height"] < lim["barrier"] - 1e-3:
-                rows["bal"].append(f"{nm}: balustrade {s['height']:.3f} m above the pitch line")
+                hit("bal", f"{nm}: balustrade {s['height']:.3f} m above the pitch line", s.get("rail_guid"))
     vals = [m for m in meas if "risers" in m]
     stat = lambda k, fn: round(float(fn([x[k] for x in vals])), 4) if vals else None  # noqa: E731
     rep.add("stair_riser", "error", rows["riser"], value=dict(max=stat("risers", lambda v: max(max(r) for r in v)),
@@ -491,23 +514,26 @@ def check_stairs(M: Model, rep: Report, lim=LIMITS):
         st = uel.get_aggregate(e.ent)
         if st is not None and "z_bot" in m:
             by_stair[st.id()].append(m)
-    bad = []
+    bad = Hits()
     for st in M.f.by_type("IfcStair"):
         ms = sorted(by_stair.get(st.id(), []), key=lambda m: m["z_bot"])
         storey = M.storey_of(st)
         nxt = M.next_storey(storey)
+        at = next((m["xyz"] for m in ms if m.get("xyz")), None) or where(st)
         if not ms:
-            bad.append(f"{st.Name}: no flights")
+            bad.add(f"{st.Name}: no flights", st, xyz=at)
             continue
         if storey is None or nxt is None:
             continue
         z0, z1 = M.elev[storey.id()], M.elev[nxt.id()]
         if abs(ms[0]["z_bot"] - z0) > 0.01 or abs(ms[-1]["z_top"] - z1) > 0.01:
-            bad.append(f"{st.Name}: climbs {ms[0]['z_bot']:.3f}..{ms[-1]['z_top']:.3f}, storeys {z0:.3f}..{z1:.3f}")
+            bad.add(f"{st.Name}: climbs {ms[0]['z_bot']:.3f}..{ms[-1]['z_top']:.3f}, storeys {z0:.3f}..{z1:.3f}",
+                    st, *(m["guid"] for m in ms), xyz=at)
             continue
         for p, q in zip(ms[:-1], ms[1:]):
             if abs(q["z_bot"] - p["z_top"]) > 0.01:
-                bad.append(f"{st.Name}: {p['flight']} ends {p['z_top']:.3f}, {q['flight']} starts {q['z_bot']:.3f}")
+                bad.add(f"{st.Name}: {p['flight']} ends {p['z_top']:.3f}, {q['flight']} starts {q['z_bot']:.3f}",
+                        st, p["guid"], q["guid"], xyz=q["xyz"])
     rep.add("stair_rise", "error", bad, value=len(M.f.by_type("IfcStair")),
             note="flights of each IfcStair chain from the storey level to the next storey level")
     return meas
@@ -515,16 +541,16 @@ def check_stairs(M: Model, rep: Report, lim=LIMITS):
 
 # ----------------------------------------------------------------------------- barriers
 def check_barrier_elements(M: Model, rep: Report, lim=LIMITS):
-    low = []
+    low = Hits()
     for e in M.of("IfcRailing"):
         if uel.get_predefined_type(e.ent) == "BALUSTRADE" or (uel.get_aggregate(e.ent) is not None and
                                                                  uel.get_aggregate(e.ent).is_a("IfcStair")):
             continue                     # measured above the pitch line in check_stairs
         if e.zmax - e.zmin < lim["barrier"] - 1e-3:
-            low.append(f"{_tag(e)}: {e.zmax - e.zmin:.3f} m")
+            low.add(f"{_tag(e)}: {e.zmax - e.zmin:.3f} m", e.guid, xyz=_centre(e))
     for e in M.of("IfcWall"):
         if uel.get_predefined_type(e.ent) == "PARAPET" and e.zmax - e.zmin < lim["barrier"] - 1e-3:
-            low.append(f"{_tag(e)}: parapet {e.zmax - e.zmin:.3f} m")
+            low.add(f"{_tag(e)}: parapet {e.zmax - e.zmin:.3f} m", e.guid, xyz=_centre(e))
     rep.add("barrier_heights", "error", low, value=lim["barrier"], note="guard rails and parapet walls")
 
 
@@ -550,7 +576,7 @@ def _ring_samples(poly, step=0.1, corner=0.06):
 
 def check_falling_edges(M: Model, rep: Report, lim=LIMITS):
     surf, bar = M.rays("surface"), M.rays("barrier")
-    P, NO, TOP, SID, RID, SEQ, STEP, names = [], [], [], [], [], [], [], []
+    P, NO, TOP, SID, RID, SEQ, STEP, names, slab_guid = [], [], [], [], [], [], [], [], []
     rings = 0
     for e in M.of("IfcSlab"):
         if e.storey is None:
@@ -562,6 +588,7 @@ def check_falling_edges(M: Model, rep: Report, lim=LIMITS):
             continue                     # tower / motor-room roofs are not accessible
         sid = len(names)
         names.append(_tag(e))
+        slab_guid.append(e.guid)
         for g in getattr(poly, "geoms", [poly]):
             base = rings
             for p, n, rid, seq, step in _ring_samples(g):
@@ -600,7 +627,7 @@ def check_falling_edges(M: Model, rep: Report, lim=LIMITS):
             pi, own, z, up = bar.cast(Q)
             m = (z >= TOP[idx][pi] - 0.6) & (z <= TOP[idx][pi] + 1.2)
             narrow[idx[np.unique(pi[m])]] = True
-    errors, gaps = [], []
+    errors, gaps = Hits(), Hits()
     total_err = total_gap = 0.0
     for key in sorted(set(zip(SID[open_].tolist(), RID[open_].tolist()))):
         sel = np.flatnonzero(open_ & (SID == key[0]) & (RID == key[1]))
@@ -622,11 +649,13 @@ def check_falling_edges(M: Model, rep: Report, lim=LIMITS):
             wide = ~narrow[r]
             item = (f"{names[key[0]]}: {length:.2f} m unguarded from {_xy(P[r[0]])} to {_xy(P[r[-1]])}, "
                     f"drop {float((TOP - below)[r].max()):.2f} m, barrier {float(h[r].max()):.2f} m")
+            mid = r[len(r) // 2]
+            at = (P[mid][0], P[mid][1], TOP[mid])
             if wide.any() and float(STEP[r[wide]].sum()) >= lim["gap_narrow"] - 1e-6:
-                errors.append(item)
+                errors.add(item, slab_guid[key[0]], xyz=at)
                 total_err += length
             else:
-                gaps.append(item)
+                gaps.add(item, slab_guid[key[0]], xyz=at)
                 total_gap += length
     rep.add("falling_edges", "error", errors, value=dict(unguarded_m=round(total_err, 2), samples=len(P),
                                                          with_drop=int(need.sum())),
@@ -654,7 +683,7 @@ def _by_storey(els):
 
 def check_clashes(M: Model, rep: Report, lim=LIMITS):
     walls = [w for w in M.of("IfcWall") if not w.footprint.is_empty]
-    over = []
+    over = Hits()
     worst = 0.0
     for sid, ws in sorted(_by_storey(walls).items()):
         tree = shapely.STRtree([w.footprint for w in ws])
@@ -665,11 +694,13 @@ def check_clashes(M: Model, rep: Report, lim=LIMITS):
             w1, w2 = ws[i], ws[j]
             if min(w1.zmax, w2.zmax) - max(w1.zmin, w2.zmin) <= 0.01:
                 continue
-            ar = w1.footprint.intersection(w2.footprint).area
+            inter = w1.footprint.intersection(w2.footprint)
+            ar = inter.area
             allow = _thickness(w1.footprint) * _thickness(w2.footprint) + lim["wall_overlap_tol"]
             worst = max(worst, ar - allow)
             if ar > allow:
-                over.append(f"{_tag(w1)} / {w2.name}: {ar:.4f} m2 > {allow:.4f} m2")
+                over.add(f"{_tag(w1)} / {w2.name}: {ar:.4f} m2 > {allow:.4f} m2", w1.guid, w2.guid,
+                         xyz=_on(inter, (max(w1.zmin, w2.zmin) + min(w1.zmax, w2.zmax)) / 2))
     rep.add("wall_overlap", "error", over, value=dict(worst_excess_m2=round(worst, 5)),
             note="per storey, overlap <= t1 * t2 + 1e-4 m2 (junction tolerance)")
 
@@ -679,7 +710,7 @@ def check_clashes(M: Model, rep: Report, lim=LIMITS):
         w = o.VoidsElements[0].RelatingBuildingElement if o.VoidsElements else None
         for rel in o.HasFillings or ():
             host[rel.RelatedBuildingElement.id()] = w.id() if w is not None else None
-    clash = []
+    clash = Hits()
     wtree = shapely.STRtree([w.footprint for w in walls])
     for d in M.of("IfcDoor", "IfcWindow"):
         fp = d.footprint
@@ -691,13 +722,15 @@ def check_clashes(M: Model, rep: Report, lim=LIMITS):
                 continue
             if min(d.zmax, w.zmax) - max(d.zmin, w.zmin) <= 0.01:
                 continue
-            ar = fp.intersection(w.footprint).area
+            inter = fp.intersection(w.footprint)
+            ar = inter.area
             if ar > lim["clash_area"]:
-                clash.append(f"{_tag(d)} x {w.name}: {ar:.4f} m2")
+                clash.add(f"{_tag(d)} x {w.name}: {ar:.4f} m2", d.guid, w.guid,
+                          xyz=_on(inter, (max(d.zmin, w.zmin) + min(d.zmax, w.zmax)) / 2))
     rep.add("opening_clash", "error", clash, note="doors / windows clear of every wall except their host")
 
     # slabs inside lift shafts
-    bad, shafts = [], []
+    bad, shafts = Hits(), []
     for car in M.of("IfcTransportElement"):
         nav = uel.get_pset(car.ent, "Navigation") or {}
         if uel.get_predefined_type(car.ent) not in ("ELEVATOR", "LIFT") and not nav.get("Elevator"):
@@ -728,14 +761,15 @@ def check_clashes(M: Model, rep: Report, lim=LIMITS):
         for s in M.of("IfcSlab"):
             if s.zmax <= z0 + 0.01 or s.zmin >= z1 - 0.01:
                 continue
-            ar = s.footprint.intersection(shaft).area
+            inter = s.footprint.intersection(shaft)
+            ar = inter.area
             if ar > lim["shaft_slab"]:
-                bad.append(f"{_tag(s)}: {ar:.3f} m2 inside the {car.name} shaft")
+                bad.add(f"{_tag(s)}: {ar:.3f} m2 inside the {car.name} shaft", s.guid, car.guid, xyz=_on(inter, s.zmax))
     rep.add("lift_shaft_slab", "error", bad, value=shafts, note=f"slab area inside a lift shaft <= {lim['shaft_slab']} m2")
 
     # space overlaps per storey
     spaces = [s for s in M.of("IfcSpace") if not s.footprint.is_empty]
-    sov = []
+    sov = Hits()
     for sid, ss in sorted(_by_storey(spaces).items()):
         fps = [s.top()[0] for s in ss]
         tree = shapely.STRtree(fps)
@@ -743,9 +777,11 @@ def check_clashes(M: Model, rep: Report, lim=LIMITS):
         for i, j in zip(a, b):
             if i >= j or min(ss[i].zmax, ss[j].zmax) - max(ss[i].zmin, ss[j].zmin) <= 0.01:
                 continue
-            ar = fps[i].intersection(fps[j]).area
+            inter = fps[i].intersection(fps[j])
+            ar = inter.area
             if ar > lim["space_overlap"]:
-                sov.append(f"{_tag(ss[i])} / {ss[j].name}: {ar:.3f} m2")
+                sov.add(f"{_tag(ss[i])} / {ss[j].name}: {ar:.3f} m2", ss[i].guid, ss[j].guid,
+                        xyz=_on(inter, max(ss[i].zmin, ss[j].zmin)))
     rep.add("space_overlap", "error", sov, note=f"IfcSpace overlap per storey <= {lim['space_overlap']} m2")
 
 
@@ -762,19 +798,22 @@ def check_wet_stack(M: Model, rep: Report, lim=LIMITS):
         unit = str(p.get("UnitNumber") or "")
         stack = unit.rsplit("-", 1)[-1] if "-" in unit else unit
         b = s.storey.Decomposes[0].RelatingObject.id() if s.storey.Decomposes else 0
-        rooms.append((b, stack, s.storey, cat, s.top()[0]))
+        rooms.append((b, stack, s.storey, cat, s.top()[0], s.guid))
     if not rooms:
         rep.add("wet_stack", "error", [], value="no residential spaces")
         rep.add("wet_over_dry", "error", [])
         return
     wet = defaultdict(list)
     dry = defaultdict(list)
-    for b, stack, st, cat, fp in rooms:
+    wet_g, dry_g = defaultdict(list), defaultdict(list)     # GlobalIds, same order
+    for b, stack, st, cat, fp, g in rooms:
         if cat in WET:
             wet[(b, stack, st.id())].append(fp)
+            wet_g[(b, stack, st.id())].append(g)
         elif cat in DRY:
             dry[(b, st.id())].append(fp)
-    bad, ious = [], []
+            dry_g[(b, st.id())].append(g)
+    bad, ious = Hits(), []
     stacks = sorted({(b, stack) for b, stack, *_ in rooms})
     for b, stack in stacks:
         sts = [s for s in M.building_storeys[b] if (b, stack, s.id()) in wet]
@@ -784,22 +823,27 @@ def check_wet_stack(M: Model, rep: Report, lim=LIMITS):
             iou = A.intersection(B).area / max(A.union(B).area, 1e-9)
             ious.append(iou)
             if iou < lim["wet_iou"]:
-                bad.append(f"stack {stack} {lo.Name}->{hi.Name}: wet IoU {iou:.3f}")
+                diff = A.symmetric_difference(B)
+                bad.add(f"stack {stack} {lo.Name}->{hi.Name}: wet IoU {iou:.3f}",
+                        *wet_g[(b, stack, hi.id())], *wet_g[(b, stack, lo.id())],
+                        xyz=_on(diff if not diff.is_empty else B, M.elev[hi.id()]))
     rep.add("wet_stack", "error", bad, value=dict(min_iou=round(min(ious), 4) if ious else None, stacks=len(stacks)),
             note=f"wet rooms per stack keep their footprint storey to storey (IoU >= {lim['wet_iou']})")
-    wod = []
+    wod = Hits()
     worst = 0.0
     for b, sts in M.building_storeys.items():
         res = [s for s in sts if any(k[0] == b and k[2] == s.id() for k in wet) or (b, s.id()) in dry]
         for lo, hi in zip(res[:-1], res[1:]):
-            W_ = [fp for k, v in wet.items() if k[0] == b and k[2] == hi.id() for fp in v]
-            D_ = dry.get((b, lo.id()), [])
+            W_ = [(fp, g) for k, v in wet.items() if k[0] == b and k[2] == hi.id() for fp, g in zip(v, wet_g[k])]
+            D_ = list(zip(dry.get((b, lo.id()), []), dry_g.get((b, lo.id()), [])))
             if not W_ or not D_:
                 continue
-            ar = shapely.union_all(W_).intersection(shapely.union_all(D_)).area
+            inter = shapely.union_all([fp for fp, _ in W_]).intersection(shapely.union_all([fp for fp, _ in D_]))
+            ar = inter.area
             worst = max(worst, ar)
             if ar > lim["wet_over_dry"]:
-                wod.append(f"{hi.Name} wet over {lo.Name} habitable: {ar:.3f} m2")
+                hit = [g for fp, g in W_ + D_ if fp.intersection(inter).area > 1e-6]
+                wod.add(f"{hi.Name} wet over {lo.Name} habitable: {ar:.3f} m2", *hit, xyz=_on(inter, M.elev[hi.id()]))
     rep.add("wet_over_dry", "error", wod, value=dict(worst_m2=round(worst, 4)),
             note=f"wet room over a habitable room <= {lim['wet_over_dry']} m2 per storey pair")
 
