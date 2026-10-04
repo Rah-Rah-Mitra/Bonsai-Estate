@@ -12,3 +12,6 @@ __pycache__/
 *.pyc
 *.blend1
 *.tmp*
+
+# Claude Code worktrees and local settings
+.claude/

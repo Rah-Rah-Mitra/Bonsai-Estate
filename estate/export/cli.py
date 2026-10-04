@@ -1,13 +1,16 @@
-"""``estate export``: game-engine export of each building (LOD0-2 glb + engine JSON) and the estate manifest.
+"""``estate export``: game-engine export of each building (LOD0-2 glb, per-storey interior chunks, engine JSON) and
+the estate manifest.
 
   estate export                        every model/<ID>/<ID>.ifc that exists (and model/SITE.ifc), then
                                        model/estate_manifest.json
   estate export --only BLK_501 SITE    selected targets
   estate export path/to/x.ifc ...      explicit IFC files, written next to each file (or into --out)
 
-Every glb is re-read with the in-house reader (spec checks); --blender also round-trips them through Blender's
-glTF importer and requires identical object / triangle / DOOR_* counts and bounds within 1 mm. An export also
-fails when a passable door's portal has a side that is neither a room nor outside (engine.portals).
+Every glb, interior chunks included, is re-read with the in-house reader (spec checks); --blender also round-trips
+the LOD files and one interior chunk per building (its largest: the chunks are written by the code that writes
+LOD0, and a block has up to 26 of them) through Blender's glTF importer and requires identical object / triangle /
+DOOR_* counts and bounds within 1 mm. An export also fails when a passable door's portal has a side that is
+neither a room nor outside (engine.portals).
 Estate targets take their spawn points from the masterplan entrances set out on the pedestrian graph
 (manifest.site_spawns); explicit IFC paths derive them from the ground storey, unless --model-dir names a folder
 with masterplan.json, SITE_graph.json and SITE.ifc (a scratch build), whose entrances then apply to the IFC of
@@ -76,13 +79,23 @@ def _line(r):
     bad = "" if r.get("ok") else "".join(
         f"\n      {k}: {len(v)} problem(s), e.g. {v[0]}" for k, v in probs.items() if v)
     tiles = f", {r['tiles']} tiles" if r.get("tiles") else ""
-    return (f"  {label:<18} LOD0/1/2 {tri} tris (LOD0/1 {mb} MB), {r['door_nodes']} doors / "
+    ch = r.get("interior_chunks") or {}
+    chunks = f", {len(ch)} storey chunks ({sum(c['bytes'] for c in ch.values()) / 1e6:.1f} MB)" if ch else ""
+    return (f"  {label:<18} LOD0/1/2 {tri} tris (LOD0/1 {mb} MB){chunks}, {r['door_nodes']} doors / "
             f"{r['door_leaves']} leaves, {r['lifts']} lifts, {r['rooms']} rooms, {r['flats']} flats "
             f"(max {b['max']:,.0f} tris/flat), {r['spawns']} spawns{tiles}, {r['seconds']} s{flag}{bad}")
 
 
 def _glbs(results):
-    return [p for r in results if r.get("files") for p in r["files"].values() if p.endswith(".glb")]
+    """The glbs to round-trip through Blender: every LOD file, and of the interior chunks only the largest of each
+    building (most triangles, the lowest storey on a tie)."""
+    out = []
+    for r in results:
+        files = r.get("files") or {}
+        ch = list((r.get("interior_chunks") or {}).values())
+        one = {max(ch, key=lambda c: c["triangles"])["key"]} if ch else set()     # max keeps the first of equals
+        out += [p for k, p in files.items() if p.endswith(".glb") and (not k.startswith("int_") or k in one)]
+    return out
 
 
 def blender_check(paths) -> bool:
@@ -134,7 +147,9 @@ def cmd_export(a):
 
 def stage_glb(a, cfg, targets, state) -> list:
     """Build stage: export every target whose IFC or spawn points changed (keyed on the IFC sha, the export code
-    and the entrance spawns from the masterplan and pedestrian graph). The caller writes the manifest."""
+    and the entrance spawns from the masterplan and pedestrian graph). Every file the export writes (LOD glbs,
+    interior chunks, engine JSON) is a stage output, so a missing chunk makes the target stale. No Blender round
+    trip runs here (``estate export --blender`` does it). The caller writes the manifest."""
     from estate.export.manifest import site_spawns
     from estate.pipeline import state as st
     todo = []
@@ -152,7 +167,8 @@ def stage_glb(a, cfg, targets, state) -> list:
         print(_line(r).replace(f"  {t.id:<18}", f"  {t.id:<9} glb:", 1))
         if r.get("ok"):
             st.record(state, t.id, "glb", key, [Path(p) for p in r["files"].values()], r["seconds"],
-                      {"lod0_triangles": r["lod0"]["triangles"], "max_tris_per_flat": r["budget"]["max"]})
+                      {"lod0_triangles": r["lod0"]["triangles"], "max_tris_per_flat": r["budget"]["max"],
+                       "interior_chunks": len(r.get("interior_chunks") or {})})
             st.save(state)
         else:
             failed.append(dict(target=t.id, stage="glb", error=r.get("error") or r.get("problems")))
@@ -160,7 +176,8 @@ def stage_glb(a, cfg, targets, state) -> list:
 
 
 def register(sub):
-    p = sub.add_parser("export", help="game-engine export: LOD0-2 glb + engine JSON per building, then the estate manifest")
+    p = sub.add_parser("export", help="game-engine export: LOD0-2 glb, per-storey interior glb chunks + engine JSON "
+                                      "per building, then the estate manifest")
     p.add_argument("paths", nargs="*", help="IFC files to export (default: every model/<ID>/<ID>.ifc that exists)")
     p.add_argument("--only", nargs="*", help="target ids (BLK_501, MSCP_513, NC_514, SITE) or block numbers")
     p.add_argument("--out", help="output folder (default: next to each IFC)")
@@ -169,7 +186,9 @@ def register(sub):
     p.add_argument("--frame", choices=("building", "world"), default="building",
                    help="building: centre the glbs/JSON on the IfcBuilding placement (default); world: IFC coordinates")
     p.add_argument("--jobs", type=int, default=4)
-    p.add_argument("--blender", action="store_true", help="round-trip every glb through Blender's glTF importer")
+    p.add_argument("--blender", action="store_true",
+                   help="round-trip the LOD glbs and the largest interior chunk of each building through Blender's "
+                        "glTF importer")
     p.add_argument("--no-manifest", action="store_true")
     p.add_argument("--verbose", "-v", action="store_true")
     p.set_defaults(fn=cmd_export)

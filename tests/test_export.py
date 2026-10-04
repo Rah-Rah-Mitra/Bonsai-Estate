@@ -1,5 +1,6 @@
 """Engine export tests: glb writer/reader spec checks and mesh instancing, LOD export of the PT4 test block (door
-leaves that swing open about their hinges, resolved portals, shared meshes, LOD1 smaller than LOD0 on disk), the
+leaves that swing open about their hinges, resolved portals, shared meshes, LOD1 smaller than LOD0 on disk), its
+per-storey interior chunks (one per storey, LOD0's storey nodes node for node, deterministic, in the manifest), the
 neighbourhood centre (shutters that roll, instanced hawker furniture, spawns outside the hall), site tiles, local
 frames, spawn points on the pedestrian network and at the bus stops, the manifest against the masterplan, and
 (when Blender is installed) the round trip through Blender's glTF importer."""
@@ -37,6 +38,22 @@ def cube(c=(0.0, 0.0, 0.0), s=1.0):
     for a, b, c2, d in quads:
         out += [[v[a], v[b], v[c2]], [v[a], v[c2], v[d]]]
     return np.array(out)
+
+
+def subtree_triangles(g, i) -> int:
+    """Triangles drawn by node i of a parsed glb and everything under it."""
+    nd = g["nodes"][i]
+    t = sum(g["accessors"][p["indices"]]["count"] // 3 for p in g["meshes"][nd["mesh"]]["primitives"]) \
+        if "mesh" in nd else 0
+    return t + sum(subtree_triangles(g, c) for c in nd.get("children", []))
+
+
+def export_glb_shas(ifc, out, stem) -> dict:
+    """Export ``ifc`` in a spawned interpreter (its own str hash seed) and return {file key: sha256} of its glbs."""
+    from estate.export import meshcache
+    from estate.export.engine import export_building
+    r = export_building(ifc, out, stem, local_matrix="building")
+    return {k: meshcache.sha256(p) for k, p in r["files"].items() if p.endswith(".glb")}
 
 
 class TestGlb(unittest.TestCase):
@@ -146,6 +163,12 @@ class TestGeometryHelpers(unittest.TestCase):
             self.assertTrue((p[:, 1] >= j * 100 - 1e-6).all() and (p[:, 1] <= (j + 1) * 100 + 1e-6).all())
         same, src = split_grid(cube(c=(5.0, 5.0, 0.0)), 100.0)
         self.assertEqual(len(same), 12)
+
+    def test_storey_tag(self):
+        """Interior chunk file tags: storey numbers zero-padded so the files sort bottom up, other names made safe."""
+        from estate.export.engine import storey_tag
+        self.assertEqual([storey_tag(s) for s in ("L1", "L5", "L12", "L05", "RF", "B1 Car park", "")],
+                         ["L01", "L05", "L12", "L05", "RF", "B1_Car_park", "storey"])
 
     def test_octahedron(self):
         from estate.export.engine import octahedron
@@ -345,10 +368,145 @@ class TestEngineExport(unittest.TestCase):
         self.assertLess(s0["meshes"], (s0["door_nodes"] + s0["window_nodes"]) / 10)
         self.assertEqual(s0["triangles"], self.r["lod0"]["triangles"])
 
+    def test_interior_chunks(self):
+        """One chunk per storey, <stem>_int_<tag>.glb (L1 -> L01), listed bottom up in the engine JSON and in the
+        export's files (so the export checks and the build state cover them). Each passes the spec checks and
+        draws its storey's LOD0 subtree: the chunks add up to LOD0 without the lift cars and without any root-level
+        node outside a storey, and hold every LOD0 node but those."""
+        from estate.export.engine import storey_tag
+        ch, storeys = self.info["interior_chunks"], self.info["storeys"]
+        self.assertEqual(list(ch), list(storeys))                  # every storey of t_pt4 has something in it
+        self.assertEqual([c["elevation"] for c in ch.values()], sorted(storeys.values()))
+        g0, _ = glb.read_glb(self.r["files"]["lod0"])
+        s0 = glb.summary(self.r["files"]["lod0"])
+        (root0,) = g0["scenes"][0]["nodes"]
+        per_storey, outside = {}, 0
+        for i in g0["nodes"][root0].get("children", []):
+            st = g0["nodes"][i].get("extras", {}).get("storey")
+            if st in storeys:
+                per_storey[st] = subtree_triangles(g0, i)
+            else:
+                outside += subtree_triangles(g0, i)
+        lifts = sum(t for n, t in s0["per_node"].items() if n.startswith("LIFT_"))
+        self.assertEqual(lifts, outside)                           # t_pt4: lift cars are its only such nodes
+        self.assertGreater(lifts, 0)
+        self.assertEqual(sum(c["triangles"] for c in ch.values()), s0["triangles"] - outside)
+        names = []
+        for s, c in ch.items():
+            tag = storey_tag(s)
+            self.assertEqual(c["file"], f"t_pt4_int_{tag}.glb")
+            path = Path(self.r["files"][f"int_{tag}"])
+            self.assertEqual(path.name, c["file"])
+            self.assertEqual(glb.validate(path), [], s)
+            sm = glb.summary(path)
+            self.assertEqual((sm["triangles"], sm["nodes"], sm["lift_nodes"]), (c["triangles"], c["nodes"], 0), s)
+            self.assertEqual(c["triangles"], per_storey[s], s)
+            self.assertEqual((sm["door_nodes"], sm["door_leaves"]), (c["door_nodes"], c["door_leaves"]), s)
+            self.assertEqual(c["elevation"], storeys[s])
+            self.assertEqual(sm["names"][0], f"t_pt4_int_{tag}")
+            names += sm["names"][1:]
+        self.assertEqual(len(names), len(set(names)))
+        self.assertEqual(sorted(names), sorted(n for n in s0["names"][1:] if not n.startswith("LIFT_")))
+
+    def test_chunks_overlay_lod0(self):
+        """Every chunk node is the LOD0 node of the same name: same world matrix, extras and triangles, so a chunk
+        drawn with the block's manifest transform lies exactly on LOD0 (and LOD1). The chunk root has no transform."""
+        g0, _ = glb.read_glb(self.r["files"]["lod0"])
+        W0, s0 = glb.world_matrices(g0), glb.summary(self.r["files"]["lod0"])
+        index0 = {n["name"]: i for i, n in enumerate(g0["nodes"])}
+        checked = 0
+        for c in self.info["interior_chunks"].values():
+            path = OUT / c["file"]
+            g, _ = glb.read_glb(path)
+            W, sm = glb.world_matrices(g), glb.summary(path)
+            (root,) = g["scenes"][0]["nodes"]
+            self.assertNotIn("matrix", g["nodes"][root])
+            self.assertEqual(g["asset"]["extras"]["storey"], g["nodes"][root]["extras"]["storey"])
+            for i, nd in enumerate(g["nodes"]):
+                if i == root:
+                    continue
+                j = index0[nd["name"]]
+                np.testing.assert_allclose(W[i], W0[j], atol=1e-9, err_msg=nd["name"])
+                self.assertEqual(nd.get("extras"), g0["nodes"][j].get("extras"), nd["name"])
+                self.assertEqual(sm["per_node"].get(nd["name"]), s0["per_node"].get(nd["name"]), nd["name"])
+                checked += 1
+        self.assertGreater(checked, 1000)
+
+    def test_chunk_doors(self):
+        """Chunk L2 holds exactly LOD0's L2 doors (the DOOR_ nodes with extras storey L2), each with its leaf
+        children still on their hinges: a leaf's world origin is its pivot in the engine JSON."""
+        g0, _ = glb.read_glb(self.r["files"]["lod0"])
+        g, _ = glb.read_glb(self.r["files"]["int_L02"])
+        lod0 = {n["name"] for n in g0["nodes"] if n["name"].startswith("DOOR_")
+                and n.get("extras", {}).get("storey") == "L2"}
+        doors = {n["name"] for n in g["nodes"] if n["name"].startswith("DOOR_") and not glb.LEAF_RE.search(n["name"])}
+        self.assertEqual(doors, lod0)
+        self.assertGreater(len(doors), 20)
+        W = glb.world_matrices(g)
+        index = {n["name"]: i for i, n in enumerate(g["nodes"])}
+        checked = 0
+        for d in self.info["doors"]:
+            if d["storey"] != "L2":
+                continue
+            self.assertIn(d["node"], doors)
+            for lf in d["leaves"]:
+                i = index[lf["node"]]
+                self.assertIn(i, g["nodes"][index[d["node"]]]["children"])
+                np.testing.assert_allclose((glb.ZUP @ W[i] @ glb.YUP)[:3, 3], lf["pivot"], atol=2e-3)
+                checked += 1
+        self.assertGreater(checked, 20)
+
+    def test_chunks_deterministic(self):
+        """The same IFC exported again in a fresh interpreter (another str hash seed) gives byte-identical chunks,
+        and the export deletes a chunk of its stem that it no longer writes (a storey removed since)."""
+        from estate.export import meshcache
+        stale = OUT / "again" / "t_pt4_int_L99.glb"
+        stale.parent.mkdir(parents=True, exist_ok=True)
+        stale.write_bytes(b"stale")
+        other = OUT / "again" / "t_pt4_int_L99 copy.glb"       # not a name the export writes: left alone
+        other.write_bytes(b"other")
+        with ProcessPoolExecutor(1, mp_context=multiprocessing.get_context("spawn")) as ex:
+            again = ex.submit(export_glb_shas, T_PT4, OUT / "again", "t_pt4").result()
+        mine = {k: meshcache.sha256(p) for k, p in self.r["files"].items() if p.endswith(".glb")}
+        self.assertEqual(again, mine)
+        self.assertEqual(sum(k.startswith("int_") for k in mine), len(self.info["storeys"]))
+        self.assertFalse(stale.exists())
+        self.assertTrue(other.exists())
+
+    def test_manifest_lists_chunks(self):
+        """The manifest lists a building's chunks (storey, path, sha256, bytes) bottom up, as its engine JSON names
+        them: a chunk file the JSON does not name (left from an older export) stays out."""
+        import shutil
+        from estate import masterplan
+        from estate.export import meshcache
+        from estate.export.manifest import write_manifest
+        ch = self.info["interior_chunks"]
+        with tempfile.TemporaryDirectory() as td:
+            folder = Path(td) / "BLK_501"
+            folder.mkdir()
+            shutil.copy(self.r["files"]["engine"], folder / "BLK_501_engine.json")
+            for c in ch.values():
+                shutil.copy(OUT / c["file"], folder / c["file"])
+            (folder / "t_pt4_int_L99.glb").write_bytes(b"stale")
+            d = json.loads(write_manifest(masterplan.resolve(plans=False), out=Path(td) / "m.json", model_dir=Path(td))
+                           .read_text(encoding="utf-8"))
+        b501 = next(s for s in d["sites"] if s["id"] == "BLK_501")
+        got = b501["files"]["glb_int"]
+        self.assertEqual([c["storey"] for c in got], list(ch))
+        self.assertEqual([c["elevation"] for c in got], sorted(c["elevation"] for c in got))
+        for c in got:
+            src = OUT / ch[c["storey"]]["file"]
+            self.assertEqual(c["path"], f"BLK_501/{src.name}")
+            self.assertEqual((c["sha256"], c["bytes"]), (meshcache.sha256(src), src.stat().st_size))
+        self.assertEqual(b501["files"]["glb_lod0"], {"path": "BLK_501/BLK_501_lod0.glb", "exists": False})
+        self.assertNotIn("glb_int", d["site"]["files"])
+
     @unittest.skipUnless(env.BLENDER_EXE.exists(), "Blender not installed")
     def test_blender_round_trip(self):
+        """The LOD files and one interior chunk (the chunks come from the code that writes LOD0)."""
         from estate.export.engine import blender_roundtrip
-        rep = blender_roundtrip([self.r["files"][k] for k in ("lod0", "lod1", "lod2")])
+        rep = blender_roundtrip([self.r["files"][k] for k in ("lod0", "lod1", "lod2", "int_L02")])
+        self.assertEqual(len(rep), 4)
         for p, r in rep.items():
             self.assertTrue(r["ok"], f"{p}: {r['diffs']}")
 
@@ -435,6 +593,8 @@ class TestSiteTiles(unittest.TestCase):
     def test_tiles(self):
         from estate.export.engine import TILE
         self.assertNotIn("lod2", self.r["files"])
+        self.assertFalse([k for k in self.r["files"] if k.startswith("int_")])   # no storeys: no interior chunks
+        self.assertEqual(self.info["interior_chunks"], {})
         s0 = glb.summary(self.r["files"]["lod0"])
         tiles = self.info["tiles"]
         self.assertGreater(len(tiles), 4)
@@ -604,6 +764,11 @@ class TestFreshCentre(unittest.TestCase):
         self.assertEqual(s0["triangles"], self.r["lod0"]["triangles"])
         self.assertLess(Path(self.r["files"]["lod0"]).stat().st_size, 2.5e6)
         assert_lod1_smaller(self, self.r)
+        ch = self.info["interior_chunks"]                     # the hall's furniture streams with its storey
+        self.assertEqual(sum(c["furniture_nodes"] for c in ch.values()), s0["furniture_nodes"])
+        self.assertEqual(sum(c["door_leaves"] for c in ch.values()), s0["door_leaves"])
+        for c in ch.values():
+            self.assertEqual(glb.validate(OUT / c["file"]), [], c["file"])
 
     def test_spawns_outside_the_hall(self):
         rooms = {r["name"]: r for r in self.info["rooms"]}
@@ -658,8 +823,10 @@ class TestManifest(unittest.TestCase):
         b501 = next(s for s in d["sites"] if s["id"] == "BLK_501")
         np.testing.assert_allclose(b501["transform"], config.placement_matrix(b501["at"], b501["rot"]))
         self.assertEqual(b501["files"]["glb_lod0"], {"path": "BLK_501/BLK_501_lod0.glb", "exists": False})
+        self.assertEqual(b501["files"]["glb_int"], [])                # no engine JSON: no chunks known
         self.assertIsNone(d["pedestrian_graph"])
         self.assertNotIn("glb_lod2", d["site"]["files"])
+        self.assertNotIn("glb_int", d["site"]["files"])
         self.assertTrue(all(s["approximate"] for s in d["sites"] if s["kind"] == "block"))
         self.assertTrue(any("approximate" in w for w in d["warnings"]))
 

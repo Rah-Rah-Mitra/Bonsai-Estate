@@ -20,8 +20,15 @@
                       L1DOOR_ / L1WIN_<name>_<guid> each under <stem>_openings, one shared mesh per type, so the
                       file stays smaller than LOD0 although it draws fewer triangles.
   <stem>_lod2.glb     massing: the slab footprint extruded to the roof parapet, plus boxes for roof structures.
+  <stem>_int_<tag>.glb  one interior chunk per storey (tag: L5 -> L05, RF -> RF; storey_tag) for engines that
+                      stream interiors floor by floor: exactly that storey's LOD0 nodes (the <storey>_static batch
+                      and its DOOR_ with frame and leaves, WIN_ and FURN_ children: same names, meshes and matrices)
+                      under a root <stem>_int_<tag>, written by the code that writes them into LOD0, in the same
+                      block-local frame, so a chunk overlays LOD0 / LOD1 with the same transform. Lift cars span
+                      every storey and stay in LOD0 only; the site group gets no chunk, nor does a site-only file.
   <stem>_engine.json  what gameplay needs that geometry does not carry: doors (with their leaves), lifts, rooms,
-                      flats, portals, spawn points, climbable edges, verified agent and the per-flat triangle budget.
+                      flats, portals, spawn points, climbable edges, verified agent, the per-flat triangle budget
+                      and the interior chunks (file, elevation, triangle and node counts per storey).
 
 A site-only file (SITE.ifc: no storeys) is cut into TILE x TILE m tiles so engines can cull and stream it: each tile
 node SITE_<i>_<j> holds a ground, a structures (linkways, shelters) and a furniture mesh, with every tree an
@@ -34,6 +41,7 @@ the estate. JSON coordinates are IFC-style (metres, Z up); the glbs are glTF Y u
 """
 from __future__ import annotations
 
+import glob
 import hashlib
 import json
 import re
@@ -71,6 +79,7 @@ OUTSIDE = ("outside", "@out")                # Navigation From/ToSpace values fo
 LEAF_TOL = 0.005                             # leaf items sit strictly inside the jambs and above the threshold
 FURNITURE = ("IfcFurniture", "IfcFurnishingElement", "IfcSystemFurnitureElement")    # instanced in LOD0 when repeated
 ENTRANCE_LABELS = ("Void deck entrance", "Entrance")    # spawn name prefixes; 'Interior' when it stands in a room
+CHUNK_COUNTS = ("door_nodes", "door_leaves", "window_nodes", "furniture_nodes")    # per chunk in the engine JSON
 
 
 def safe(s, n=60):
@@ -107,6 +116,13 @@ def tree_node_name(name, guid):
 
 def furniture_node_name(name, guid):
     return f"FURN_{safe(name, 34)}_{guid}"
+
+
+def storey_tag(name):
+    """File-name tag of a storey's interior chunk: L<n> with the number zero-padded to two digits (L5 -> L05, so a
+    folder listing runs bottom up: L01 .. L25, then RF), RF and any other storey name through safe()."""
+    m = re.fullmatch(r"L(\d+)", name or "")
+    return f"L{int(m.group(1)):02d}" if m else (safe(name) or "storey")
 
 
 def xf(M, v):
@@ -400,7 +416,7 @@ class BuildingExport:
                           if self.meshes.get(sp.GlobalId, {}).get("storey") == self.lowest)
         self.keep_all_walls_on = {self.top} | ({self.lowest} if open_ground else set())
         self.materials = _Materials()
-        self._items, self._door_specs = {}, {}
+        self._items, self._door_specs, self._parts = {}, {}, {}
         self.door_leaves, self.tiles = {}, []
 
     # ---- classification
@@ -513,6 +529,29 @@ class BuildingExport:
             stats.update(door_nodes=0, door_leaves=0, window_nodes=0, lift_nodes=0, furniture_nodes=0,
                          tree_nodes=n_trees, tiles=len(self.tiles))
             return stats, {}, {}, self._flat_budget([], {}, [], {})
+        parts = self._lod0_parts(include_site)
+        storey_node, kept_static, door_nodes, kept_nodes = self._emit_storeys(W, root, parts, shared)
+        lift_nodes = {}
+        for g in parts["lifts"]:                  # one car spans every storey it serves: LOD0 only, under the root
+            d, el = self.meshes[g], self.ent[g]
+            nm = lift_node_name(el.Name, g)
+            self._element_node(W, d, self.placement(el), nm, root, {"guid": g, "ifc_class": d["cls"]})
+            lift_nodes[g] = nm
+        stats = W.write(path, stem)
+        stats.update(door_nodes=len(door_nodes), door_leaves=sum(len(v) for v in self.door_leaves.values()),
+                     window_nodes=len(parts["windows"]), lift_nodes=len(lift_nodes),
+                     furniture_nodes=len(parts["furniture"]))
+        budget = self._flat_budget(rooms, kept_static, parts["elems"], kept_nodes)
+        return stats, door_nodes, lift_nodes, budget
+
+    def _lod0_parts(self, include_site=True) -> dict:
+        """What LOD0 draws, sorted once for LOD0 and the interior chunks (cached per include_site): the door,
+        window, lift and instanced furniture guids (in meshes order, which fixes the node order), one static _Batch
+        per storey group (its element ids index ``elems``, for the flat budget), the groups in draw order (storeys
+        bottom up, then SITE) and each group's static node name (made unique over the whole file, so a chunk names
+        its storey node exactly as LOD0 does)."""
+        if include_site in self._parts:
+            return self._parts[include_site]
         doors = [g for g, d in self.meshes.items() if d["cls"] == "IfcDoor"]
         windows = [g for g, d in self.meshes.items() if d["cls"] == "IfcWindow"]
         lifts = [g for g, d in self.meshes.items() if d["cls"] == "IfcTransportElement"]
@@ -531,30 +570,48 @@ class BuildingExport:
         placed = {self.meshes[g]["storey"] for g in doors + windows + furniture}
         order = [s for s in self.storey_order if s in groups or s in placed]
         order += ["SITE"] if "SITE" in groups else []
-        storey_node, kept_static, used = {}, {}, set()
+        static_name, used = {}, set()
         for grp in order:
             nm = f"{safe(grp)}_static"
             while nm in used:
                 nm += "_"
             used.add(nm)
-            if grp in groups:
-                storey_node[grp], kept_static[grp] = groups[grp].emit(W, nm, self.materials, parent=root,
-                                                                     extras={"storey": grp})
+            static_name[grp] = nm
+        self._parts[include_site] = dict(doors=doors, windows=windows, lifts=lifts, furniture=furniture,
+                                         groups=groups, elems=elems, order=order, static_name=static_name)
+        return self._parts[include_site]
+
+    def _emit_storeys(self, W, root, parts, shared, storey=None):
+        """The storey body of LOD0, under ``root``: for each storey group its <storey>_static node (the static
+        batch, extras storey) and under it the storey's DOOR_ (frame + leaves pivoting on the hinge), WIN_ and
+        FURN_ nodes. Without ``storey`` it writes every group and every door, window and furniture node (LOD0: one
+        whose storey has no node hangs from root); with ``storey`` only that group and its elements (an interior
+        chunk). Nodes are made in LOD0's order (all statics, then doors, windows, furniture) whichever caller
+        writes them, which keeps LOD0 byte-identical. ``shared`` is the per-file mesh reuse dict. Returns (storey
+        nodes, kept static triangles, door node names, kept element triangles) for the flat budget."""
+        grps = parts["order"] if storey is None else [storey]
+        mine = (lambda g: True) if storey is None else (lambda g: self._group(g) == storey)  # noqa: E731
+        storey_node, kept_static = {}, {}
+        for grp in grps:
+            nm = parts["static_name"][grp]
+            if grp in parts["groups"]:
+                storey_node[grp], kept_static[grp] = parts["groups"][grp].emit(W, nm, self.materials, parent=root,
+                                                                              extras={"storey": grp})
             else:
                 storey_node[grp], kept_static[grp] = W.node(nm, parent=root, extras={"storey": grp}), []
         door_nodes, kept_nodes = {}, {}
-        for g in doors:
+        for g in filter(mine, parts["doors"]):
             nm = door_node_name(self.ent[g].Name, g)
             kept_nodes[g] = self._door_node(W, g, nm, storey_node.get(self.meshes[g]["storey"], root), shared)
             door_nodes[g] = nm
-        for g in windows:
+        for g in filter(mine, parts["windows"]):
             d, el = self.meshes[g], self.ent[g]
             t = uel.get_type(el)
             kept_nodes[g] = self._element_node(W, d, self.placement(el), window_node_name(el.Name, g),
                                                storey_node.get(d["storey"], root),
                                                {"guid": g, "ifc_class": "IfcWindow", "storey": d["storey"]}, shared,
                                                safe(t.Name, 50) if t is not None and t.Name else None)[1]
-        for g in furniture:
+        for g in filter(mine, parts["furniture"]):
             d, el = self.meshes[g], self.ent[g]
             t = uel.get_type(el)
             extras = {"guid": g, "ifc_class": d["cls"], "storey": d["storey"]}
@@ -563,17 +620,37 @@ class BuildingExport:
             kept_nodes[g] = self._element_node(W, d, self.placement(el), furniture_node_name(el.Name, g),
                                                storey_node.get(self._group(g), root), extras, shared,
                                                safe(t.Name, 50) if t is not None and t.Name else None)[1]
-        lift_nodes = {}
-        for g in lifts:
-            d, el = self.meshes[g], self.ent[g]
-            nm = lift_node_name(el.Name, g)
-            self._element_node(W, d, self.placement(el), nm, root, {"guid": g, "ifc_class": d["cls"]})
-            lift_nodes[g] = nm
-        stats = W.write(path, stem)
-        stats.update(door_nodes=len(door_nodes), door_leaves=sum(len(v) for v in self.door_leaves.values()),
-                     window_nodes=len(windows), lift_nodes=len(lift_nodes), furniture_nodes=len(furniture))
-        budget = self._flat_budget(rooms, kept_static, elems, kept_nodes)
-        return stats, door_nodes, lift_nodes, budget
+        return storey_node, kept_static, door_nodes, kept_nodes
+
+    # ---- interior chunks
+    def interior_chunks(self, out_dir, stem, include_site=True) -> dict:
+        """One glb per storey for engines that stream interiors floor by floor: <stem>_int_<tag>.glb (storey_tag)
+        with exactly the storey's LOD0 nodes, written by _emit_storeys (as LOD0 writes them) under a root
+        <stem>_int_<tag> without a transform, so the chunk sits in LOD0's block-local Y-up frame and overlays LOD0 /
+        LOD1 under the same manifest transform. Lift cars and the site group stay in LOD0 only; a site-only file
+        has no chunks. Door leaves are recorded again exactly as LOD0 recorded them (self.door_leaves).
+        Returns {storey: glb stats + node counts, path, tag, elevation}, bottom up."""
+        if not self.has_storeys:
+            return {}
+        parts = self._lod0_parts(include_site)
+        out, used = {}, set()
+        for grp in parts["order"]:
+            if grp not in self.storeys:
+                continue
+            tag = storey_tag(grp)
+            while tag in used:                    # 'L5' and 'L05' in one file: keep both
+                tag += "_"
+            used.add(tag)
+            name, z = f"{stem}_int_{tag}", self.storeys[grp]
+            W = glb.GlbWriter(extras={"frame": "block-local, glTF Y up", "source": self.path.name, "lod": 0,
+                                      "chunk": "interior", "storey": grp, "elevation": z})
+            root = W.node(name, extras={"storey": grp, "elevation": z})
+            self._emit_storeys(W, root, parts, {}, storey=grp)
+            path = Path(out_dir) / f"{name}.glb"
+            stats = W.write(path, name)
+            stats.update(glb.node_counts(n["name"] for n in W.nodes))
+            out[grp] = dict(stats, path=path, tag=tag, elevation=z)
+        return out
 
     def _group(self, g):
         """The LOD0 storey group of an element: its storey, or SITE for elements outside every storey."""
@@ -1363,7 +1440,10 @@ def agent_settings():
 # ----------------------------------------------------------------------------- entry point
 def export_building(ifc_path, out_dir=None, stem=None, local_matrix=None, spawns=None, include_site=True,
                     num_threads=None, cache=True, entrances=None, site_kind=None) -> dict:
-    """Write <stem>_lod0/1/2.glb and <stem>_engine.json for one building IFC; returns a report dict.
+    """Write <stem>_lod0/1/2.glb, the interior chunks <stem>_int_<tag>.glb and <stem>_engine.json for one building
+    IFC; returns a report dict whose ``files`` holds every output (chunks under int_<tag>), so the export checks,
+    the build state and its freshness test cover the chunks too. Chunk files of this stem that the export no
+    longer writes (a storey removed) are deleted.
 
     local_matrix: 4x4 estate -> block-local (inverse of the building placement), "building" to read it from the
     IfcBuilding placement, or None to keep IFC world coordinates. spawns: optional [(x, y[, z])] in the local
@@ -1383,6 +1463,14 @@ def export_building(ifc_path, out_dir=None, stem=None, local_matrix=None, spawns
     rooms = X.rooms()
     stats = {}
     stats["lod0"], door_nodes, lift_nodes, budget = X.lod0(files["lod0"], stem, rooms, include_site)
+    chunks = X.interior_chunks(out_dir, stem, include_site)
+    X._parts.clear()                          # the static batches: not needed past LOD0 and the chunks
+    for c in chunks.values():
+        files[f"int_{c['tag']}"] = c["path"]
+    mine, keep = re.compile(rf"{re.escape(stem)}_int_[A-Za-z0-9_\-]+\.glb"), {c["path"].name for c in chunks.values()}
+    for p in sorted(out_dir.glob(f"{glob.escape(stem)}_int_*.glb")):
+        if mine.fullmatch(p.name) and p.name not in keep:
+            p.unlink()                        # a chunk of a storey this IFC no longer has
     stats["lod1"] = X.lod1(files["lod1"], stem)
     parts, z0, body, towers = [], 0.0, 0.0, []
     if "lod2" in files:
@@ -1416,6 +1504,9 @@ def export_building(ifc_path, out_dir=None, stem=None, local_matrix=None, spawns
         transform=mat_list(X.T), bounds_local=[r3(lo), r3(hi)],
         bounds_estate=[r3(ce.min(0)), r3(ce.max(0))],
         glb=stats,
+        interior_chunks={s: dict(file=c["path"].name, elevation=c["elevation"], triangles=c["triangles"],
+                                 nodes=c["nodes"], **{k: c[k] for k in CHUNK_COUNTS}, bytes=c["bytes"],
+                                 sha256=_sha(c["path"])) for s, c in chunks.items()},
         spawn=sp[0] if sp else None, spawns=sp, verified_agent=agent_settings(),
         storeys=X.storeys, doors=doors, lifts=lifts, rooms=rooms, flats=flats, zones=zones, portals=portals,
         climbable_edges=climb, budget=budget, problems=problems,
@@ -1428,7 +1519,9 @@ def export_building(ifc_path, out_dir=None, stem=None, local_matrix=None, spawns
     tmp.write_text(json.dumps(info, indent=1), encoding="utf-8")
     tmp.replace(files["engine"])
     return dict(stem=stem, ifc=str(ifc_path), files={k: str(v) for k, v in files.items()},
-                **stats, doors=len(doors), door_nodes=len(door_nodes), lift_nodes=len(lift_nodes),
+                **stats, interior_chunks={s: dict(key=f"int_{c['tag']}", triangles=c["triangles"], bytes=c["bytes"])
+                                          for s, c in chunks.items()},
+                doors=len(doors), door_nodes=len(door_nodes), lift_nodes=len(lift_nodes),
                 door_leaves=stats["lod0"]["door_leaves"], lifts=len(lifts), rooms=len(rooms), flats=len(flats),
                 portals=len(portals), climbable=len(climb), spawns=len(sp), tiles=len(X.tiles), problems=problems,
                 budget={k: budget[k] for k in ("limit", "flats", "max", "mean", "min", "over_budget")},

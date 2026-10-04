@@ -3,9 +3,9 @@
 The glbs and engine JSONs are block-local (see engine.py); this file carries what an importer needs to assemble the
 neighbourhood: the CRS / georeference, every site with its block -> estate transform, bounds, real lift lobbies and
 entrances (the masterplan resolved with block planning) and the relative paths (+ sha256) of its IFC, IFC4 copy,
-.blend, LOD glbs and engine JSON, the roads, the pedestrian graph written by the site work (model/SITE_graph.json,
-embedded when present), bus stops and spawn points. All coordinates are estate metres (origin at the south-west
-corner, +x east, +y north, Z up).
+.blend, LOD glbs, per-storey interior chunks (``glb_int``, bottom up) and engine JSON, the roads, the pedestrian
+graph written by the site work (model/SITE_graph.json, embedded when present), bus stops and spawn points. All
+coordinates are estate metres (origin at the south-west corner, +x east, +y north, Z up).
 
 Spawn points stand on the pedestrian network: ``entrance_spawns`` sets each one out from a masterplan entrance
 along the outdoor path that leaves it for the network (footpaths and linkways, not the indoor or void-deck routes
@@ -68,12 +68,22 @@ def _rings(poly):
     return parts[0] if len(parts) == 1 else parts
 
 
-def site_files(folder: Path, stem: str, base: Path, lods=(0, 1, 2)) -> dict:
-    """Files of one site; the external works (SITE) have no LOD2 (engine.py: no massing for a site-only file)."""
+def site_files(folder: Path, stem: str, base: Path, lods=(0, 1, 2), interiors=True,
+               engine: dict | None = None) -> dict:
+    """Files of one site; the external works (SITE) have no LOD2 (engine.py: no massing for a site-only file) and
+    no interior chunks (``interiors`` False). ``glb_int`` lists a building's per-storey interior chunks
+    [{storey, elevation, path, sha256, bytes}] bottom up, as its engine JSON names them (``engine``, the parsed
+    <stem>_engine.json, read here when not given): the JSON is written with the chunks, so a chunk file left from
+    an older export is never listed. Empty without an engine JSON."""
     out = {"ifc": _file(folder / f"{stem}.ifc", base), "ifc4": _file(folder / f"{stem}_ifc4.ifc", base),
            "blend": _file(folder / f"{stem}.blend", base)}
     out.update({f"glb_lod{k}": _file(folder / f"{stem}_lod{k}.glb", base) for k in lods})
     out["engine"] = _file(folder / f"{stem}_engine.json", base)
+    if interiors:
+        eng = engine if engine is not None else _load(folder / f"{stem}_engine.json")
+        chunks = sorted((eng or {}).get("interior_chunks", {}).items(), key=lambda kv: kv[1]["elevation"])
+        out["glb_int"] = [dict(storey=s, elevation=c["elevation"], **_file(folder / c["file"], base))
+                          for s, c in chunks]
     return out
 
 
@@ -356,11 +366,10 @@ def write_manifest(mp: dict | None = None, out=None, model_dir=None) -> Path:
         if s.approximate:
             warnings.append(f"{s.id}: not planned; approximate footprint, lift lobbies and entrances")
         folder = model_dir / s.id
-        files = site_files(folder, s.id, base)
+        eng = _load(folder / f"{s.id}_engine.json")
+        files = site_files(folder, s.id, base, engine=eng)
         M = config.placement_matrix(s.at, s.rot)
         src = "config"
-        eng_path = folder / f"{s.id}_engine.json"
-        eng = json.loads(eng_path.read_text(encoding="utf-8")) if eng_path.exists() else None
         fp = _rings(s.footprint)
         b = s.footprint.bounds
         bounds = [[round(b[0], 3), round(b[1], 3), 0.0], [round(b[2], 3), round(b[3], 3), round(float(s.height), 3)]]
@@ -391,7 +400,7 @@ def write_manifest(mp: dict | None = None, out=None, model_dir=None) -> Path:
                           transform=_mat(M), transform_source=src, **extra, bounds=bounds, footprint=fp,
                           lift_lobbies=[list(p) for p in s.lift_lobbies], entrances=[list(p) for p in s.entrances],
                           files=files))
-    estate_files = dict(site_files(model_dir, "SITE", base, lods=(0, 1)),
+    estate_files = dict(site_files(model_dir, "SITE", base, lods=(0, 1), interiors=False),
                         estate_blend=_file(model_dir / "ESTATE.blend", base),
                         masterplan=_file(model_dir / "masterplan.json", base))
     site_eng = _load(model_dir / "SITE_engine.json")
