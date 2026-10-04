@@ -38,6 +38,7 @@ from estate import config, env, guids
 from estate.blocks.builder import derive
 from estate.blocks.plate import LIFT, LOBBY, OUT, PLANT, REFUSE, STAIR, VOID, DoorSpec, Face, Plate
 from estate.geom.walls import Opening, WallSpec, frame, translate
+from estate.ifc.joins import joined_ends, plate_joins, run_axis, segment_joins
 from estate.ifc.stairs import flight_run, stair
 from estate.ifc.vegetation import tree_types
 from estate.ifc.writer import IfcWriter
@@ -85,25 +86,28 @@ def plate_walls(W, dp, z, wall_h, storey, prefix, space_of=None):
     are named '<prefix> <TYPE> <left face>|<right face>' and keyed by their end points for stable GlobalIds).
     space_of(face id, probe xy) names the IfcSpace on each side of a door for its Navigation FromSpace / ToSpace;
     the probe is a point 0.3 m into that side, so faces without a space of their own (OUT, open walkways) can be
-    resolved against the spaces around them."""
+    resolved against the spaces around them. The walls are joined as the residential blocks' (ifc/joins.py)."""
+    def height(r):
+        if r.height == "storey":
+            return wall_h
+        return PARAPET_H if r.height == "parapet" else TOWER_H.get(r.meta.get("core_kind"), 3.0)
+
     ops_by_run = {}
     for o in dp.openings:
         ops_by_run.setdefault(o.run, []).append(o)
-    built = []
+    wall_joins = plate_joins(dp.runs, height)
+    joined = joined_ends(wall_joins)
+    built, walls_by_run = [], {}
     for r in dp.runs:
         if not r.wall or r.wall == "RAILING":
             continue
-        if r.height == "storey":
-            h = wall_h
-        elif r.height == "parapet":
-            h = PARAPET_H
-        else:
-            h = TOWER_H.get(r.meta.get("core_kind"), 3.0)
+        h = height(r)
         u = r.u
         w = WallSpec(np.asarray(r.p0, float) - u * r.ext0, u, r.length + r.ext0 + r.ext1, r.t, -r.t / 2, z, h,
                      f"{prefix} {r.wall} {r.left}|{r.right}", r.wall, r.external, storey, r.climbable,
                      faces=(r.left, r.right),
-                     meta={"key": f"{prefix}/{r.wall}/{r.p0[0]:.3f},{r.p0[1]:.3f}/{r.p1[0]:.3f},{r.p1[1]:.3f}"})
+                     meta={"key": f"{prefix}/{r.wall}/{r.p0[0]:.3f},{r.p0[1]:.3f}/{r.p1[0]:.3f},{r.p1[1]:.3f}",
+                           "axis": run_axis(r, joined)})
         n = np.array([-u[1], u[0]])                    # left of p0 -> p1
         for o in sorted(ops_by_run.get(r.idx, []), key=lambda o: o.s0):
             meta = dict(o.meta, hinge=o.hinge)
@@ -116,6 +120,8 @@ def plate_walls(W, dp, z, wall_h, storey, prefix, space_of=None):
             w.openings.append(Opening(o.s0 + r.ext0, o.s1 + r.ext0, o.sill, o.height, o.kind, f"{prefix} {o.name}",
                                       o.door_kind, o.swing, meta))
         built.append(W.build_wall(w))
+        walls_by_run[r.idx] = built[-1][0]
+    W.connect_walls(walls_by_run, wall_joins)
     return built
 
 
@@ -160,13 +166,27 @@ def publish(info: dict, out_path: Path):
         json.dumps(info, indent=1, default=str), encoding="utf-8")
 
 
-def straight_wall(W, p, q, z, h, storey, name, type_key="PARAPET", external=True, climbable=None):
-    """A centred wall from p to q (2D points)."""
+def straight_wall(W, p, q, z, h, storey, name, type_key="PARAPET", external=True, climbable=None, defer=None):
+    """A centred wall from p to q (2D points). With a `defer` list the WallSpec is collected there for
+    build_joined instead of being built."""
     p, q = np.asarray(p, float), np.asarray(q, float)
     L = float(np.linalg.norm(q - p))
     t = WALL_TYPES[type_key][1]
     climbable = (type_key == "PARAPET") if climbable is None else climbable
-    return W.build_wall(WallSpec(p, (q - p) / L, L, t, -t / 2, z, h, name, type_key, external, storey, climbable))
+    w = WallSpec(p, (q - p) / L, L, t, -t / 2, z, h, name, type_key, external, storey, climbable)
+    if defer is not None:
+        defer.append(w)
+        return w
+    return W.build_wall(w)
+
+
+def build_joined(W, specs):
+    """Build free-standing walls collected by straight_wall / perimeter(defer=...) and join those that meet
+    (perimeter corners, walls butting into a parapet): ifc/joins.segment_joins sets their reference lines."""
+    wall_joins = segment_joins(specs)
+    built = [W.build_wall(w) for w in specs]
+    W.connect_walls({i: b[0] for i, b in enumerate(built)}, wall_joins)
+    return built
 
 
 def side_segments(a, b, skips):
@@ -186,9 +206,9 @@ def side_segments(a, b, skips):
     return [(c, d) for c, d in segs if d - c > 0.05]
 
 
-def perimeter(W, rect, z, h, storey, name, skips=None, type_key="PARAPET"):
+def perimeter(W, rect, z, h, storey, name, skips=None, type_key="PARAPET", defer=None):
     """Walls centred on the edges of rect (centreline box x0, y0, x1, y1); skips = {side: [(a, b)]} along the
-    side's axis (x for S/N, y for W/E). South/north sides run through the corners."""
+    side's axis (x for S/N, y for W/E). South/north sides run through the corners. `defer` as straight_wall."""
     x0, y0, x1, y1 = rect
     t2 = WALL_TYPES[type_key][1] / 2
     skips = skips or {}
@@ -199,7 +219,7 @@ def perimeter(W, rect, z, h, storey, name, skips=None, type_key="PARAPET"):
                              ("E", (y0 + t2, y1 - t2), lambda c, d: ((x1, c), (x1, d)))):
         for k, (c, d) in enumerate(side_segments(a, b, skips.get(side, []))):
             p, q = mk(c, d)
-            out.append(straight_wall(W, p, q, z, h, storey, f"{name} {side}{k + 1}", type_key))
+            out.append(straight_wall(W, p, q, z, h, storey, f"{name} {side}{k + 1}", type_key, defer=defer))
     return out
 
 
@@ -743,16 +763,21 @@ def build_mscp_ifc(cfg: dict | None = None, out_path=None, schema: str = "IFC4X3
                 skips.update({"N": [(-rx, rx)], "E": [(core["SWITCH"].bounds[1], core["LIFT2"].bounds[3])]})
                 if li == 0:          # the stair 3 bay (pedestrian exit) and the vehicle gate open on to the street
                     skips["S"] += [(s3[2] + 0.1, lay["s_row_from"]), lay["entrance_v"]]
-            perimeter(W, (-hx + 0.1, -hy + 0.1, hx - 0.1, hy - 0.1), z, PARAPET_H, st, f"{nm} parapet", skips)
+            loose = []
+            perimeter(W, (-hx + 0.1, -hy + 0.1, hx - 0.1, hy - 0.1), z, PARAPET_H, st, f"{nm} parapet", skips,
+                      defer=loose)
             if not roof:
                 # ramp lane walls (full storey height) and landing-edge parapets where a lane is not connected
                 for y, nmw in ((w1, "lane A south wall"), (w2, "ramp lane spine wall"), (w3, "lane B north wall")):
-                    straight_wall(W, (-rx, y), (rx, y), z, wall_h, st, f"{nm} {nmw}", "EXT", climbable=False)
+                    straight_wall(W, (-rx, y), (rx, y), z, wall_h, st, f"{nm} {nmw}", "EXT", climbable=False,
+                                  defer=loose)
                 for lane, (ya, yb) in sorted(lay["lanes"].items()):
                     for end, x in (("W", -rx - 0.1), ("E", rx + 0.1)):
                         if not lane_connected(lane, end, li, rps):
                             straight_wall(W, (x, ya - 0.2), (x, yb + 0.2), z, PARAPET_H, st,
-                                          f"{nm} landing parapet lane {lane} {end}")
+                                          f"{nm} landing parapet lane {lane} {end}", defer=loose)
+            build_joined(W, loose)
+            if not roof:
                 # columns
                 for k, (x, y, dx, dy) in enumerate(cols, 1):
                     column(W, x, y, z, wall_h, dx, dy, st, f"{nm} column C{k:02d}")

@@ -68,7 +68,7 @@ UNITS = {"101": (-1, 1), "103": (1, 1), "105": (1, -1), "107": (-1, -1)}
 def build_legacy(storeys=12, schema="IFC4X3", seed=1, georef=None):
     """Return (writer, names, ffl) for the legacy point block, exactly as hdb_block.py built it."""
     W = IfcWriter(schema=schema, project_name="HDB Point Block Demo", site_name="Demo Site", georef=georef,
-                  guid_key=f"legacy/{storeys}/{schema}/{seed}", author=("",))
+                  guid_key=f"legacy/{storeys}/{schema}/{seed}", author=("",), parametric=False)   # the baseline as built
     rng = random.Random(seed)
     m = W.m
     n_res = storeys - 1

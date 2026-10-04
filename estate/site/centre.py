@@ -40,9 +40,9 @@ from estate.blocks.plate import (AMENITY, CORRIDOR, LIFT, LOBBY, OUT, PLANT, ROO
 from estate.geom.walls import translate
 from estate.ifc.stairs import stair
 from estate.rules import DOOR_H, DOOR_KINDS, PARAPET_H, SLAB
-from estate.site.mscp import (column, count_elements, derived, element_type, ensure_material, heal_entity_hash,
-                              lift_car, new_writer, perimeter, place_typed, plate_walls, publish, slabs, solid_box,
-                              space_lookup, style_door_types, to_estate, unshare_representations)
+from estate.site.mscp import (build_joined, column, count_elements, derived, element_type, ensure_material,
+                              heal_entity_hash, lift_car, new_writer, perimeter, place_typed, plate_walls, publish,
+                              slabs, solid_box, space_lookup, style_door_types, to_estate, unshare_representations)
 
 STALL = 3.0                     # stall module (wall centrelines)
 STALL_H = 3.0                   # stall / toilet wall height (own roof slab on top)
@@ -91,16 +91,18 @@ def shutter_type(W, width, height):
 
 def glazed_door_type(W, kind, width, height):
     """Glazed aluminium door: ifcopenshell's door representation with the leaves (items taller than half the door
-    and narrower than the lining) styled as glass, the lining, casings and threshold as the aluminium frame."""
-    rep = geometry.add_door_representation(W.m, context=W.body, overall_height=height, overall_width=width,
-                                           operation_type=DOOR_KINDS[kind][0])
+    and narrower than the lining) styled as glass, the lining, casings and threshold as the aluminium frame. Built
+    from its BBIM_Door data like the writer's own door types, so Bonsai's door tool can edit it."""
+    rep, data = W.door_representation(DOOR_KINDS[kind][0], width, height)
     ensure_material(W, "frame")
     s = ifcopenshell.geom.settings()
     for it in rep.Items:
         v = np.array(ifcopenshell.geom.create_shape(s, it).verts).reshape(-1, 3)
         leaf = 0.3 < np.ptp(v[:, 0]) < width - 0.04 and np.ptp(v[:, 2]) > height / 2
         W.m.createIfcStyledItem(it, [W.mat["glass" if leaf else "frame"][1]], None)
-    return _door_type(W, kind, width, height, rep, "frame", "Glazed shop door")
+    t = _door_type(W, kind, width, height, rep, "frame", "Glazed shop door")
+    W.bbim_pset(t, "BBIM_Door", data)
+    return t
 
 
 def own_door_types(W, plate):
@@ -445,7 +447,9 @@ def _build_shops(W, cfg, sl, storeys, ffl, zones_out, names, around):
     # roof
     rf, zr = storeys[-1], ffl[-1]
     W.slab(box(x0 - 0.1, y0 - 0.1, x1 + 0.1, y1 + 0.1), zr, "Shop block roof", rf, "ROOF", "roof")
-    perimeter(W, (x0, y0, x1, y1), zr, PARAPET_H, rf, "RF shop block roof parapet")
+    parapets = []
+    perimeter(W, (x0, y0, x1, y1), zr, PARAPET_H, rf, "RF shop block roof parapet", defer=parapets)
+    build_joined(W, parapets)                     # four L corners
     zones_out.append(W.zone("Shop block common areas", "Shop block walkway, corridor, lobbies and stairs", common,
                             {"Use": "Circulation"}, pset_name="SampleCity_Zone"))
     return dict(shops=shops)

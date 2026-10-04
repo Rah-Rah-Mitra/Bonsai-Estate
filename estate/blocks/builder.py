@@ -23,6 +23,7 @@ from estate.blocks.plate import (AMENITY, BALCONY, CORE_KINDS, CORRIDOR, DECK, L
 from estate.geom.arrangement import Run, finish_runs, merge_collinear, runs_from_faces, wall_footprint
 from estate.flats.template import flat_ifa
 from estate.geom.walls import Opening, WallSpec, frame, rotate_z, translate
+from estate.ifc.joins import joined_ends, plate_joins as wall_joins, run_axis
 from estate.ifc.stairs import flight_run, stair
 from estate.rules import (DOOR_H, FTF, PARAPET_H, RAILING_H, SLAB, VOID_DECK_FTF, WALL_TYPES)
 
@@ -265,12 +266,24 @@ def plan_errors(dp: dict) -> list:
 
 
 # ----------------------------------------------------------------------------- IFC instantiation
-def _wallspec(r: Run, z, h, storey, name, openings):
+def wall_height(r: Run, sh):
+    """Height of a run's wall on a storey of floor-to-floor height sh (None on the roof, which has no storey-high
+    walls)."""
+    if r.height == "storey":
+        return sh - SLAB
+    if r.height == "parapet":
+        return PARAPET_H
+    return TOWER_H.get(r.meta.get("core_kind"), 3.0)
+
+
+def _wallspec(r: Run, z, h, storey, name, openings, joined=None):
+    """Centred wall of a run: the body includes the end extensions, the reference line (meta['axis']) runs
+    between the run's nodes (ifc/joins.run_axis; `joined` = the wall ends the plate's joins reset)."""
     u = r.u
     p0 = np.asarray(r.p0, float) - u * r.ext0
     L = r.length + r.ext0 + r.ext1
     w = WallSpec(p0, u, L, r.t, -r.t / 2, z, h, name, r.wall, r.external, storey, r.climbable,
-                 faces=(r.left, r.right))
+                 faces=(r.left, r.right), meta={"axis": run_axis(r, joined)})
     for o in openings:
         w.openings.append(Opening(o.s0 + r.ext0, o.s1 + r.ext0, o.sill, o.height, o.kind, o.name, o.door_kind,
                                   o.swing, dict(o.meta, hinge=o.hinge)))
@@ -299,6 +312,7 @@ def build_building(W, plan: BuildingPlan, dp: dict | None = None, placement=None
     storeys = W.storeys(bldg, names, ffl)
     runs_next = [flight_run(ffl[i + 1] - ffl[i]) for i in range(len(ffl) - 1)]
     zones, flat_records = [], []
+    joins_by_plate = {}
 
     for li, (st, z) in enumerate(zip(storeys, ffl)):
         nm = names[li]
@@ -316,8 +330,13 @@ def build_building(W, plan: BuildingPlan, dp: dict | None = None, placement=None
         else:
             W.slab(slab_polygon(plate), z, f"{nm} floor slab", st, "FLOOR")
 
-        # ---- walls with openings
-        ops_by_run, wall_names = {}, {}
+        # ---- walls with openings, then their joins (ifc/joins.py: L corners and T junctions for Bonsai). The
+        # derived plates are shared by the storeys: join each once per wall height
+        if (id(d), sh) not in joins_by_plate:
+            jn = wall_joins(d.runs, lambda r: wall_height(r, sh))
+            joins_by_plate[(id(d), sh)] = (jn, joined_ends(jn))
+        storey_joins, joined = joins_by_plate[(id(d), sh)]
+        ops_by_run, wall_names, walls_by_run = {}, {}, {}
         for o in d.openings:
             ops_by_run.setdefault(o.run, []).append(o)
         for r in d.runs:
@@ -326,12 +345,7 @@ def build_building(W, plan: BuildingPlan, dp: dict | None = None, placement=None
             if r.wall == "RAILING":
                 _railing(W, r, z, RAILING_H, st, f"{nm} balcony railing {r.idx}")
                 continue
-            if r.height == "storey":
-                h = sh - SLAB
-            elif r.height == "parapet":
-                h = PARAPET_H
-            else:
-                h = TOWER_H.get(r.meta.get("core_kind"), 3.0)
+            h = wall_height(r, sh)
             ops = [o for o in ops_by_run.get(r.idx, [])]
             for o in ops:
                 o.name_full = f"{_unit(nm, plate, o)}{o.name}"
@@ -339,14 +353,15 @@ def build_building(W, plan: BuildingPlan, dp: dict | None = None, placement=None
             wall_names[wname] = wall_names.get(wname, 0) + 1
             if wall_names[wname] > 1:            # the same pair of faces meets on several runs
                 wname = f"{wname} ({wall_names[wname]})"
-            w = _wallspec(r, z, h, st, wname, [])
+            w = _wallspec(r, z, h, st, wname, [], joined)
             w.meta["key"] = f"{nm}/{r.wall}/{r.p0[0]:.3f},{r.p0[1]:.3f}/{r.p1[0]:.3f},{r.p1[1]:.3f}"
             for o in ops:   # the derived openings are shared by every storey: build per-storey metadata
                 meta = dict(o.meta, hinge=o.hinge)
                 meta.update({k: space_name(nm, li, plate, o.meta[k]) for k in ("from", "to") if k in o.meta})
                 w.openings.append(Opening(o.s0 + r.ext0, o.s1 + r.ext0, o.sill, o.height, o.kind, o.name_full,
                                           o.door_kind, o.swing, meta))
-            W.build_wall(w)
+            walls_by_run[r.idx] = W.build_wall(w)[0]
+        W.connect_walls(walls_by_run, storey_joins)
 
         # ---- stairs to the next level
         if top is not None:
