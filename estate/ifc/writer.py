@@ -3,6 +3,11 @@
 Elements are authored with ifcopenshell.api (the library underneath Bonsai's operators). Placements pass
 through a transform stack so a component (a stair, a wing) can be authored in its own frame and rotated by
 multiples of 90 degrees. Containment, materials and types are batched and flushed once per file.
+
+With ``parametric`` (the default; the legacy baseline switches it off) the walls, doors and windows also carry
+what Bonsai's parametric tools edit (see ifc/joins.py): every wall its own IfcMaterialLayerSetUsage and a
+Plan/Axis/GRAPH_VIEW reference line, wall joins as IfcRelConnectsPathElements (``connect_walls``), and every door
+and window type its BBIM_Door / BBIM_Window data, from which its representation is built.
 """
 from __future__ import annotations
 
@@ -16,6 +21,7 @@ from shapely.geometry import Polygon
 from shapely.geometry.polygon import orient
 
 import ifcopenshell
+import ifcopenshell.guid
 import ifcopenshell.api.aggregate as aggregate
 import ifcopenshell.api.context as context
 import ifcopenshell.api.feature as feature
@@ -34,6 +40,7 @@ import ifcopenshell.util.element as uel
 
 from estate import guids
 from estate.geom.walls import Opening, WallSpec, translate
+from estate.ifc import joins
 from estate.rules import DOOR_KINDS, NO_MATERIAL, PALETTE, SLAB, WALL_TYPES
 
 FIXED_TIMESTAMP = "2026-10-04T00:00:00+08:00"
@@ -54,15 +61,20 @@ DOOR_LINING = 0.05      # lining + stop inside the structural opening of IfcOpen
 class IfcWriter:
     def __init__(self, *, schema="IFC4X3", project_name="Sample Town N5", project_guid=None, site_name="Sample Town N5 site",
                  site_guid=None, georef=None, guid_key="estate", guid_base=None, typed_openings=False,
-                 author=("Sample Town N5 generator",)):
+                 author=("Sample Town N5 generator",), parametric=True):
         """guid_key seeds the GlobalId sequence used for relationships and unnamed entities (include the schema);
         guid_base (schema-agnostic, e.g. 'SN5/BLK_501') gives every named product, space, zone, type and property set
-        a GlobalId derived from a stable key, so ids survive unrelated edits and match between IFC4X3 and IFC4."""
+        a GlobalId derived from a stable key, so ids survive unrelated edits and match between IFC4X3 and IFC4.
+        parametric=False writes walls, doors and windows as the original toolkit did (Model/Axis line, one layer set
+        usage per wall type, no joins, no BBIM data): the legacy baseline must stay byte-identical."""
         self.schema = schema
         self.guid_base = guid_base
         self._key_count = {}
         self._stable = set()
         self.typed_openings = typed_openings
+        self.parametric = parametric
+        self._plan_axis = None
+        self._wall_lo = {}
         self._guids = guids.deterministic(guid_key)
         self._guids.__enter__()
         self.m = project.create_file(version=schema)
@@ -90,7 +102,9 @@ class IfcWriter:
                                    ("LENGTHUNIT", "AREAUNIT", "VOLUMEUNIT", "PLANEANGLEUNIT")])
         model3d = context.add_context(m, context_type="Model")
         self.body = context.add_context(m, "Model", "Body", "MODEL_VIEW", parent=model3d)
-        self.axis = context.add_context(m, "Model", "Axis", "GRAPH_VIEW", parent=model3d)
+        # wall reference lines: ifcopenshell.util.representation.get_reference_line (and so Bonsai's wall tools)
+        # reads Plan/Axis/GRAPH_VIEW only; that context is added with the first wall (axis_context)
+        self.axis = None if self.parametric else context.add_context(m, "Model", "Axis", "GRAPH_VIEW", parent=model3d)
         if georef:
             georeference.add_georeferencing(m, ifc_class="IfcMapConversion", name=f"EPSG:{georef.get('epsg', 3414)}")
             op = {"Eastings": float(georef.get("eastings", 0.0)), "Northings": float(georef.get("northings", 0.0)),
@@ -126,7 +140,10 @@ class IfcWriter:
             wt = self.stable_id(root.create_entity(m, "IfcWallType", name=name, predefined_type=pre), f"IfcWallType/{name}")
             ls = material.add_material_set(m, name=name, set_type="IfcMaterialLayerSet")
             layer = material.add_layer(m, layer_set=ls, material=self.mat[pkey][0])
-            material.edit_layer(m, layer=layer, attributes={"LayerThickness": t})
+            attrs = {"LayerThickness": t}
+            if self.parametric and key in joins.LAYER_PRIORITY:
+                attrs["Priority"] = joins.LAYER_PRIORITY[key]
+            material.edit_layer(m, layer=layer, attributes=attrs)
             material.assign_material(m, products=[wt], type="IfcMaterialLayerSet", material=ls)
             self.wall_types[key] = wt
 
@@ -168,16 +185,18 @@ class IfcWriter:
                 return "-"
             if x.is_a("IfcRoot"):
                 return x.GlobalId
-            return f"{x.is_a()}:{getattr(x, 'Name', None) or x.id()}"
+            # layer sets have a LayerSetName, not a Name: key them by it, not by their (order-dependent) STEP id
+            return f"{x.is_a()}:{getattr(x, 'Name', None) or getattr(x, 'LayerSetName', None) or x.id()}"
+
+        def entities(v):     # Relating* / Related* values that are entities (not RelatedConnectionType, priorities)
+            vs = list(v) if isinstance(v, (list, tuple)) else [v]
+            return [x for x in vs if isinstance(x, ifcopenshell.entity_instance)]
         for e in roots:                                   # relationships: from what they relate
             if e.id() in done or not e.is_a("IfcRelationship"):
                 continue
             info = e.get_info(recursive=False)
-            relating = [v for k, v in info.items() if k.startswith("Relating") and v is not None]
-            related = []
-            for k, v in info.items():
-                if k.startswith("Related") and v is not None:
-                    related += list(v) if isinstance(v, (list, tuple)) else [v]
+            relating = [x for k, v in info.items() if k.startswith("Relating") for x in entities(v)]
+            related = [x for k, v in info.items() if k.startswith("Related") for x in entities(v)]
             first = min((ident(x) for x in related), default="-")
             self.stable_id(e, f"{e.is_a()}/{ident(relating[0]) if relating else '-'}/{first}")
 
@@ -329,15 +348,32 @@ class IfcWriter:
                             container, predefined, mat, object_type)
 
     # ------------------------------------------------------------------ walls, doors, windows
+    def axis_context(self):
+        """Plan/Axis/GRAPH_VIEW (with its Plan context), created with the first wall so files without walls keep
+        their contexts."""
+        if self._plan_axis is None:
+            plan = context.add_context(self.m, context_type="Plan")
+            self._plan_axis = context.add_context(self.m, "Plan", "Axis", "GRAPH_VIEW", parent=plan)
+        return self._plan_axis
+
     def build_wall(self, w: WallSpec):
+        """One IfcWall (body extruded in the wall frame: x along w.u from w.p0, the thickness band from local y
+        w.lo) with its openings. Parametric: the reference line runs along local y = 0 over w.meta['axis'] (the
+        run's nodes; default the body ends) and the wall gets its own layer set usage at flush."""
         from estate.geom.walls import frame
         M = frame((w.p0[0], w.p0[1], w.z0), w.u)
         rep = geometry.add_wall_representation(self.m, context=self.body, length=w.length, height=w.h,
                                                thickness=w.t, offset=w.lo)
         pre = WALL_TYPES[w.type_key][3]
         wall = self.product("IfcWall", w.name, rep, M, w.storey, predefined=pre, key=w.meta.get("key"))
-        geometry.assign_representation(self.m, product=wall, representation=geometry.add_axis_representation(
-            self.m, context=self.axis, axis=[(0.0, 0.0), (w.length, 0.0)]))
+        if self.parametric:
+            a0, a1 = w.meta.get("axis", (0.0, w.length))
+            axis = geometry.add_axis_representation(self.m, context=self.axis_context(),
+                                                    axis=[(float(a0) + 0.0, 0.0), (float(a1) + 0.0, 0.0)])
+            self._wall_lo[wall.id()] = w.lo
+        else:
+            axis = geometry.add_axis_representation(self.m, context=self.axis, axis=[(0.0, 0.0), (w.length, 0.0)])
+        geometry.assign_representation(self.m, product=wall, representation=axis)
         self.batch_type.setdefault(self.wall_types[w.type_key], []).append(wall)
         if w.lo != 0.0:
             self.centre_walls.append((wall, w.lo))
@@ -349,6 +385,26 @@ class IfcWriter:
         for op in w.openings:
             built.append(self.build_opening(wall, w, M, op))
         return wall, built
+
+    def connect_walls(self, walls: dict, wall_joins) -> list:
+        """IfcRelConnectsPathElements for joins (ifc/joins.Join, keyed like `walls` {key: IfcWall}) through
+        ifcopenshell.api.geometry.connect_path, as Bonsai's wall tools write them: no connection geometry, empty
+        priorities. GlobalIds are keyed by the relating wall's GlobalId and end. A no-op for the legacy writer."""
+        if not self.parametric:
+            return []
+        out = []
+        n0 = len(self.m.by_type("IfcRelConnectsPathElements"))
+        for j in wall_joins:
+            a, b = walls.get(j.relating), walls.get(j.related)
+            if a is None or b is None:
+                continue
+            rel = geometry.connect_path(self.m, relating_element=a, related_element=b,
+                                        relating_connection=j.relating_end, related_connection=j.related_end)
+            out.append(self.stable_id(rel, f"IfcRelConnectsPathElements/{a.GlobalId}/{j.relating_end}"))
+        if len(self.m.by_type("IfcRelConnectsPathElements")) != n0 + len(out):
+            # connect_path drops an earlier join that conflicts with a new one at the same wall end
+            raise ValueError("wall joins replaced by a later join at the same wall end")
+        return out
 
     def build_opening(self, wall, w: WallSpec, M, op: Opening):
         width = op.s1 - op.s0
@@ -372,9 +428,9 @@ class IfcWriter:
                 el = self.product("IfcDoor", op.name, None, Md, w.storey, predefined="DOOR", mat=pkey)
                 self.batch_type.setdefault(self.door_type(op.door_kind, optype, width, op.height), []).append(el)
             else:
-                rep = geometry.add_door_representation(self.m, context=self.body, overall_height=op.height,
-                                                       overall_width=width, operation_type=optype)
+                rep, data = self.door_representation(optype, width, op.height)
                 el = self.product("IfcDoor", op.name, rep, Md, w.storey, predefined="DOOR", mat=pkey)
+                self.bbim_pset(el, "BBIM_Door", data)
             el.OperationType = optype
             el.OverallWidth, el.OverallHeight = width, op.height
             clear = round(width - 2 * DOOR_LINING, 3)
@@ -393,10 +449,9 @@ class IfcWriter:
                 el = self.product("IfcWindow", op.name, None, Mw, w.storey, predefined="WINDOW", mat="glass")
                 self.batch_type.setdefault(self.window_type(width, op.height), []).append(el)
             else:
-                rep = geometry.add_window_representation(self.m, context=self.body, overall_height=op.height,
-                                                         overall_width=width)
-                self._style_window_frame(rep)
+                rep, data = self.window_representation(width, op.height)
                 el = self.product("IfcWindow", op.name, rep, Mw, w.storey, predefined="WINDOW", mat="glass")
+                self.bbim_pset(el, "BBIM_Window", data)
             el.OverallWidth, el.OverallHeight = width, op.height
             self.props(el, "Pset_WindowCommon", {"IsExternal": True})
             if op.sill < 1.0:   # low sill: fixed lower pane / grille up to 1.0 m (Approved Document barrier height)
@@ -423,6 +478,35 @@ class IfcWriter:
             if item.is_a("IfcExtrudedAreaSolid") and item.SweptArea.is_a("IfcArbitraryProfileDefWithVoids"):
                 self.m.createIfcStyledItem(item, [self.mat["frame"][1]], None)
 
+    def door_representation(self, optype, width, height):
+        """(body representation, BBIM_Door data or None) of a door. Parametric: built from the data Bonsai's door
+        tool edits (ifc/joins.door_data, the API defaults), through the same keyword mapping as Bonsai's
+        update_door_modifier_representation; kinds Bonsai cannot rebuild (and the legacy writer) get no data."""
+        data = joins.door_data(optype, width, height) if self.parametric else None
+        if data is None:
+            rep = geometry.add_door_representation(self.m, context=self.body, overall_height=height, overall_width=width,
+                                                   operation_type=optype)
+        else:
+            rep = geometry.add_door_representation(self.m, context=self.body, **joins.door_kwargs(data))
+        return rep, data
+
+    def window_representation(self, width, height):
+        """(body representation with its frame styled, BBIM_Window data or None) of a single-panel window, as
+        door_representation."""
+        data = joins.window_data(width, height) if self.parametric else None
+        if data is None:
+            rep = geometry.add_window_representation(self.m, context=self.body, overall_height=height, overall_width=width)
+        else:
+            rep = geometry.add_window_representation(self.m, context=self.body, **joins.window_kwargs(data))
+        self._style_window_frame(rep)
+        return rep, data
+
+    def bbim_pset(self, element, name, data):
+        """Bonsai's parametric data pset (BBIM_Door / BBIM_Window): one 'Data' property holding the JSON as an IfcText
+        (an IfcLabel stops at 255 characters). On a type, its occurrences inherit it (tool.Parametric.is_door)."""
+        if data is not None:
+            self.props(element, name, {"Data": self.m.createIfcText(joins.data_text(data))})
+
     def door_type(self, kind, optype, width, height):
         key = (kind, optype, round(width, 3), round(height, 3))
         if key not in self.door_types:
@@ -431,12 +515,12 @@ class IfcWriter:
                                    predefined_type="DOOR")
             self.stable_id(t, f"IfcDoorType/{t.Name}")
             t.OperationType = optype
-            rep = geometry.add_door_representation(self.m, context=self.body, overall_height=height, overall_width=width,
-                                                   operation_type=optype)
+            rep, data = self.door_representation(optype, width, height)
             self._style_door_items(rep, kind, width, height)
             geometry.assign_representation(self.m, product=t, representation=rep)
             if self.mat[pkey][0] is not None:
                 material.assign_material(self.m, products=[t], type="IfcMaterial", material=self.mat[pkey][0])
+            self.bbim_pset(t, "BBIM_Door", data)
             self.door_types[key] = t
         return self.door_types[key]
 
@@ -462,10 +546,10 @@ class IfcWriter:
                                    predefined_type="WINDOW")
             self.stable_id(t, f"IfcWindowType/{t.Name}")
             t.PartitioningType = "SINGLE_PANEL"
-            rep = geometry.add_window_representation(self.m, context=self.body, overall_height=height, overall_width=width)
-            self._style_window_frame(rep)
+            rep, data = self.window_representation(width, height)
             geometry.assign_representation(self.m, product=t, representation=rep)
             material.assign_material(self.m, products=[t], type="IfcMaterial", material=self.mat["glass"][0])
+            self.bbim_pset(t, "BBIM_Window", data)
             self.window_types[key] = t
         return self.window_types[key]
 
@@ -515,9 +599,28 @@ class IfcWriter:
             if self.mat[key][0] is not None:
                 material.assign_material(self.m, products=els, type="IfcMaterial", material=self.mat[key][0])
         for t, occ in self.batch_type.items():
-            ifctype.assign_type(self.m, related_objects=occ, relating_type=t)
-        for wall, lo in self.centre_walls:   # keep Bonsai's layer usage consistent with centred geometry
-            usage = uel.get_material(wall)
-            if usage is not None and usage.is_a("IfcMaterialLayerSetUsage"):
-                usage.OffsetFromReferenceLine = lo
+            if self.parametric and t.is_a("IfcWallType"):
+                ifctype.assign_type(self.m, related_objects=occ, relating_type=t, should_map_representations=False)
+                self._own_usages(t, occ)
+            else:
+                ifctype.assign_type(self.m, related_objects=occ, relating_type=t)
+        if not self.parametric:
+            for wall, lo in self.centre_walls:   # keep Bonsai's layer usage consistent with centred geometry
+                usage = uel.get_material(wall)
+                if usage is not None and usage.is_a("IfcMaterialLayerSetUsage"):
+                    usage.OffsetFromReferenceLine = lo
         self.batch_contain, self.batch_mat, self.batch_type, self.centre_walls = {}, {}, {}, []
+
+    def _own_usages(self, wall_type, walls):
+        """One IfcMaterialLayerSetUsage per wall (AXIS2, POSITIVE, offset = the wall's thickness band start): Bonsai
+        edits a usage in place (offset, flip), so a usage shared by the walls of a type would move all of them.
+        Bonsai's wall tools only treat a wall as parametric when the usage is the wall's own (get_usage_type
+        reads the material without inheriting it from the type)."""
+        layer_set = uel.get_material(wall_type)
+        for wall in walls:
+            usage = self.m.create_entity("IfcMaterialLayerSetUsage", ForLayerSet=layer_set, LayerSetDirection="AXIS2",
+                                         DirectionSense="POSITIVE",
+                                         OffsetFromReferenceLine=float(self._wall_lo.get(wall.id(), 0.0)))
+            rel = self.m.create_entity("IfcRelAssociatesMaterial", GlobalId=ifcopenshell.guid.new(),
+                                       RelatedObjects=[wall], RelatingMaterial=usage)
+            self.stable_id(rel, f"IfcRelAssociatesMaterial/{wall.GlobalId}")

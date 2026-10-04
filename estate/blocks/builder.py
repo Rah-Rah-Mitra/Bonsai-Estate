@@ -23,6 +23,7 @@ from estate.blocks.plate import (AMENITY, BALCONY, CORE_KINDS, CORRIDOR, DECK, L
 from estate.geom.arrangement import Run, finish_runs, merge_collinear, runs_from_faces, wall_footprint
 from estate.flats.template import flat_ifa
 from estate.geom.walls import Opening, WallSpec, frame, rotate_z, translate
+from estate.ifc.joins import plate_joins as wall_joins, run_axis
 from estate.ifc.stairs import flight_run, stair
 from estate.rules import (DOOR_H, FTF, PARAPET_H, RAILING_H, SLAB, VOID_DECK_FTF, WALL_TYPES)
 
@@ -266,11 +267,13 @@ def plan_errors(dp: dict) -> list:
 
 # ----------------------------------------------------------------------------- IFC instantiation
 def _wallspec(r: Run, z, h, storey, name, openings):
+    """Centred wall of a run: the body includes the end extensions, the reference line (meta['axis']) runs
+    between the run's nodes."""
     u = r.u
     p0 = np.asarray(r.p0, float) - u * r.ext0
     L = r.length + r.ext0 + r.ext1
     w = WallSpec(p0, u, L, r.t, -r.t / 2, z, h, name, r.wall, r.external, storey, r.climbable,
-                 faces=(r.left, r.right))
+                 faces=(r.left, r.right), meta={"axis": run_axis(r)})
     for o in openings:
         w.openings.append(Opening(o.s0 + r.ext0, o.s1 + r.ext0, o.sill, o.height, o.kind, o.name, o.door_kind,
                                   o.swing, dict(o.meta, hinge=o.hinge)))
@@ -299,6 +302,7 @@ def build_building(W, plan: BuildingPlan, dp: dict | None = None, placement=None
     storeys = W.storeys(bldg, names, ffl)
     runs_next = [flight_run(ffl[i + 1] - ffl[i]) for i in range(len(ffl) - 1)]
     zones, flat_records = [], []
+    joins_by_plate = {}
 
     for li, (st, z) in enumerate(zip(storeys, ffl)):
         nm = names[li]
@@ -316,8 +320,8 @@ def build_building(W, plan: BuildingPlan, dp: dict | None = None, placement=None
         else:
             W.slab(slab_polygon(plate), z, f"{nm} floor slab", st, "FLOOR")
 
-        # ---- walls with openings
-        ops_by_run, wall_names = {}, {}
+        # ---- walls with openings, then their joins (ifc/joins.py: L corners and T junctions for Bonsai)
+        ops_by_run, wall_names, walls_by_run = {}, {}, {}
         for o in d.openings:
             ops_by_run.setdefault(o.run, []).append(o)
         for r in d.runs:
@@ -346,7 +350,10 @@ def build_building(W, plan: BuildingPlan, dp: dict | None = None, placement=None
                 meta.update({k: space_name(nm, li, plate, o.meta[k]) for k in ("from", "to") if k in o.meta})
                 w.openings.append(Opening(o.s0 + r.ext0, o.s1 + r.ext0, o.sill, o.height, o.kind, o.name_full,
                                           o.door_kind, o.swing, meta))
-            W.build_wall(w)
+            walls_by_run[r.idx] = W.build_wall(w)[0]
+        if id(d) not in joins_by_plate:        # the derived plates are shared by the storeys: join them once
+            joins_by_plate[id(d)] = wall_joins(d.runs)
+        W.connect_walls(walls_by_run, joins_by_plate[id(d)])
 
         # ---- stairs to the next level
         if top is not None:
