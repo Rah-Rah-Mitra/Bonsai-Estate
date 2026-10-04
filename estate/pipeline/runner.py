@@ -136,8 +136,8 @@ def drawings_job(target_id: str, ifc: str, out_dir: str) -> dict:
 
 
 def build_site_ifc(schema: str = "IFC4X3") -> dict:
-    """SITE.ifc; the IFC4X3 run also writes the pedestrian graph, the site plan and masterplan.json from the same
-    layout, so nav2d and the engine manifest never read a graph that no longer matches the IFC."""
+    """SITE.ifc; the IFC4X3 run also writes the pedestrian graph, the site plan (PNG and SVG) and masterplan.json
+    from the same layout, so nav2d and the engine manifest never read a graph that no longer matches the IFC."""
     t0 = time.time()
     try:
         from estate import masterplan
@@ -146,11 +146,11 @@ def build_site_ifc(schema: str = "IFC4X3") -> dict:
         out = env.MODEL / ("SITE.ifc" if schema == "IFC4X3" else "SITE_ifc4.ifc")
         outputs = [out]
         if schema == "IFC4X3":
-            graph, png = env.MODEL / "SITE_graph.json", env.REPORTS / "site_plan.png"
-            info = build_site(mp, out, schema=schema, graph_path=graph, plan_png=png)
+            graph, png, svg = env.MODEL / "SITE_graph.json", env.REPORTS / "site_plan.png", env.REPORTS / "site_plan.svg"
+            info = build_site(mp, out, schema=schema, graph_path=graph, plan_png=png, plan_svg=svg)
             sb = env.REPORTS / "site_build.json"
             sb.write_text(json.dumps(info, indent=1, default=str), encoding="utf-8")
-            outputs += [graph, png, masterplan.write_json(mp), sb]
+            outputs += [graph, png, svg, masterplan.write_json(mp), sb]
         else:
             info = build_site(mp, out, schema=schema)
         return dict(target="SITE", ok=True, path=env.rel(out), schema=schema, seconds=round(time.time() - t0, 1),

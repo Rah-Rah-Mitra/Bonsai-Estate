@@ -2,7 +2,9 @@
 shelter opening, escape paths from stair discharges, and the pedestrian graph of the real masterplan checked against
 the building IFCs and the SITE.ifc it is written with (no edge through a wall, column or table; crossings over zebras
 with kerb ramps; covered edges under a roof; graph tied to the IFC by sha256; site ground meeting every building
-floor; every published stair discharge on paving; the IFC4 copy keeping the GlobalIds of the IFC4X3 master).
+floor; every published stair discharge on paving; the IFC4 copy keeping the GlobalIds of the IFC4X3 master), and the
+SVG site plan drawn beside the PNG from the same layout (themes as groups, footprints as paths, real text, stable
+bytes).
 
 Run: "<blender python>" -I -B tests/test_site.py -v
 """
@@ -183,6 +185,69 @@ class EscapePaths(unittest.TestCase):
         self.assertEqual(builder._with_cover(lines, box(-50, -50, 50, 50))[0][1]["covered"], False)
 
 
+SVG = "{http://www.w3.org/2000/svg}"
+
+
+class SitePlanBackends(unittest.TestCase):
+    """The SVG backend's primitives on a 100 x 100 m frame: holes, translucency, dashes, multi-line text and the
+    bottom-to-top theme order that keeps the SVG stacked as the PNG is painted."""
+
+    def svg(self, draw):
+        import xml.etree.ElementTree as ET
+        from estate.site.siteplan import SvgPlan
+        pl = SvgPlan((0, 0, 100, 100), width=500)
+        draw(pl)
+        p = Path(tempfile.mkdtemp(prefix="unittest-", dir=env.BUILD)) / "t.svg"
+        try:
+            pl.save(p)
+            return pl, ET.parse(p).getroot()
+        finally:
+            shutil.rmtree(p.parent, ignore_errors=True)
+
+    def test_polygon_with_hole_is_one_evenodd_path(self):
+        ring = box(10, 10, 90, 90).difference(box(40, 40, 60, 60))
+        two = unary_union([box(0, 0, 5, 5), box(20, 0, 25, 5)])
+
+        def draw(pl):
+            pl.layer("roads")
+            pl.fill(ring, (226, 112, 36, 110), outline=(226, 112, 36), width=2, name="ring")
+            pl.fill(two, (78, 80, 86))
+        pl, root = self.svg(draw)
+        paths = root.find(f"{SVG}g[@id='roads']").findall(SVG + "path")
+        self.assertEqual(len(paths), 2)
+        r = paths[0]
+        self.assertEqual((r.get("id"), r.get("fill-rule"), r.get("fill"), r.get("fill-opacity")),
+                         ("ring", "evenodd", "#e27024", "0.431"))
+        self.assertEqual((r.get("stroke"), r.get("stroke-width")), ("#e27024", "2"))
+        self.assertEqual(r.get("d").count("M"), 2)
+        self.assertEqual(paths[1].get("d").count("M"), 2)                  # a MultiPolygon is still one path
+        self.assertIsNone(paths[1].get("fill-opacity"))
+        self.assertEqual(root.get("viewBox"), f"0 0 {pl.W} {pl.H}")
+
+    def test_dashes_text_and_layer_order(self):
+        def draw(pl):
+            pl.layer("graph")
+            pl.dashed((10, 10), (10, 50), (70, 70, 78), 2)
+            pl.layer("labels")
+            pl.text((50, 50), "501\n20 st", 22)
+            pl.text((50, 20), "BS1", 15, (25, 70, 170), stroke=2)
+        pl, root = self.svg(draw)
+        (ln,) = root.find(f"{SVG}g[@id='graph']").findall(SVG + "line")
+        dash, gap = (float(v) for v in ln.get("stroke-dasharray").split())
+        self.assertAlmostEqual(dash, 1.2 * pl.s, delta=0.006)
+        self.assertAlmostEqual(gap, 0.8 * pl.s, delta=0.006)
+        a, b = root.find(f"{SVG}g[@id='labels']").findall(SVG + "text")
+        lines = a.findall(SVG + "tspan")
+        self.assertEqual([t.text for t in lines], ["501", "20 st"])
+        for t in lines:                                                      # both lines centred on the anchor
+            self.assertAlmostEqual(float(t.get("x")), pl.P((50, 50))[0], delta=0.006)
+        self.assertGreater(float(lines[1].get("y")) - float(lines[0].get("y")), 20)
+        self.assertEqual((a.get("text-anchor"), b.text, b.get("stroke"), b.get("stroke-width"), b.get("paint-order")),
+                         ("middle", "BS1", "#ffffff", "4", "stroke"))
+        with self.assertRaises(ValueError):
+            self.svg(lambda pl: (pl.layer("labels"), pl.layer("roads")))
+
+
 class SiteGraph(unittest.TestCase):
     """The real masterplan against the building IFCs in model/ (footprints where an IFC does not exist yet)."""
 
@@ -194,7 +259,8 @@ class SiteGraph(unittest.TestCase):
         OUT = Path(tempfile.mkdtemp(prefix="unittest-", dir=env.BUILD / "site_tests"))   # test runs may overlap
         cls.mp = masterplan.resolve()
         cls.L = builder.plan_site(cls.mp)
-        cls.info = builder.build_site(cls.mp, OUT / "SITE.ifc", graph_path=OUT / "SITE_graph.json", layout=cls.L)
+        cls.info = builder.build_site(cls.mp, OUT / "SITE.ifc", graph_path=OUT / "SITE_graph.json", layout=cls.L,
+                                      plan_png=OUT / "site_plan.png", plan_svg=OUT / "site_plan.svg")
         cls.info4 = builder.write_site(cls.L, OUT / "SITE_ifc4.ifc", "IFC4")
 
     @classmethod
@@ -378,6 +444,38 @@ class SiteGraph(unittest.TestCase):
         self.assertEqual(sorted((e.is_a(), e.Name) for g, e in b.items() if g not in a),
                          sorted([("IfcRoadPart", "Extra sidewalk"), ("IfcRoadPart", parts[first]["name"] + " (renamed)")]))
         self.assertTrue(any(e.is_a("IfcElementAssembly") for e in a.values()))
+
+    def test_site_plan_svg(self):
+        """reports/site_plan.svg as build_site writes it beside the PNG from the same layout: XML in the PNG's pixel
+        frame, one group per theme, one footprint path per site, block numbers and bus stop names as real text,
+        coordinates to 0.01 px, and the same bytes on a second render."""
+        import re
+        import xml.etree.ElementTree as ET
+        from PIL import Image
+        from estate.site import siteplan
+        png, svg = OUT / "site_plan.png", OUT / "site_plan.svg"
+        self.assertEqual((self.info["site_plan"], self.info["site_plan_svg"]), (str(png), str(svg)))
+        root = ET.parse(svg).getroot()
+        with Image.open(png) as im:
+            W, H = im.size
+        self.assertEqual((root.get("viewBox"), root.get("width"), root.get("height")), (f"0 0 {W} {H}", str(W), str(H)))
+        self.assertEqual([g.get("id") for g in root.findall(SVG + "g")], list(siteplan.LAYERS))
+        fps = root.find(f"{SVG}g[@id='footprints']").findall(SVG + "path")
+        self.assertEqual([p.get("id") for p in fps if (p.get("id") or "").startswith("footprint-")],
+                         [f"footprint-{s.id}" for s, _ in self.L.draw["footprints"]])
+        self.assertTrue(all(p.get("fill-rule") == "evenodd" for p in root.iter(SVG + "path")))
+        texts = [[t for t in e.itertext() if t.strip()] for e in root.iter(SVG + "text")]
+        self.assertTrue(self.L.net.bus_stops)
+        for b in self.L.net.bus_stops:
+            self.assertIn([b.id], texts)
+        for s in self.mp["sites"]:
+            if s.kind == "block":
+                self.assertIn([str(s.blk), f"{s.storeys} st"], texts)
+        self.assertEqual(len(root.find(f"{SVG}g[@id='trees']").findall(f".//{SVG}circle")), len(self.L.trees))
+        coords = " ".join(e.get(k) or "" for e in root.iter() for k in ("d", "points", "x", "y", "cx", "cy"))
+        self.assertIsNone(re.search(r"\d\.\d{3}", coords))
+        siteplan.render(self.L, OUT / "again_plan" / "site_plan.svg")
+        self.assertEqual(svg.read_bytes(), (OUT / "again_plan" / "site_plan.svg").read_bytes())
 
     def test_deterministic(self):
         again = builder.build_site(self.mp, OUT / "again" / "SITE.ifc", graph_path=OUT / "again" / "SITE_graph.json")

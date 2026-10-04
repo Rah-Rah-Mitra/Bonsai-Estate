@@ -1,7 +1,8 @@
 """CLI for the site works: ``estate.cmd site [--schema IFC4X3] [--out model/SITE.ifc] [--ifc4] [--validate]``.
 
 Resolves the masterplan, prints the siting checks, plans the external works once and writes SITE.ifc (and the
-IFC4 copy for Unreal Datasmith with --ifc4), the pedestrian graph model/SITE_graph.json and reports/site_plan.png.
+IFC4 copy for Unreal Datasmith with --ifc4), the pedestrian graph model/SITE_graph.json and the site plan
+reports/site_plan.png plus its editable vector twin reports/site_plan.svg (--no-png / --no-svg to skip either).
 The building IFCs under --model-dir (default model/) are read for their ground floors, so build them first; the
 pedestrian graph is checked against them and against the SITE.ifc just written, and a mismatch fails the command.
 Hooked into estate/commands.py by the lead through ``register(sub)``.
@@ -69,10 +70,11 @@ def cmd_site(a):
     out = Path(a.out) if a.out else env.MODEL / "SITE.ifc"
     graph = Path(a.graph) if a.graph else env.MODEL / "SITE_graph.json"
     png = None if a.no_png else (Path(a.png) if a.png else env.REPORTS / "site_plan.png")
+    svg = None if a.no_svg else (Path(a.svg) if a.svg else env.REPORTS / "site_plan.svg")
     bad = 0
     try:
         info = builder.build_site(mp, out, a.schema, graph_path=graph, plan_png=png, layout=layout, log=print,
-                                  model_dir=model_dir)
+                                  model_dir=model_dir, plan_svg=svg)
     except builder.GraphCheckError as e:
         info, bad = e.info, 1
     issues = info["graph_check"]["issues"]
@@ -116,7 +118,7 @@ def cmd_site(a):
     rep.parent.mkdir(parents=True, exist_ok=True)
     rep.write_text(json.dumps(info, indent=1, default=str), encoding="utf-8")
     print(f"done in {time.time() - t0:.1f} s -> {env.rel(out)}, {env.rel(graph)}"
-          f"{', ' + env.rel(png) if png else ''}, {env.rel(rep)}")
+          f"{', ' + env.rel(png) if png else ''}{', ' + env.rel(svg) if svg else ''}, {env.rel(rep)}")
     return 1 if bad else 0
 
 
@@ -128,6 +130,8 @@ def register(sub):
     p.add_argument("--graph", help="pedestrian graph JSON (default model/SITE_graph.json)")
     p.add_argument("--png", help="site plan PNG (default reports/site_plan.png)")
     p.add_argument("--no-png", action="store_true")
+    p.add_argument("--svg", help="site plan SVG, editable vector twin of the PNG (default reports/site_plan.svg)")
+    p.add_argument("--no-svg", action="store_true")
     p.add_argument("--model-dir", help="folder holding <id>/<id>.ifc of the buildings (default model/)")
     p.add_argument("--validate", action="store_true", help="run ifcopenshell.validate on the written files")
     p.set_defaults(fn=cmd_site)

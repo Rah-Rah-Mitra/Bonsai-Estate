@@ -1767,8 +1767,9 @@ def check_graph(L, ifc_path) -> list[str]:
 
 
 def build_site(mp: dict, out_path, schema="IFC4X3", graph_path=None, plan_png=None, layout=None, log=None,
-               model_dir=None, check=True):
-    """Plan (unless a layout is given) and write the site model; optionally the pedestrian graph and site plan.
+               model_dir=None, check=True, plan_svg=None):
+    """Plan (unless a layout is given) and write the site model; optionally the pedestrian graph and the site plan
+    (plan_png raster, plan_svg editable vector; one drawing routine, the same layout).
 
     The graph is checked against the IFC just written (check_graph) and records that file's sha256, so a reader
     can tell a graph that no longer belongs to SITE.ifc. A failed check raises GraphCheckError after everything
@@ -1793,10 +1794,14 @@ def build_site(mp: dict, out_path, schema="IFC4X3", graph_path=None, plan_png=No
                     stair_discharges=escapes)
         Path(graph_path).write_text(json.dumps(graph_json(L.graph, meta), indent=1), encoding="utf-8")
         info["graph"] = str(graph_path)
-    if plan_png:
+    if plan_png or plan_svg:
         from estate.site.siteplan import render
-        render(L, plan_png)
-        info["site_plan"] = str(plan_png)
+        if plan_png:
+            render(L, plan_png, fmt="png")
+            info["site_plan"] = str(plan_png)
+        if plan_svg:
+            render(L, plan_svg, fmt="svg")
+            info["site_plan_svg"] = str(plan_svg)
     info.update(graph_stats=L.graph_stats, warnings=L.warnings, notes=L.notes, timings=L.timings, trees=len(L.trees),
                 crossings=len(L.net.crossings), crossovers=len(L.net.crossovers), assemblies=len(L.assemblies),
                 escape_paths=escapes,
