@@ -1,0 +1,14 @@
+# Generated outputs: rebuilt by ./estate.sh build (deterministic); published as GitHub Release zips
+build/
+model/
+vendor/
+reports/renders/
+reports/flat_gallery/
+reports/plans/
+reports/*.png
+
+# Python / Blender leftovers
+__pycache__/
+*.pyc
+*.blend1
+*.tmp*

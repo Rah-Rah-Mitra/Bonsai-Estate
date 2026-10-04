@@ -1,0 +1,170 @@
+# Executive apartment for corridor slab blocks, deep plan: a long living/dining along one party wall (dining
+# next to the entrance and the eat-in kitchen, living at the rear behind a bay window), a gallery hall off the
+# foyer that turns into a private corridor to the master suite (walk-in wardrobe, bay window) at the other rear corner.
+# Bay windows are modelled as ledges (counted in the floor area, as in the 1990s executive flats).
+# Frame: x along the corridor (both sides party walls in mid units), y from the corridor (0) to the rear facade.
+id = "EA-S-B"
+type = "EA"
+title = "Executive, corridor slab (deep living with bay windows, master wing)"
+fits = ["SL"]
+shelter_wall = "HS250"
+notes = "Different from EA-S-A: no study or balcony, a 4.6 m wide living/dining running 8.8 m deep, kitchen in the middle bay opening to the dining, master suite reached by its own hall. The 'ac_ledge' outdoor variant carries the two bay-window ledges; 'none' gives flush windows. Master bath mechanically ventilated."
+
+x = [0.0, 3.4, 4.6, 5.0, 7.0, 7.2, 8.6, 10.6]
+y = [0.0, 2.4, 3.8, 5.2, 6.0, 7.0, 8.2, 11.0, 12.6]
+open = [["LD", "F"], ["LD", "H"], ["F", "H"]]
+
+[rooms]
+B2 = [[0.0, 0.0, 3.4, 3.8]]
+F = [[3.4, 0.0, 5.0, 3.8], [5.0, 2.4, 7.0, 3.8]]
+CB = [[5.0, 0.0, 7.0, 2.4]]
+B3 = [[7.0, 0.0, 10.6, 3.8]]
+LD = [[0.0, 3.8, 4.6, 12.6]]
+H = [[4.6, 3.8, 8.6, 5.2], [7.2, 5.2, 8.6, 8.2]]
+HS = [[4.6, 5.2, 7.2, 7.0]]
+K = [[4.6, 7.0, 7.2, 11.0]]
+SY = [[4.6, 11.0, 7.2, 12.6]]
+MBa = [[8.6, 3.8, 10.6, 6.0]]
+MB = [[7.2, 8.2, 10.6, 12.6], [8.6, 6.0, 10.6, 8.2]]
+
+[[doors]]
+name = "Main door"
+between = ["F", "@entry"]
+at = [4.2, 0.0]
+width = 1.0
+kind = "main"
+into = "F"
+
+[[doors]]
+name = "Bedroom 2 door"
+between = ["B2", "F"]
+at = [3.4, 2.4]
+width = 0.9
+into = "B2"
+hinge = "hi"
+
+[[doors]]
+name = "Common bathroom door"
+between = ["CB", "F"]
+at = [6.0, 2.4]
+width = 0.8
+kind = "bath"
+into = "CB"
+
+[[doors]]
+name = "Bedroom 3 door"
+between = ["B3", "H"]
+at = [7.8, 3.8]
+width = 0.9
+into = "B3"
+
+[[doors]]
+name = "Household shelter door"
+between = ["HS", "LD"]
+at = [4.6, 6.4]
+width = 0.8
+kind = "shelter"
+into = "LD"
+hinge = "hi"
+
+[[doors]]
+name = "Kitchen door"
+between = ["K", "LD"]
+at = [4.6, 7.8]
+width = 0.9
+into = "K"
+
+[[doors]]
+name = "Service yard door"
+between = ["SY", "K"]
+at = [5.9, 11.0]
+width = 0.8
+into = "SY"
+
+[[doors]]
+name = "Master bedroom door"
+between = ["MB", "H"]
+at = [7.9, 8.2]
+width = 0.9
+into = "MB"
+
+[[doors]]
+name = "Master bathroom door"
+between = ["MBa", "MB"]
+at = [9.6, 6.0]
+width = 0.8
+kind = "bath"
+into = "MBa"
+
+[[windows]]
+name = "Bedroom 2 high window"
+room = "B2"
+at = [1.7, 0.0]
+width = 1.8
+sill = 1.5
+height = 0.8
+
+[[windows]]
+name = "Common bathroom vent window"
+room = "CB"
+at = [6.0, 0.0]
+width = 0.6
+sill = 1.6
+height = 0.6
+kind = "vent"
+
+[[windows]]
+name = "Bedroom 3 high window"
+room = "B3"
+at = [8.9, 0.0]
+width = 1.8
+sill = 1.5
+height = 0.8
+
+[[windows]]
+name = "Living bay window"
+room = "LD"
+at = [2.3, 12.6]
+width = 3.0
+sill = 0.4
+height = 1.7
+
+[[windows]]
+name = "Service yard opening"
+room = "SY"
+at = [5.9, 12.6]
+width = 1.4
+sill = 0.9
+height = 1.4
+kind = "opening"
+
+[[windows]]
+name = "Master bedroom bay window"
+room = "MB"
+at = [8.9, 12.6]
+width = 2.0
+sill = 0.5
+height = 1.6
+
+[[ledges]]
+name = "Bay window"
+rect = [0.8, 12.6, 3.8, 13.1]
+rail = "glazed"
+
+[[ledges]]
+name = "Bay window"
+rect = [7.9, 12.6, 9.9, 13.1]
+rail = "glazed"
+
+[variants]
+mirror = true
+kitchen = ["closed", "open"]
+outdoor = ["ac_ledge", "none"]
+mechanical_vent = ["MBa"]
+
+[variants.kitchen_open]
+remove_doors = ["Kitchen door"]
+open = [["K", "LD"]]
+
+[variants.stretch]
+x = [[3.3, 3.6], [1.2, 1.2], [0.4, 0.4], [1.9, 2.1], [0.2, 0.2], [1.4, 1.4], [1.9, 2.2]]

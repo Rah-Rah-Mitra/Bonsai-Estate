@@ -1,0 +1,155 @@
+{
+ "path": "C:\\Users\\rapiular\\Documents\\Workspace\\Environment-BIM\\model\\SITE.ifc",
+ "schema": "IFC4X3",
+ "elements": 1805,
+ "by_class": {
+  "IfcColumn": 556,
+  "IfcElementAssembly": 94,
+  "IfcFurniture": 52,
+  "IfcGeographicElement": 794,
+  "IfcKerb": 5,
+  "IfcPavement": 52,
+  "IfcRailing": 1,
+  "IfcRamp": 20,
+  "IfcSlab": 231
+ },
+ "linked_models": 14,
+ "seconds": 2.4,
+ "graph": "C:\\Users\\rapiular\\Documents\\Workspace\\Environment-BIM\\model\\SITE_graph.json",
+ "site_plan": "C:\\Users\\rapiular\\Documents\\Workspace\\Environment-BIM\\reports\\site_plan.png",
+ "graph_stats": {
+  "nodes": 566,
+  "edges": 618,
+  "components": 1,
+  "largest_component": 566,
+  "length_m": 8749.2,
+  "covered_m": 2871.6,
+  "length_by_kind": {
+   "crossing": 160.7,
+   "escape": 10.6,
+   "footpath": 2079.5,
+   "linkway": 1580.3,
+   "park": 1618.6,
+   "sidewalk": 3300.7
+  },
+  "bus_stops": 4,
+  "lift_lobbies": 18,
+  "unreachable_pairs": [],
+  "n_unreachable": 0,
+  "covered_share_shortest": {
+   "min": 0.066,
+   "mean": 0.738
+  },
+  "covered_share_sheltered_route": {
+   "min": 0.902,
+   "mean": 0.968
+  },
+  "covered_share_from_nearest_stop": {
+   "min": 0.959,
+   "mean": 0.993,
+   "max_walk_m": 233.5
+  },
+  "walk_to_lobby_from_nearest_stop_max_m": 189.1
+ },
+ "warnings": [],
+ "notes": [
+  "NC_514: 2196 m2 of its floor open to the sky (forecourt) carries site linkways and footpaths",
+  "NC_514 entrance 0: moved 0.6 m along the facade, clear of the ground floor",
+  "NC_514 entrance 1: moved 0.6 m along the facade, clear of the ground floor",
+  "NC_514 entrance 2: moved 0.6 m along the facade, clear of the ground floor",
+  "NC_514 entrance 3: moved 0.6 m along the facade, clear of the ground floor"
+ ],
+ "timings": {
+  "grounds": 10.51,
+  "roads+greens": 1.06,
+  "driveways": 0.44,
+  "linkways": 0.74,
+  "footpaths": 0.33,
+  "surfaces": 0.5,
+  "landscape": 0.11,
+  "graph": 1.97,
+  "total_plan": 15.67
+ },
+ "trees": 778,
+ "crossings": 10,
+ "crossovers": 12,
+ "assemblies": 94,
+ "escape_paths": [
+  {
+   "site": "MSCP_513",
+   "at": [
+    146.0,
+    214.0
+   ],
+   "width": 1.8,
+   "length": 9.6,
+   "offset": -0.6,
+   "graph_end": [
+    146.0,
+    203.4
+   ],
+   "status": "paved"
+  }
+ ],
+ "graph_check": {
+  "issues": [],
+  "buildings": {
+   "BLK_501": {
+    "source": "model/BLK_501/BLK_501.ifc",
+    "sha256": "49d782b79712e2bb4db421159c4f156aa5a334bd25d3eb2ee4095fd9294a920c"
+   },
+   "BLK_502": {
+    "source": "model/BLK_502/BLK_502.ifc",
+    "sha256": "520b179e059080e03b037db3de0a2b6a7189f055fbf32262daf0e70bcf460c22"
+   },
+   "BLK_503": {
+    "source": "model/BLK_503/BLK_503.ifc",
+    "sha256": "9d054e8075a5f4123017835ca4dff017bdbed1c8bc1f06cac59db1cd26c10e4f"
+   },
+   "BLK_504": {
+    "source": "model/BLK_504/BLK_504.ifc",
+    "sha256": "83e349e5cb932ba5c2b7c7972451d32b64a64e349b852cab3424d4338f859227"
+   },
+   "BLK_505": {
+    "source": "model/BLK_505/BLK_505.ifc",
+    "sha256": "83c22594ba9308ee627716456e31a48f666a93b5c76e3aa4e52e99ac7f4ad25a"
+   },
+   "BLK_506": {
+    "source": "model/BLK_506/BLK_506.ifc",
+    "sha256": "0a9b8bf9768746a610b3f5a064f98f58f7bc32816f1e868f6fad4fc2455a374b"
+   },
+   "BLK_507": {
+    "source": "model/BLK_507/BLK_507.ifc",
+    "sha256": "d99c0d596e7935c1144667e5aa489c1eda16282e08c00e05deeec4346b22fae2"
+   },
+   "BLK_508": {
+    "source": "model/BLK_508/BLK_508.ifc",
+    "sha256": "c7df117fca1e86ea5a40fd9ab410c40f913d830fee9a59e7ddee2d45f071abe8"
+   },
+   "BLK_509": {
+    "source": "model/BLK_509/BLK_509.ifc",
+    "sha256": "05e2dbca2481c8cb9ae5fd5903f499d72ebf3560b7ec4d280f67e3b620ed5944"
+   },
+   "BLK_510": {
+    "source": "model/BLK_510/BLK_510.ifc",
+    "sha256": "dd4206009d08cf31a70022fa75f0c78d6e754f4a8c8601281cd06ab4aae6c32d"
+   },
+   "BLK_511": {
+    "source": "model/BLK_511/BLK_511.ifc",
+    "sha256": "84cc6a352513672f83d65068d90b5407956df17d5123696137a10fe765418021"
+   },
+   "BLK_512": {
+    "source": "model/BLK_512/BLK_512.ifc",
+    "sha256": "fdc8e793d0eca3c9e297b7eb03b601bd4594b6e4567de2b7b4ad05c38e4e1c4d"
+   },
+   "MSCP_513": {
+    "source": "model/MSCP_513/MSCP_513.ifc",
+    "sha256": "f25fdff6be18f80e29f457dd17e29d336c648bebb85b3b016eb1cb23982be331"
+   },
+   "NC_514": {
+    "source": "model/NC_514/NC_514.ifc",
+    "sha256": "7596f244ecba231861d201104a462929734e9aef78c528da29e80a0250234cb3"
+   }
+  }
+ }
+}

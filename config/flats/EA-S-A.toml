@@ -1,0 +1,206 @@
+# Executive apartment for corridor slab blocks: a wide plan with a study off the foyer, two corridor bedrooms,
+# a central dining that opens to a 5 m wide rear living (balcony across it in the default-friendly variant),
+# master suite with walk-in wardrobe at one rear corner, eat-in kitchen, utility room and yard at the other.
+# Frame: x along the corridor (both sides party walls in mid units), y from the corridor (0) to the rear facade.
+id = "EA-S-A"
+type = "EA"
+title = "Executive, corridor slab (study, wide rear living with balcony)"
+fits = ["SL"]
+shelter_wall = "HS250"
+notes = "Balcony listed first so seeded picks favour it; the living keeps a full-height window beside the balcony door so its glazing holds in every outdoor variant. Master bath (off the walk-in wardrobe) is mechanically ventilated; the common bath vents onto the corridor."
+
+x = [0.0, 2.0, 3.2, 3.4, 4.0, 4.6, 6.2, 6.6, 8.4, 9.0, 9.8, 11.6]
+y = [0.0, 3.6, 5.6, 5.8, 7.8, 10.0, 11.6]
+open = [["LD", "F"], ["LD", "H"]]
+
+[rooms]
+B3 = [[0.0, 0.0, 3.2, 3.6]]
+CB = [[3.2, 0.0, 4.6, 3.6]]
+F = [[4.6, 0.0, 6.2, 3.6]]
+ST = [[6.2, 0.0, 8.4, 3.6]]
+B2 = [[8.4, 0.0, 11.6, 3.6]]
+MBa = [[0.0, 3.6, 2.0, 5.6]]
+H = [[2.0, 3.6, 3.4, 7.8]]
+MB = [[0.0, 7.8, 4.0, 11.6], [0.0, 5.6, 2.0, 7.8]]
+LD = [[3.4, 3.6, 6.6, 7.8], [6.6, 3.6, 9.8, 5.8], [4.0, 7.8, 9.0, 11.6]]
+UT = [[6.6, 5.8, 9.0, 7.8]]
+HS = [[9.8, 3.6, 11.6, 5.8]]
+K = [[9.0, 5.8, 11.6, 10.0]]
+SY = [[9.0, 10.0, 11.6, 11.6]]
+
+[[doors]]
+name = "Main door"
+between = ["F", "@entry"]
+at = [5.4, 0.0]
+width = 1.0
+kind = "main"
+into = "F"
+
+[[doors]]
+name = "Study door"
+between = ["ST", "F"]
+at = [6.2, 2.6]
+width = 0.9
+into = "ST"
+hinge = "hi"
+
+[[doors]]
+name = "Bedroom 3 door"
+between = ["B3", "H"]
+at = [2.6, 3.6]
+width = 0.9
+into = "B3"
+
+[[doors]]
+name = "Common bathroom door"
+between = ["CB", "LD"]
+at = [4.0, 3.6]
+width = 0.8
+kind = "bath"
+into = "CB"
+
+[[doors]]
+name = "Bedroom 2 door"
+between = ["B2", "LD"]
+at = [9.05, 3.6]
+width = 0.9
+into = "B2"
+
+[[doors]]
+name = "Household shelter door"
+between = ["HS", "LD"]
+at = [9.8, 5.22]
+width = 0.8
+kind = "shelter"
+into = "LD"
+hinge = "hi"
+
+[[doors]]
+name = "Master bedroom door"
+between = ["MB", "H"]
+at = [2.7, 7.8]
+width = 0.9
+into = "MB"
+
+[[doors]]
+name = "Master bathroom door"
+between = ["MBa", "MB"]
+at = [1.0, 5.6]
+width = 0.8
+kind = "bath"
+into = "MBa"
+
+[[doors]]
+name = "Kitchen door"
+between = ["K", "LD"]
+at = [9.0, 8.6]
+width = 0.9
+into = "K"
+
+[[doors]]
+name = "Utility room door"
+between = ["UT", "K"]
+at = [9.0, 6.8]
+width = 0.8
+into = "UT"
+
+[[doors]]
+name = "Service yard door"
+between = ["SY", "K"]
+at = [10.3, 10.0]
+width = 0.8
+into = "SY"
+
+[[windows]]
+name = "Bedroom 3 high window"
+room = "B3"
+at = [1.6, 0.0]
+width = 1.8
+sill = 1.5
+height = 0.8
+
+[[windows]]
+name = "Common bathroom vent window"
+room = "CB"
+at = [3.9, 0.0]
+width = 0.6
+sill = 1.6
+height = 0.6
+kind = "vent"
+
+[[windows]]
+name = "Study window"
+room = "ST"
+at = [7.3, 0.0]
+width = 1.2
+sill = 1.2
+height = 1.0
+
+[[windows]]
+name = "Bedroom 2 high window"
+room = "B2"
+at = [10.0, 0.0]
+width = 1.8
+sill = 1.5
+height = 0.8
+
+[[windows]]
+name = "Master bedroom window"
+room = "MB"
+at = [1.8, 11.6]
+width = 2.0
+
+[[windows]]
+name = "Living window"
+room = "LD"
+at = [7.7, 11.6]
+width = 2.2
+sill = 0.3
+height = 1.9
+
+[[windows]]
+name = "Living window 2"
+room = "LD"
+at = [5.1, 11.6]
+width = 1.6
+sill = 0.6
+height = 1.7
+
+[[windows]]
+name = "Service yard opening"
+room = "SY"
+at = [10.3, 11.6]
+width = 1.6
+sill = 0.9
+height = 1.4
+kind = "opening"
+
+[[ledges]]
+name = "AC ledge"
+rect = [3.0, 11.6, 4.2, 12.2]
+
+[variants]
+mirror = true
+kitchen = ["closed", "open"]
+outdoor = ["balcony", "ac_ledge", "none"]
+mechanical_vent = ["MBa"]
+
+[variants.kitchen_open]
+remove_doors = ["Kitchen door"]
+open = [["K", "LD"]]
+
+[variants.balcony]
+rect = [4.0, 11.6, 9.0, 13.2]
+replace_windows = ["Living window 2"]
+ledges = [{ name = "AC ledge", rect = [2.6, 11.6, 3.8, 12.2] }]
+
+[variants.balcony.door]
+between = ["LD", "BAL"]
+at = [5.1, 11.6]
+width = 1.8
+kind = "balcony"
+into = "BAL"
+name = "Balcony door"
+
+[variants.stretch]
+x = [[1.9, 2.1], [1.2, 1.2], [0.2, 0.2], [0.6, 0.6], [0.6, 0.6], [1.5, 1.7], [0.4, 0.4], [1.7, 1.9], [0.6, 0.6], [0.8, 0.8], [1.7, 1.9]]

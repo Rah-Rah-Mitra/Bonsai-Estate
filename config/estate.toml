@@ -1,0 +1,285 @@
+# Sample Town N5 - HDB neighbourhood masterplan (about 400 x 400 m, 1,206 flats in 12 blocks + MSCP + NC).
+# Local estate frame: metres, origin at the south-west corner, +x east, +y north, z = 0 at finished ground.
+# Block positions ("at") are the block-local origin in estate coordinates; "rot" is in quarter turns (0..3, CCW).
+
+[estate]
+name = "Sample Town N5"
+code = "SN5"
+seed = 20261004
+schema = "IFC4X3"
+ifc4_copy = true
+extent = [0.0, 0.0, 400.0, 400.0]
+street = "Sample Town N5"
+
+[georef]                       # SVY21 placeholders (no real site)
+epsg = 3414
+eastings = 30000.0
+northings = 36000.0
+height = 15.0
+true_north_deg = 0.0
+
+[agent]
+radius = 0.30
+height = 1.80
+step = 0.40
+voxel = 0.10
+ramp_max = 0.0833
+
+[budget]
+max_ifc_elements_per_file = 25000
+max_openings_per_wall = 20
+
+# ----------------------------------------------------------------------------- roads (centreline, reserve width)
+[[road]]
+id = "AVE5"
+name = "Sample Avenue 5"
+class = "collector"
+centreline = [[0.0, 387.0], [400.0, 387.0]]
+reserve = 26.0
+carriageway = 14.0
+
+[[road]]
+id = "ST51"
+name = "Sample Street 51"
+class = "local"
+centreline = [[10.0, 0.0], [10.0, 374.0]]
+reserve = 20.0
+carriageway = 7.4
+
+[[road]]
+id = "ST52"
+name = "Sample Street 52"
+class = "local"
+centreline = [[20.0, 10.0], [400.0, 10.0]]
+reserve = 20.0
+carriageway = 7.4
+
+[[road]]
+id = "ST53"
+name = "Sample Street 53 (spine)"
+class = "local"
+centreline = [[197.5, 20.0], [197.5, 374.0]]
+reserve = 15.0
+carriageway = 7.4
+
+[[road]]
+id = "ST54"
+name = "Sample Link 54"
+class = "access"
+centreline = [[20.0, 197.5], [190.0, 197.5]]
+reserve = 15.0
+carriageway = 6.0
+
+[park_connector]
+id = "PCN"
+name = "Park connector"
+rect = [380.0, 20.0, 400.0, 374.0]
+
+# ----------------------------------------------------------------------------- precinct A: six point blocks
+[[block]]
+blk = "501"
+precinct = "A"
+typology = "PT4"
+storeys = 20
+at = [255.0, 345.0]
+rot = 0
+stacks = { "101" = { t = "5R-PT-A" }, "103" = { t = "4R-PT-B" }, "105" = { t = "4R-PT-C" }, "107" = { t = "5R-PT-A" } }
+void_deck = ["letterbox", "rc_centre", "bin"]
+
+[[block]]
+blk = "502"
+precinct = "A"
+typology = "PT4"
+storeys = 20
+at = [330.0, 345.0]
+rot = 0
+stacks = { "101" = { t = "4R-PT-C" }, "103" = { t = "5R-PT-A" }, "105" = { t = "5R-PT-A" }, "107" = { t = "4R-PT-B" } }
+void_deck = ["letterbox", "bin"]
+
+[[block]]
+blk = "503"
+precinct = "A"
+typology = "PT4"
+storeys = 22
+at = [255.0, 290.0]
+rot = 0
+stacks = { "101" = { t = "3R-PT-A" }, "103" = { t = "4R-PT-B" }, "105" = { t = "3R-PT-A" }, "107" = { t = "4R-PT-C" } }
+void_deck = ["letterbox", "study_corner", "bin"]
+
+[[block]]
+blk = "504"
+precinct = "A"
+typology = "PT4"
+storeys = 22
+at = [330.0, 290.0]
+rot = 0
+stacks = { "101" = { t = "4R-PT-B" }, "103" = { t = "3R-PT-A" }, "105" = { t = "4R-PT-C" }, "107" = { t = "3R-PT-A" } }
+void_deck = ["letterbox", "bin"]
+
+[[block]]
+blk = "505"
+precinct = "A"
+typology = "PT4"
+storeys = 25
+at = [255.0, 235.0]
+rot = 0
+stacks = { "101" = { t = "4R-PT-B", v = { mirror = false } }, "103" = { t = "4R-PT-C" }, "105" = { t = "4R-PT-B", v = { kitchen = "open" } }, "107" = { t = "4R-PT-C", v = { outdoor = "none" } } }
+void_deck = ["letterbox", "substation", "bin"]
+
+[[block]]
+blk = "506"
+precinct = "A"
+typology = "PT4"
+storeys = 25
+at = [330.0, 235.0]
+rot = 0
+stacks = { "101" = { t = "4R-PT-C" }, "103" = { t = "5R-PT-A" }, "105" = { t = "4R-PT-B" }, "107" = { t = "5R-PT-A" } }
+void_deck = ["letterbox", "bin"]
+
+# ----------------------------------------------------------------------------- precinct B: three corridor slab blocks
+# sequence runs west to east along the corridor: "stair" = end stair, "core" = 2 lifts + stair + refuse chute
+[[block]]
+blk = "507"
+precinct = "B"
+typology = "SL"
+storeys = 14
+at = [105.0, 150.0]
+rot = 0
+corridor = "S"
+sequence = ["stair", "2RF47-S", "2RF38-S", "3R-S-A", "4R-S-A", "core", "4R-S-B", "4R-S-A", "4R-S-B", "core", "3R-S-B", "stair"]
+void_deck = ["letterbox", "rc_centre", "bin"]
+
+[[block]]
+blk = "508"
+precinct = "B"
+typology = "SL"
+storeys = 14
+at = [105.0, 100.0]
+rot = 0
+corridor = "S"
+sequence = ["stair", "3R-S-B", "4R-S-B", "core", "4R-S-A", "4R-S-B", "4R-S-A", "core", "3R-S-A", "2RF38-S", "2RF47-S", "stair"]
+void_deck = ["letterbox", "eldercare", "bin"]
+
+[[block]]
+blk = "509"
+precinct = "B"
+typology = "SL"
+storeys = 16
+at = [105.0, 50.0]
+rot = 0
+corridor = "S"
+sequence = ["stair", "2RF47-S", "2RF38-S", "3R-S-A", "core", "4R-S-A", "4R-S-B", "5R-S-A", "core", "5R-S-A", "4R-S-B", "4R-S-A", "core", "3R-S-B", "stair"]
+void_deck = ["letterbox", "kindergarten", "bin"]
+
+# ----------------------------------------------------------------------------- precinct C: two L-blocks + executive slab
+# wing_a runs from the corner core along +x (local), wing_b along -y (local); "corner" is the corner unit.
+[[block]]
+blk = "510"
+precinct = "C"
+typology = "LB"
+storeys = 16
+at = [215.0, 192.0]
+rot = 0
+corner = "3G-C"
+wing_a = ["5R-L", "4R-L", "5R-L", "stair"]
+wing_b = ["4R-L", "5R-L", "3R-S-B", "core", "5R-L", "4R-S-A", "stair"]
+void_deck = ["letterbox", "senior_centre", "bin"]
+
+[[block]]
+blk = "511"
+precinct = "C"
+typology = "LB"
+storeys = 16
+at = [370.0, 192.0]
+rot = 0
+mirror = true
+corner = "3G-C2"
+wing_a = ["5R-L", "4R-L", "5R-L", "stair"]
+wing_b = ["4R-L", "5R-L", "3R-S-B", "core", "5R-L", "4R-S-A", "stair"]
+void_deck = ["letterbox", "bin"]
+
+[[block]]
+blk = "512"
+precinct = "C"
+typology = "SL"
+storeys = 12
+at = [292.0, 50.0]
+rot = 0
+corridor = "S"
+sequence = ["stair", "EA-S-A", "EA-S-B", "EA-S-A", "core", "EA-S-B", "EA-S-A", "EA-S-B", "stair"]
+void_deck = ["letterbox", "bin"]
+
+# ----------------------------------------------------------------------------- non-residential buildings
+[mscp]
+blk = "513"
+name = "Multi-storey car park 513"
+rect = [142.0, 214.0, 182.0, 314.0]
+decks = 7
+deck_height = 3.0
+roof_garden = true
+
+[nc]
+blk = "514"
+name = "Sample Town N5 neighbourhood centre"
+rect = [28.0, 318.0, 155.0, 366.0]
+hawker = { rect = [28.0, 318.0, 88.0, 363.0], stalls = 48, seats = 600 }
+shops = { rect = [95.0, 330.0, 155.0, 350.0], units = 20, storeys = 2 }
+
+# ----------------------------------------------------------------------------- open spaces and street furniture
+[[green]]
+id = "PARK"
+name = "Neighbourhood park"
+rect = [28.0, 213.0, 135.0, 310.0]
+items = ["playground", "fitness_corner", "pavilion", "lawn"]
+
+[[green]]
+id = "PGA"
+name = "Precinct A green"
+rect = [272.0, 225.0, 313.0, 355.0]
+items = ["playground", "fitness_corner", "pavilion"]
+
+[[green]]
+id = "PGC"
+name = "Precinct C courtyard"
+rect = [235.0, 100.0, 350.0, 170.0]
+items = ["playground", "ball_court"]
+
+[[bus_stop]]
+id = "BS1"
+road = "AVE5"
+at = [100.0, 377.0]
+
+[[bus_stop]]
+id = "BS2"
+road = "AVE5"
+at = [300.0, 377.0]
+
+[[bus_stop]]
+id = "BS3"
+road = "ST51"
+at = [22.0, 100.0]
+
+[[bus_stop]]
+id = "BS4"
+road = "ST52"
+at = [290.0, 22.0]
+
+[linkways]
+mode = "auto"
+clear_width = 2.4
+canopy_width = 3.0
+soffit = 2.7
+column_spacing = 6.0
+
+[outputs]
+blend = true
+estate_blend = true
+glb = true
+nav = true
+drawings = ["L2", "typical", "RF"]
+renders = true
+merged_ifc = false
+
+# ----------------------------------------------------------------------------- unit mix the plan commits to
+[mix]
+expected = { "2RF" = 82, "3R" = 196, "4R" = 558, "5R" = 274, "3G" = 30, "EA" = 66 }

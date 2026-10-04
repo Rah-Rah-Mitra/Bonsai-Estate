@@ -1,0 +1,547 @@
+{
+ "file": "model/BLK_501/BLK_501.ifc",
+ "rows": [
+  {
+   "mutation": "remove_door_filling",
+   "family": "ifcqa",
+   "describe": "delete the IfcRelFillsElement of a door",
+   "expect": [
+    "filling"
+   ],
+   "fired": [
+    "empty_openings",
+    "filling"
+   ],
+   "detected": true,
+   "example": "#28619 IfcDoor L5 lift 1 landing door fills 0 openings",
+   "runtime_s": 2.74
+  },
+  {
+   "mutation": "duplicate_guid",
+   "family": "ifcqa",
+   "describe": "give a wall the GlobalId of another wall",
+   "expect": [
+    "unique_guids"
+   ],
+   "fired": [
+    "unique_guids"
+   ],
+   "detected": true,
+   "example": "1eFir04aq9wH6ob4hqfn6L: #537 IfcWall L1 EXT AM2|@out / #561 IfcWall L1 CORE STAIR1|@out",
+   "runtime_s": 2.74
+  },
+  {
+   "mutation": "uncontain_wall",
+   "family": "ifcqa",
+   "describe": "remove a wall from its storey",
+   "expect": [
+    "containment"
+   ],
+   "fired": [
+    "containment"
+   ],
+   "detected": true,
+   "example": "#29124 IfcWall L5 CORE @out|LIFT1",
+   "runtime_s": 2.77
+  },
+  {
+   "mutation": "space_out_of_zone",
+   "family": "ifcqa",
+   "describe": "unassign a flat room from its IfcZone",
+   "expect": [
+    "space_in_zone"
+   ],
+   "fired": [
+    "space_in_zone"
+   ],
+   "detected": true,
+   "example": "#33049 IfcSpace #05-101 B2",
+   "runtime_s": 2.8
+  },
+  {
+   "mutation": "strip_navigation",
+   "family": "ifcqa",
+   "describe": "delete a door's Navigation pset",
+   "expect": [
+    "required_psets",
+    "ids:SN5-DOOR-NAV"
+   ],
+   "fired": [
+    "ids:SN5-DOOR-NAV",
+    "required_psets"
+   ],
+   "detected": true,
+   "example": "#28619 IfcDoor L5 lift 1 landing door: Navigation",
+   "runtime_s": 2.76
+  },
+  {
+   "mutation": "mirror_mapped_item",
+   "family": "ifcqa",
+   "describe": "mirror a mapped item, a window's if any (Axis2 = -Y)",
+   "expect": [
+    "placements_right_handed"
+   ],
+   "fired": [
+    "placements_right_handed"
+   ],
+   "detected": true,
+   "example": "#174660 IfcMappedItem mirrored (det -1.000)",
+   "runtime_s": 2.76
+  },
+  {
+   "mutation": "degenerate_placement",
+   "family": "ifcqa",
+   "describe": "make a wall's RefDirection parallel to its Axis",
+   "expect": [
+    "placements_right_handed"
+   ],
+   "fired": [
+    "placements_right_handed"
+   ],
+   "detected": true,
+   "example": "#154450 det +0.0000 ortho inf #29124 IfcWall L5 CORE @out|LIFT1",
+   "runtime_s": 2.8
+  },
+  {
+   "mutation": "zone_ifa_out_of_band",
+   "family": "ifcqa",
+   "describe": "set a flat's InternalFloorArea 10 m2 under its band",
+   "expect": [
+    "zone_ifa"
+   ],
+   "fired": [
+    "zone_ifa"
+   ],
+   "detected": true,
+   "example": "#05-101: 5R IFA 94.00 outside [104.0, 116.0]",
+   "runtime_s": 2.76
+  },
+  {
+   "mutation": "bad_flat_type",
+   "family": "ifcqa",
+   "describe": "label a flat '4-Room'",
+   "expect": [
+    "ids:SN5-ZONE-TYPE",
+    "zone_ifa"
+   ],
+   "fired": [
+    "ids:SN5-ZONE-TYPE",
+    "zone_ifa"
+   ],
+   "detected": true,
+   "example": "#06-101: 4R IFA 110.00 outside [86.0, 96.0]",
+   "runtime_s": 2.74
+  },
+  {
+   "mutation": "bad_room_code",
+   "family": "ifcqa",
+   "describe": "give a bedroom the RoomCode 'Bedroom'",
+   "expect": [
+    "ids:SN5-ROOM-CODE"
+   ],
+   "fired": [
+    "ids:SN5-ROOM-CODE"
+   ],
+   "detected": true,
+   "example": "#33049 IfcSpace #05-101 B2: The property value \"Bedroom\" does not match the requirements",
+   "runtime_s": 3.86
+  },
+  {
+   "mutation": "bad_storey_name",
+   "family": "ifcqa",
+   "describe": "rename a storey 'Level 5'",
+   "expect": [
+    "ids:SN5-STOREY-NAME"
+   ],
+   "fired": [
+    "ids:SN5-STOREY-NAME"
+   ],
+   "detected": true,
+   "example": "#327 IfcBuildingStorey Level 5: The attribute value \"Level 5\" does not match the requirement",
+   "runtime_s": 2.8
+  },
+  {
+   "mutation": "orphan_opening",
+   "family": "ifcqa",
+   "describe": "delete the IfcRelVoidsElement of an opening",
+   "expect": [
+    "opening_voids"
+   ],
+   "fired": [
+    "opening_voids"
+   ],
+   "detected": true,
+   "example": "#75086 IfcOpeningElement #11-101 Service yard door opening voids 0 elements",
+   "runtime_s": 2.75
+  },
+  {
+   "mutation": "too_many_openings",
+   "family": "ifcqa",
+   "describe": "cut 21 extra openings into one wall",
+   "expect": [
+    "openings_per_wall"
+   ],
+   "fired": [
+    "empty_openings",
+    "openings_per_wall"
+   ],
+   "detected": true,
+   "example": "#29124 IfcWall L5 CORE @out|LIFT1: 21 openings",
+   "runtime_s": 2.78
+  },
+  {
+   "mutation": "share_representation",
+   "family": "ifcqa",
+   "describe": "make two walls share one Body IfcShapeRepresentation",
+   "expect": [
+    "representation_sharing"
+   ],
+   "fired": [
+    "representation_sharing"
+   ],
+   "detected": true,
+   "example": "#536 Body used 2x (e.g. #537 IfcWall L1 EXT AM2|@out)",
+   "runtime_s": 2.75
+  },
+  {
+   "mutation": "shelter_out_of_zone",
+   "family": "programme",
+   "describe": "take a household shelter out of its flat zone",
+   "expect": [
+    "required_rooms"
+   ],
+   "fired": [
+    "required_rooms"
+   ],
+   "detected": true,
+   "example": "#05-101: 5R needs HS",
+   "runtime_s": 2.57
+  },
+  {
+   "mutation": "shrink_room_area",
+   "family": "programme",
+   "describe": "set a bedroom's NetFloorArea 1 m2 under the minimum",
+   "expect": [
+    "room_area"
+   ],
+   "fired": [
+    "room_area",
+    "space_quantities"
+   ],
+   "detected": true,
+   "example": "#05-101 B2: 7.50 m2 < 8.5",
+   "runtime_s": 2.54
+  },
+  {
+   "mutation": "shrink_shelter",
+   "family": "programme",
+   "describe": "set a household shelter's NetFloorArea to 1.2 m2",
+   "expect": [
+    "shelter_area"
+   ],
+   "fired": [
+    "shelter_area",
+    "space_quantities"
+   ],
+   "detected": true,
+   "example": "#05-101 HS: 1.20 m2 < 2.8 m2 for IFA 110.0 m2 (InternalFloorArea)",
+   "runtime_s": 2.53
+  },
+  {
+   "mutation": "remove_bath_vent",
+   "family": "programme",
+   "describe": "delete the vent windows of a naturally ventilated bathroom",
+   "expect": [
+    "bath_vent"
+   ],
+   "fired": [
+    "bath_vent"
+   ],
+   "detected": true,
+   "example": "#05-101 CB: vent windows 0.00 m2 < 0.2 m2 and no mechanical_vent",
+   "runtime_s": 2.53
+  },
+  {
+   "mutation": "shrink_bedroom_windows",
+   "family": "programme",
+   "describe": "make a bedroom's windows 0.2 m high",
+   "expect": [
+    "glazing"
+   ],
+   "fired": [
+    "glazing"
+   ],
+   "detected": true,
+   "example": "#05-101 B2: glazing 0.32 m2 = 2.9% of 10.97 m2",
+   "runtime_s": 2.53
+  },
+  {
+   "mutation": "stale_door_spaces",
+   "family": "programme",
+   "describe": "point a bedroom door's Navigation.FromSpace / ToSpace at another room of the flat",
+   "expect": [
+    "door_spaces"
+   ],
+   "fired": [
+    "door_spaces"
+   ],
+   "detected": true,
+   "example": "#05-101 Bedroom 2 door: Navigation #05-101 B2 / #05-101 B3, geometry #05-101 B2 / #05-101 H",
+   "runtime_s": 2.54
+  },
+  {
+   "mutation": "remove_main_door",
+   "family": "programme",
+   "describe": "delete a flat's main door",
+   "expect": [
+    "main_door",
+    "reachable"
+   ],
+   "fired": [
+    "main_door"
+   ],
+   "detected": true,
+   "example": "#05-101: no main door",
+   "runtime_s": 2.53
+  },
+  {
+   "mutation": "raise_riser",
+   "family": "geometry",
+   "describe": "raise the third tread of a flight by 20 mm",
+   "expect": [
+    "stair_riser",
+    "stair_riser_variation"
+   ],
+   "fired": [
+    "stair_balustrade_height",
+    "stair_riser",
+    "stair_riser_variation"
+   ],
+   "detected": true,
+   "example": "L11 IfcStairFlight L11 stair 1 flight 1: riser 0.1950 m",
+   "runtime_s": 3.97
+  },
+  {
+   "mutation": "delete_stair_flight",
+   "family": "geometry",
+   "describe": "delete one flight of a stair",
+   "expect": [
+    "stair_rise"
+   ],
+   "fired": [
+    "falling_edges",
+    "stair_rise"
+   ],
+   "detected": true,
+   "example": "L11 stair 1: climbs 30.200..31.600, storeys 28.800..31.600",
+   "runtime_s": 3.96
+  },
+  {
+   "mutation": "delete_balustrade",
+   "family": "geometry",
+   "describe": "delete the well-side balustrade of a flight",
+   "expect": [
+    "stair_open_sides"
+   ],
+   "fired": [
+    "stair_open_sides"
+   ],
+   "detected": true,
+   "example": "L11 IfcStairFlight L11 stair 1 flight 1: left side open (no wall, no balustrade)",
+   "runtime_s": 3.94
+  },
+  {
+   "mutation": "overlapping_wall",
+   "family": "geometry",
+   "describe": "duplicate the longest wall of a storey 0.3 m along itself",
+   "expect": [
+    "wall_overlap"
+   ],
+   "fired": [
+    "opening_clash",
+    "wall_overlap"
+   ],
+   "detected": true,
+   "example": "L11 IfcWall L11 EXT U107:MB|@out duplicate / L11 EXT U107:MB|@out: 2.2200 m2 > 0.0401 m2",
+   "runtime_s": 4.0
+  },
+  {
+   "mutation": "slab_in_lift_shaft",
+   "family": "geometry",
+   "describe": "add a floor slab across a lift shaft",
+   "expect": [
+    "lift_shaft_slab"
+   ],
+   "fired": [
+    "falling_edge_gaps",
+    "lift_shaft_slab"
+   ],
+   "detected": true,
+   "example": "L11 IfcSlab Slab across the lift shaft: 2.700 m2 inside the Lift 1 car shaft",
+   "runtime_s": 4.01
+  },
+  {
+   "mutation": "remove_roof_parapet",
+   "family": "geometry",
+   "describe": "delete the longest roof parapet",
+   "expect": [
+    "falling_edges"
+   ],
+   "fired": [
+    "falling_edges"
+   ],
+   "detected": true,
+   "example": "RF IfcSlab Roof slab: 23.28 m unguarded from (240.90, 356.59) to (240.90, 333.41), drop 56.80 m, barrier 0.00 m",
+   "runtime_s": 3.95
+  },
+  {
+   "mutation": "overlapping_space",
+   "family": "geometry",
+   "describe": "add a copy of a living room shifted 0.5 m",
+   "expect": [
+    "space_overlap"
+   ],
+   "fired": [
+    "space_overlap"
+   ],
+   "detected": true,
+   "example": "L5 IfcSpace #05-101 LD copy / #05-101 K: 1.575 m2",
+   "runtime_s": 3.97
+  },
+  {
+   "mutation": "shift_wet_room",
+   "family": "geometry",
+   "describe": "move one common bathroom 0.6 m sideways",
+   "expect": [
+    "wet_stack",
+    "wet_over_dry"
+   ],
+   "fired": [
+    "space_overlap",
+    "wet_stack"
+   ],
+   "detected": true,
+   "example": "stack 101 L6->L7: wet IoU 0.875",
+   "runtime_s": 4.01
+  },
+  {
+   "mutation": "door_clash",
+   "family": "geometry",
+   "describe": "move a door into the nearest wall that does not host it",
+   "expect": [
+    "opening_clash"
+   ],
+   "fired": [
+    "opening_clash"
+   ],
+   "detected": true,
+   "example": "L5 IfcDoor #05-101 Bedroom 2 door x L5 INT U101:MB|U101:B2: 0.0105 m2",
+   "runtime_s": 3.99
+  },
+  {
+   "mutation": "georef_eastings",
+   "family": "federation",
+   "describe": "change the IfcMapConversion eastings of one file",
+   "expect": [
+    "federation_georef"
+   ],
+   "fired": [
+    "federation_georef"
+   ],
+   "detected": true,
+   "example": "{'Eastings': 30000.0, 'Northings': 36000.0, 'OrthogonalHeight': 15.0, 'XAxisAbscissa': None, 'XAxisOrdinate': None, 'Scale': None, 'CRS': 'EPSG:3414'}: <memory 0>",
+   "runtime_s": 0.93
+  },
+  {
+   "mutation": "federation_duplicate_guid",
+   "family": "federation",
+   "describe": "reuse a wall GlobalId of another file",
+   "expect": [
+    "federation_guids"
+   ],
+   "fired": [
+    "federation_guids"
+   ],
+   "detected": true,
+   "example": "1eFir04aq9wH6ob4hqfn6L IfcWall in <memory 0> and <memory 1>",
+   "runtime_s": 0.98
+  }
+ ],
+ "detected": 32,
+ "total": 32,
+ "rate": 1.0,
+ "baseline": {
+  "ifcqa": {
+   "unique_guids": 0,
+   "containment": 0,
+   "space_structure": 0,
+   "opening_voids": 0,
+   "filling": 0,
+   "empty_openings": 0,
+   "openings_per_wall": 0,
+   "representation_sharing": 0,
+   "space_in_zone": 0,
+   "required_psets": 0,
+   "zone_ifa": 0,
+   "element_budget": 0,
+   "placements_right_handed": 0,
+   "georef": 0,
+   "project_identity": 0,
+   "ids:SN5-WALL-EXT": 0,
+   "ids:SN5-DOOR-NAV": 0,
+   "ids:SN5-WIN-EXT": 0,
+   "ids:SN5-SPACE-AREA": 0,
+   "ids:SN5-ZONE-TYPE": 0,
+   "ids:SN5-ROOM-CODE": 0,
+   "ids:SN5-STOREY-NAME": 0,
+   "ids:SN5-BLDG-BLOCK": 0
+  },
+  "programme": {
+   "flat_type": 0,
+   "required_rooms": 0,
+   "room_area": 0,
+   "room_width": 0,
+   "space_geometry": 0,
+   "living_area": 0,
+   "shelter_area": 0,
+   "glazing": 0,
+   "bath_vent": 0,
+   "kitchen_vent": 0,
+   "door_width": 0,
+   "main_door": 0,
+   "reachable": 0,
+   "shelter_access": 0,
+   "ensuite_access": 0,
+   "door_spaces": 0,
+   "space_quantities": 0
+  },
+  "geometry": {
+   "stair_riser": 0,
+   "stair_riser_variation": 0,
+   "stair_going": 0,
+   "stair_risers_per_flight": 0,
+   "stair_width": 0,
+   "stair_headroom": 0,
+   "stair_landings": 0,
+   "stair_open_sides": 0,
+   "stair_balustrade_height": 0,
+   "stair_rise": 0,
+   "barrier_heights": 0,
+   "falling_edges": 0,
+   "falling_edge_gaps": 40,
+   "wall_overlap": 0,
+   "opening_clash": 0,
+   "lift_shaft_slab": 0,
+   "space_overlap": 0,
+   "wet_stack": 0,
+   "wet_over_dry": 0
+  },
+  "federation": {
+   "federation_guids": 0,
+   "federation_identity": 0,
+   "federation_georef": 0,
+   "federation_units": 0
+  }
+ },
+ "runtime_s": 104.65
+}

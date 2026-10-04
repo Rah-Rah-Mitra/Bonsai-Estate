@@ -1,0 +1,313 @@
+{
+ "files": {
+  "BLK_501": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 40
+   },
+   "runtime_s": 18.94,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 40
+    }
+   ]
+  },
+  "BLK_502": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 40
+   },
+   "runtime_s": 18.92,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 40
+    }
+   ]
+  },
+  "BLK_503": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 23
+   },
+   "runtime_s": 21.4,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 23
+    }
+   ]
+  },
+  "BLK_504": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 23
+   },
+   "runtime_s": 20.3,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 23
+    }
+   ]
+  },
+  "BLK_505": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 2
+   },
+   "runtime_s": 23.79,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 2
+    }
+   ]
+  },
+  "BLK_506": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 98
+   },
+   "runtime_s": 24.79,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 98
+    }
+   ]
+  },
+  "BLK_507": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 4
+   },
+   "runtime_s": 22.26,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 4
+    }
+   ]
+  },
+  "BLK_508": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 4
+   },
+   "runtime_s": 21.16,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 4
+    }
+   ]
+  },
+  "BLK_509": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 35
+   },
+   "runtime_s": 30.02,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 35
+    }
+   ]
+  },
+  "BLK_510": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 304
+   },
+   "runtime_s": 28.34,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 304
+    }
+   ]
+  },
+  "BLK_511": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 94
+   },
+   "runtime_s": 28.31,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 94
+    }
+   ]
+  },
+  "BLK_512": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 146
+   },
+   "runtime_s": 15.81,
+   "failing": [
+    {
+     "family": "geometry",
+     "check": "falling_edge_gaps",
+     "level": "warn",
+     "count": 146
+    }
+   ]
+  },
+  "MSCP_513": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 0,
+    "error_items": 0,
+    "warning_items": 0
+   },
+   "runtime_s": 7.98,
+   "failing": []
+  },
+  "NC_514": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 0,
+    "error_items": 0,
+    "warning_items": 0
+   },
+   "runtime_s": 2.27,
+   "failing": []
+  },
+  "SITE": {
+   "summary": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 0,
+    "error_items": 0,
+    "warning_items": 0
+   },
+   "runtime_s": 8.45,
+   "failing": []
+  }
+ },
+ "federation": {
+  "files": [
+   "model/BLK_501/BLK_501.ifc",
+   "model/BLK_502/BLK_502.ifc",
+   "model/BLK_503/BLK_503.ifc",
+   "model/BLK_504/BLK_504.ifc",
+   "model/BLK_505/BLK_505.ifc",
+   "model/BLK_506/BLK_506.ifc",
+   "model/BLK_507/BLK_507.ifc",
+   "model/BLK_508/BLK_508.ifc",
+   "model/BLK_509/BLK_509.ifc",
+   "model/BLK_510/BLK_510.ifc",
+   "model/BLK_511/BLK_511.ifc",
+   "model/BLK_512/BLK_512.ifc",
+   "model/MSCP_513/MSCP_513.ifc",
+   "model/NC_514/NC_514.ifc",
+   "model/SITE.ifc"
+  ],
+  "runtime_s": 5.01,
+  "summary": {
+   "checks": 4,
+   "failed_errors": 0,
+   "failed_warnings": 0,
+   "error_items": 0,
+   "warning_items": 0
+  },
+  "results": [
+   {
+    "check": "federation_guids",
+    "level": "info",
+    "severity": "error",
+    "count": 0,
+    "examples": [],
+    "note": "GlobalIds unique across files"
+   },
+   {
+    "check": "federation_identity",
+    "level": "info",
+    "severity": "error",
+    "count": 0,
+    "examples": [],
+    "note": "one IfcProject / IfcSite shared by every file"
+   },
+   {
+    "check": "federation_georef",
+    "level": "info",
+    "severity": "error",
+    "count": 0,
+    "examples": [],
+    "note": "identical IfcMapConversion / IfcProjectedCRS"
+   },
+   {
+    "check": "federation_units",
+    "level": "info",
+    "severity": "error",
+    "count": 0,
+    "examples": []
+   }
+  ]
+ }
+}

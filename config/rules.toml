@@ -1,0 +1,89 @@
+# Design-rule thresholds used by estate/flats/check.py and estate/validate/*.
+# Values marked confirm = true are reasonable HDB / BCA / SCDF readings that still need an authoritative check.
+
+[flat.ifa_band]            # internal floor area (inside party/external wall centre bands, incl. AC ledge), m2
+"2RF" = [34.0, 50.0]
+"3R" = [60.0, 70.0]
+"4R" = [86.0, 96.0]
+"5R" = [104.0, 116.0]
+"3G" = [110.0, 122.0]
+"EA" = [124.0, 140.0]
+
+[flat.required]            # room codes that must exist (any one of a "|" group)
+"2RF" = ["LDK|LD", "BED", "BA", "HS"]
+"3R" = ["LD", "K", "SY", "MB", "MBa", "B2", "CB", "HS"]
+"4R" = ["LD", "K", "SY", "MB", "MBa", "B2", "B3", "CB", "HS"]
+"5R" = ["LD", "K", "SY", "MB", "MBa", "B2", "B3", "CB", "HS"]
+"3G" = ["LD", "K", "SY", "MB", "MBa", "B2", "B3", "B4", "B4a", "CB", "HS"]
+"EA" = ["LD", "K", "SY", "MB", "MBa", "B2", "B3", "CB", "HS"]
+
+[flat.living_min]          # LD (or LDK) net area, m2
+"2RF" = 16.0
+"3R" = 20.0
+"4R" = 24.0
+"5R" = 28.0
+"3G" = 28.0
+"EA" = 32.0
+
+[room.min_area]            # net m2
+MB = 11.0
+BED = 9.0
+B2 = 8.5
+B3 = 8.5
+B4 = 8.5
+ST = 6.0
+K = 5.0
+MBa = 2.2
+CB = 2.2
+BA = 2.2
+B4a = 2.2
+B2a = 2.2
+SY = 1.8
+
+[room.min_width]           # clear width, m
+MB = 2.8
+BED = 2.6
+B2 = 2.4
+B3 = 2.4
+B4 = 2.4
+ST = 2.0
+K = 1.5
+MBa = 1.2
+CB = 1.2
+BA = 1.2
+B4a = 1.2
+B2a = 1.2
+H = 0.9
+F = 1.0
+
+[shelter]                  # SCDF household shelter internal floor area by flat IFA (confirm = true)
+confirm = true
+bands = [[45.0, 1.6], [75.0, 2.2], [140.0, 2.8], [9999.0, 3.4]]   # [max IFA, min shelter area]
+
+[glazing]
+habitable_ratio = 0.10     # glazing area / net floor area for habitable rooms
+vent_min_area = 0.20       # bathroom vent window area (else mechanical ventilation must be declared)
+
+[doors]
+main_min = 0.9
+internal_min = 0.8
+
+[siting]
+setback = 7.5
+facade_spacing = 30.0
+gable_spacing = 15.0
+
+[variety]
+min_raw = 40
+min_canonical = 20
+min_per_type = 3
+min_per_type_small = 2     # 2RF / 3G / EA
+
+[void_deck]                # letterbox banks (blocks/point.py place_letterboxes): one box per flat (confirm = true)
+confirm = true
+letterbox_per_bank = 48    # boxes in a standard bank: 8 columns of 6 boxes, about 0.3 x 0.3 m each
+bank_length = 2.4          # m, standard bank; banks are built and lengthened in whole columns
+bank_columns = 8
+bank_min_length = 1.5      # m, shortest bank
+clear_front = 1.2          # m kept clear in front of every bank (standing and passing space)
+near_lobby = 10.0          # m, banks go within this distance of a lift lobby first

@@ -1,0 +1,191 @@
+# Typology test fixture: snapshot of config/flats/5R-PT-A.toml taken 2026-10-04 (PT4 point block tests).
+# 5-room flat for point blocks: galley kitchen along the core, yard and third bedroom on the re-entrant slot,
+# living/dining through the middle to the rear facade, bedroom wing (bedroom 2, master suite with walk-in
+# wardrobe) on the end facade.
+# Frame: x from the core side (0) to the end facade, y from the lift lobby (0) to the rear facade.
+id = "5R-PT-A"
+type = "5R"
+title = "5-room, point block quadrant (slot kitchen, end-facade bedroom wing)"
+fits = ["PT"]
+shelter_wall = "HS250"
+notes = "Kitchen windows onto the lift lobby; the yard and bedroom 3 open onto the slot between quadrants (above the stair core). A hall off the living serves bedroom 2, the common bath and the master suite (walk-in wardrobe to the en-suite). No study: larger living/dining."
+
+x = [0.0, 2.4, 3.4, 4.4, 6.4, 7.0, 8.2, 9.4, 11.2]
+y = [0.0, 2.4, 4.0, 5.6, 6.6, 7.0, 10.2]
+open = [["LD", "F"], ["LD", "H"]]
+
+[rooms]
+K = [[0.0, 0.0, 2.4, 5.6]]
+SY = [[0.0, 5.6, 2.4, 7.0]]
+B3 = [[0.0, 7.0, 3.4, 10.2]]
+F = [[2.4, 0.0, 4.4, 2.4]]
+HS = [[4.4, 0.0, 6.4, 2.4]]
+CB = [[6.4, 0.0, 8.2, 2.4]]
+LD = [[2.4, 2.4, 7.0, 7.0], [3.4, 7.0, 7.0, 10.2]]
+H = [[7.0, 2.4, 8.2, 6.6]]
+B2 = [[8.2, 0.0, 11.2, 4.0]]
+MB = [[7.0, 6.6, 11.2, 10.2], [8.2, 4.0, 9.4, 6.6]]
+MBa = [[9.4, 4.0, 11.2, 6.6]]
+
+[[doors]]
+name = "Main door"
+between = ["F", "@entry"]
+at = [3.4, 0.0]
+width = 1.0
+kind = "main"
+into = "F"
+
+[[doors]]
+name = "Household shelter door"
+between = ["HS", "LD"]
+at = [5.75, 2.4]
+width = 0.8
+kind = "shelter"
+into = "LD"
+hinge = "hi"
+
+[[doors]]
+name = "Kitchen door"
+between = ["K", "F"]
+at = [2.4, 1.4]
+width = 0.9
+into = "K"
+hinge = "hi"
+
+[[doors]]
+name = "Service yard door"
+between = ["SY", "K"]
+at = [1.4, 5.6]
+width = 0.8
+into = "SY"
+
+[[doors]]
+name = "Bedroom 3 door"
+between = ["B3", "LD"]
+at = [3.4, 7.6]
+width = 0.9
+into = "B3"
+
+[[doors]]
+name = "Common bathroom door"
+between = ["CB", "H"]
+at = [7.6, 2.4]
+width = 0.8
+kind = "bath"
+into = "CB"
+
+[[doors]]
+name = "Bedroom 2 door"
+between = ["B2", "H"]
+at = [8.2, 3.2]
+width = 0.9
+into = "B2"
+hinge = "hi"
+
+[[doors]]
+name = "Master bedroom door"
+between = ["MB", "H"]
+at = [7.6, 6.6]
+width = 0.9
+into = "MB"
+
+[[doors]]
+name = "Master bathroom door"
+between = ["MBa", "MB"]
+at = [9.4, 5.3]
+width = 0.8
+kind = "bath"
+into = "MBa"
+
+[[windows]]
+name = "Kitchen window"
+room = "K"
+at = [1.2, 0.0]
+width = 1.2
+sill = 1.1
+height = 1.0
+
+[[windows]]
+name = "Service yard opening"
+room = "SY"
+at = [0.0, 6.3]
+width = 1.0
+sill = 0.9
+height = 1.4
+kind = "opening"
+
+[[windows]]
+name = "Bedroom 3 side window"
+room = "B3"
+at = [0.0, 8.6]
+width = 1.6
+
+[[windows]]
+name = "Bedroom 3 window"
+room = "B3"
+at = [1.6, 10.2]
+width = 1.4
+
+[[windows]]
+name = "Living window"
+room = "LD"
+at = [5.2, 10.2]
+width = 2.8
+sill = 0.6
+height = 1.7
+
+[[windows]]
+name = "Common bathroom vent window"
+room = "CB"
+at = [7.3, 0.0]
+width = 0.6
+sill = 1.6
+height = 0.6
+kind = "vent"
+
+[[windows]]
+name = "Bedroom 2 window"
+room = "B2"
+at = [11.2, 2.0]
+width = 1.6
+
+[[windows]]
+name = "Master bathroom vent window"
+room = "MBa"
+at = [11.2, 5.3]
+width = 0.6
+sill = 1.6
+height = 0.6
+kind = "vent"
+
+[[windows]]
+name = "Master bedroom window"
+room = "MB"
+at = [9.0, 10.2]
+width = 1.8
+
+[[windows]]
+name = "Master bedroom side window"
+room = "MB"
+at = [11.2, 8.4]
+width = 1.4
+
+[[ledges]]
+name = "AC ledge"
+rect = [2.8, 10.2, 4.0, 10.8]
+
+[[ledges]]
+name = "AC ledge"
+rect = [6.4, 10.2, 7.6, 10.8]
+
+[variants]
+mirror = false
+kitchen = ["closed", "open"]
+outdoor = ["ac_ledge", "none"]
+
+[variants.kitchen_open]
+remove_doors = ["Kitchen door"]
+open = [["K", "LD"]]
+
+[variants.stretch]
+x = [[2.3, 2.5], [1.0, 1.0], [0.9, 1.1], [1.9, 2.1], [0.6, 0.6], [1.2, 1.2], [1.1, 1.25], [1.8, 1.8]]

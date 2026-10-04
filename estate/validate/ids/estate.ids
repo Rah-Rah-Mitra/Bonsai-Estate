@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sample Town N5: information requirements every generated building file must meet (IDS 1.0).
+     Run with: estate.cmd validate (estate/validate/ifcqa.py -> ifctester). -->
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>Sample Town N5 - estate building files</title>
+    <version>1.0</version>
+    <description>Walkable HDB estate: wall exposure, door passability for navigation, space areas, flat types, room codes, storey names and block numbers.</description>
+    <date>2026-10-04</date>
+    <purpose>Validation of generated IFC4X3 / IFC4 building files before Bonsai and engine export</purpose>
+  </info>
+  <specifications>
+    <specification name="Walls declare whether they are external" ifcVersion="IFC4 IFC4X3_ADD2" identifier="SN5-WALL-EXT"
+                   description="Every IfcWall carries Pset_WallCommon.IsExternal (envelope, thermal and render split).">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCWALL</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCBOOLEAN" cardinality="required">
+          <propertySet><simpleValue>Pset_WallCommon</simpleValue></propertySet>
+          <baseName><simpleValue>IsExternal</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Doors declare passability for navigation" ifcVersion="IFC4 IFC4X3_ADD2" identifier="SN5-DOOR-NAV"
+                   description="Every IfcDoor carries Navigation.Passable (closed lift and locked plant doors are not passable).">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCDOOR</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCBOOLEAN" cardinality="required">
+          <propertySet><simpleValue>Navigation</simpleValue></propertySet>
+          <baseName><simpleValue>Passable</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Windows declare whether they are external" ifcVersion="IFC4 IFC4X3_ADD2" identifier="SN5-WIN-EXT"
+                   description="Every IfcWindow carries Pset_WindowCommon.IsExternal.">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCWINDOW</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCBOOLEAN" cardinality="required">
+          <propertySet><simpleValue>Pset_WindowCommon</simpleValue></propertySet>
+          <baseName><simpleValue>IsExternal</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Spaces carry their net floor area" ifcVersion="IFC4 IFC4X3_ADD2" identifier="SN5-SPACE-AREA"
+                   description="Every IfcSpace carries Qto_SpaceBaseQuantities.NetFloorArea (unit schedule, glazing ratios).">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCSPACE</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCAREAMEASURE" cardinality="required">
+          <propertySet><simpleValue>Qto_SpaceBaseQuantities</simpleValue></propertySet>
+          <baseName><simpleValue>NetFloorArea</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Flat zones carry an HDB flat type" ifcVersion="IFC4 IFC4X3_ADD2" identifier="SN5-ZONE-TYPE"
+                   description="Every flat zone (an IfcZone with SampleCity_Flat) has FlatType 2RF, 3R, 4R, 5R, 3G or EA; ifcqa requires the set on every zone of residential rooms.">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCZONE</simpleValue></name></entity>
+        <property>
+          <propertySet><simpleValue>SampleCity_Flat</simpleValue></propertySet>
+          <baseName><simpleValue>UnitNumber</simpleValue></baseName>
+        </property>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" cardinality="required">
+          <propertySet><simpleValue>SampleCity_Flat</simpleValue></propertySet>
+          <baseName><simpleValue>FlatType</simpleValue></baseName>
+          <value>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="2RF"/>
+              <xs:enumeration value="3R"/>
+              <xs:enumeration value="4R"/>
+              <xs:enumeration value="5R"/>
+              <xs:enumeration value="3G"/>
+              <xs:enumeration value="EA"/>
+            </xs:restriction>
+          </value>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Flat rooms carry a room code" ifcVersion="IFC4 IFC4X3_ADD2" identifier="SN5-ROOM-CODE"
+                   description="Every IfcSpace with SampleCity_Room has a RoomCode from the flat templates (estate/flats/template.py ROOM_CODES) or STALL / SHOP for the neighbourhood centre; the programme checks (validate/programme.py) key required rooms, areas, glazing and vents on it.">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCSPACE</simpleValue></name></entity>
+        <property>
+          <propertySet><simpleValue>SampleCity_Room</simpleValue></propertySet>
+          <baseName><simpleValue>UnitNumber</simpleValue></baseName>
+        </property>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" cardinality="required">
+          <propertySet><simpleValue>SampleCity_Room</simpleValue></propertySet>
+          <baseName><simpleValue>RoomCode</simpleValue></baseName>
+          <value>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="LD"/>
+              <xs:enumeration value="LDK"/>
+              <xs:enumeration value="K"/>
+              <xs:enumeration value="SY"/>
+              <xs:enumeration value="F"/>
+              <xs:enumeration value="H"/>
+              <xs:enumeration value="HS"/>
+              <xs:enumeration value="BED"/>
+              <xs:enumeration value="MB"/>
+              <xs:enumeration value="MBa"/>
+              <xs:enumeration value="B2"/>
+              <xs:enumeration value="B3"/>
+              <xs:enumeration value="B4"/>
+              <xs:enumeration value="B4a"/>
+              <xs:enumeration value="B2a"/>
+              <xs:enumeration value="BA"/>
+              <xs:enumeration value="CB"/>
+              <xs:enumeration value="ST"/>
+              <xs:enumeration value="UT"/>
+              <xs:enumeration value="BAL"/>
+              <xs:enumeration value="STALL"/>
+              <xs:enumeration value="SHOP"/>
+            </xs:restriction>
+          </value>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Storeys are named L1..Ln or RF" ifcVersion="IFC4 IFC4X3_ADD2" identifier="SN5-STOREY-NAME"
+                   description="IfcBuildingStorey.Name is L followed by the storey number (void deck = L1), or RF for the roof.">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <attribute cardinality="required">
+          <name><simpleValue>Name</simpleValue></name>
+          <value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="L[1-9][0-9]*|RF"/>
+            </xs:restriction>
+          </value>
+        </attribute>
+      </requirements>
+    </specification>
+    <specification name="Buildings declare their block number" ifcVersion="IFC4 IFC4X3_ADD2" identifier="SN5-BLDG-BLOCK"
+                   description="Every IfcBuilding carries SampleCity_Building.Block (federation, postal codes, manifest).">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCBUILDING</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" cardinality="required">
+          <propertySet><simpleValue>SampleCity_Building</simpleValue></propertySet>
+          <baseName><simpleValue>Block</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+  </specifications>
+</ids>

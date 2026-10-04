@@ -1,0 +1,96 @@
+# 2-room Flexi (~38 m2 IFA) for corridor slab blocks: open living/dining/kitchen along one party wall,
+# bathroom + household shelter + short hall at the corridor side, bedroom on the quiet rear facade.
+# Frame: x along the corridor (both sides are party walls in a mid unit), y from the corridor (0) to the rear facade.
+id = "2RF38-S"
+type = "2RF"
+title = "2-room Flexi 38, slab (open LDK, bath on the corridor)"
+fits = ["SL"]
+shelter_wall = "HS250"
+notes = "Compact 2RF: the entry opens straight into the LDK with the kitchen run on the corridor window; bath and bedroom are reached from a 1.2 m hall; the shelter door opens out into the LDK beside the entry."
+
+x = [0.0, 1.5, 3.1, 6.2]
+y = [0.0, 1.6, 2.8, 6.4]
+open = [["H", "LDK"]]
+
+[rooms]
+BA = [[0.0, 0.0, 1.5, 2.8]]
+HS = [[1.5, 0.0, 3.1, 1.6]]
+H = [[1.5, 1.6, 3.1, 2.8]]
+BED = [[0.0, 2.8, 3.1, 6.4]]
+LDK = [[3.1, 0.0, 6.2, 6.4]]
+
+[[doors]]
+name = "Main door"
+between = ["LDK", "@entry"]
+at = [3.9, 0.0]
+width = 1.0
+kind = "main"
+into = "LDK"
+hinge = "hi"
+
+[[doors]]
+name = "Household shelter door"
+between = ["HS", "LDK"]
+at = [3.1, 1.02]
+width = 0.8
+kind = "shelter"
+into = "LDK"
+hinge = "hi"
+
+[[doors]]
+name = "Bathroom door"
+between = ["BA", "H"]
+at = [1.5, 2.2]
+width = 0.8
+kind = "bath"
+into = "BA"
+hinge = "hi"
+
+[[doors]]
+name = "Bedroom door"
+between = ["BED", "H"]
+at = [2.3, 2.8]
+width = 0.9
+into = "BED"
+hinge = "hi"
+
+[[windows]]
+name = "Bathroom vent window"
+room = "BA"
+at = [0.75, 0.0]
+width = 0.6
+sill = 1.6
+height = 0.6
+kind = "vent"
+
+[[windows]]
+name = "Kitchen window"
+room = "LDK"
+at = [5.3, 0.0]
+width = 1.2
+sill = 1.1
+height = 1.0
+
+[[windows]]
+name = "Living window"
+room = "LDK"
+at = [4.65, 6.4]
+width = 2.0
+
+[[windows]]
+name = "Bedroom window"
+room = "BED"
+at = [1.45, 6.4]
+width = 1.6
+
+[[ledges]]
+name = "AC ledge"
+rect = [2.5, 6.4, 3.7, 7.0]
+
+[variants]
+mirror = true
+kitchen = ["closed"]
+outdoor = ["ac_ledge", "none"]
+
+[variants.stretch]
+x = [[1.5, 1.6], [1.55, 1.8], [2.9, 3.3]]

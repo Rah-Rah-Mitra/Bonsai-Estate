@@ -1,0 +1,151 @@
+# 3-room flat for corridor slab blocks, "split bedrooms": a full-depth living/dining in the middle of a wide frontage,
+# bedroom 2 on the corridor on one side with an eat-in kitchen and the service yard behind it on the rear facade,
+# the master suite on the other side behind the shelter, the common bath and an en-suite that ventilates to the corridor.
+# Frame: x along the corridor (both sides are party walls in a mid unit), y from the corridor (0) to the rear facade.
+id = "3R-S-B"
+type = "3R"
+title = "3-room, slab (wide frontage, bedrooms either side of a through living room)"
+fits = ["SL"]
+shelter_wall = "HS250"
+notes = "The main door opens into the dining end of the living room; bedroom 2 takes a high corridor window; the kitchen gets a rear window beside the yard; the common bath (mechanically ventilated) opens off the living room."
+
+x = [0.0, 1.6, 3.0, 6.6, 8.2, 9.8]
+y = [0.0, 2.2, 3.3, 4.0, 5.4, 7.0]
+
+[rooms]
+B2 = [[0.0, 0.0, 3.0, 3.3]]
+K = [[0.0, 3.3, 3.0, 5.4], [1.6, 5.4, 3.0, 7.0]]
+SY = [[0.0, 5.4, 1.6, 7.0]]
+LD = [[3.0, 0.0, 6.6, 7.0]]
+HS = [[6.6, 0.0, 8.2, 2.2]]
+MBa = [[8.2, 0.0, 9.8, 2.2]]
+CB = [[6.6, 2.2, 8.2, 4.0]]
+MB = [[8.2, 2.2, 9.8, 4.0], [6.6, 4.0, 9.8, 7.0]]
+
+[[doors]]
+name = "Main door"
+between = ["LD", "@entry"]
+at = [4.0, 0.0]
+width = 1.0
+kind = "main"
+into = "LD"
+hinge = "lo"
+
+[[doors]]
+name = "Bedroom 2 door"
+between = ["B2", "LD"]
+at = [3.0, 2.75]
+width = 0.9
+into = "B2"
+hinge = "hi"
+
+[[doors]]
+name = "Kitchen door"
+between = ["K", "LD"]
+at = [3.0, 3.85]
+width = 0.9
+into = "K"
+hinge = "lo"
+
+[[doors]]
+name = "Service yard door"
+between = ["SY", "K"]
+at = [0.8, 5.4]
+width = 0.8
+into = "SY"
+
+[[doors]]
+name = "Household shelter door"
+between = ["HS", "LD"]
+at = [6.6, 0.6]
+width = 0.8
+kind = "shelter"
+into = "LD"
+hinge = "lo"
+
+[[doors]]
+name = "Common bathroom door"
+between = ["CB", "LD"]
+at = [6.6, 3.1]
+width = 0.8
+kind = "bath"
+into = "CB"
+
+[[doors]]
+name = "Master bedroom door"
+between = ["MB", "LD"]
+at = [6.6, 4.6]
+width = 0.9
+into = "MB"
+hinge = "lo"
+
+[[doors]]
+name = "Master bathroom door"
+between = ["MBa", "MB"]
+at = [9.0, 2.2]
+width = 0.8
+kind = "bath"
+into = "MBa"
+
+[[windows]]
+name = "Bedroom 2 high window"
+room = "B2"
+at = [1.5, 0.0]
+width = 1.8
+sill = 1.5
+height = 0.8
+
+[[windows]]
+name = "Master bathroom vent window"
+room = "MBa"
+at = [9.0, 0.0]
+width = 0.6
+sill = 1.6
+height = 0.6
+kind = "vent"
+
+[[windows]]
+name = "Service yard opening"
+room = "SY"
+at = [0.8, 7.0]
+width = 1.0
+sill = 1.2
+height = 1.1
+kind = "opening"
+
+[[windows]]
+name = "Kitchen window"
+room = "K"
+at = [2.3, 7.0]
+width = 1.0
+sill = 1.1
+height = 1.0
+
+[[windows]]
+name = "Living window"
+room = "LD"
+at = [4.8, 7.0]
+width = 2.4
+
+[[windows]]
+name = "Master bedroom window"
+room = "MB"
+at = [8.2, 7.0]
+width = 1.8
+
+[[ledges]]
+name = "AC ledge"
+rect = [6.0, 7.0, 7.2, 7.6]
+
+[variants]
+mirror = true
+kitchen = ["closed", "open"]
+outdoor = ["ac_ledge", "none"]
+mechanical_vent = ["CB"]
+
+[variants.kitchen_open]
+remove_doors = ["Kitchen door"]
+open = [["K", "LD"]]
+
+[variants.stretch]
+x = [[1.6, 1.65], [1.4, 1.45], [3.4, 3.75], [1.6, 1.65], [1.6, 1.6]]

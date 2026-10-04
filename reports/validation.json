@@ -1,0 +1,2153 @@
+{
+ "date": "2026-10-04",
+ "files": [
+  {
+   "file": "build/t_pt4.ifc",
+   "ifcqa": {
+    "file": "build/t_pt4.ifc",
+    "schema": "IFC4X3",
+    "elements": 3287,
+    "runtime_s": 7.76,
+    "summary": {
+     "checks": 23,
+     "failed_errors": 2,
+     "failed_warnings": 1,
+     "error_items": 13,
+     "warning_items": 2
+    },
+    "results": [
+     {
+      "check": "schema",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "ifcopenshell.validate (types, cardinalities, inverses, header)"
+     },
+     {
+      "check": "unique_guids",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": []
+     },
+     {
+      "check": "containment",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcElement in a spatial structure or aggregated into a contained element"
+     },
+     {
+      "check": "space_structure",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcSpace aggregated into the spatial structure"
+     },
+     {
+      "check": "opening_voids",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcOpeningElement voids exactly one element"
+     },
+     {
+      "check": "filling",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcDoor / IfcWindow fills exactly one opening"
+     },
+     {
+      "check": "empty_openings",
+      "level": "info",
+      "severity": "warn",
+      "count": 0,
+      "examples": [],
+      "note": "openings with no door / window"
+     },
+     {
+      "check": "openings_per_wall",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 20,
+      "note": "Bonsai void_limit headroom"
+     },
+     {
+      "check": "representation_sharing",
+      "level": "error",
+      "severity": "error",
+      "count": 12,
+      "examples": [
+       "#494 Body used 94x (e.g. #479 IfcOpeningElement L1 stair 1 fire door opening)",
+       "#2183 Body used 88x (e.g. #2168 IfcOpeningElement #02-107 Master bedroom window opening)",
+       "#2269 Body used 44x (e.g. #2254 IfcOpeningElement #02-107 Bedroom 2 window opening)",
+       "#2377 Body used 88x (e.g. #2362 IfcOpeningElement #02-107 Dining window opening)",
+       "#2626 Body used 176x (e.g. #2611 IfcOpeningElement #02-107 Master bedroom door opening)",
+       "#2804 Body used 132x (e.g. #2789 IfcOpeningElement #02-107 Master bathroom door opening)"
+      ],
+      "note": "IfcShapeModel.WR11: a shape representation belongs to exactly one product shape or one type map"
+     },
+     {
+      "check": "space_in_zone",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "residential spaces (SampleCity_Room) grouped in an IfcZone"
+     },
+     {
+      "check": "required_psets",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "IfcWall": [
+        "Pset_WallCommon"
+       ],
+       "IfcDoor": [
+        "Pset_DoorCommon",
+        "Navigation"
+       ],
+       "IfcWindow": [
+        "Pset_WindowCommon"
+       ],
+       "IfcSpace": [
+        "Qto_SpaceBaseQuantities"
+       ],
+       "IfcZone": [
+        "SampleCity_Flat"
+       ]
+      }
+     },
+     {
+      "check": "zone_ifa",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "2RF": [
+        34.0,
+        50.0
+       ],
+       "3R": [
+        60.0,
+        70.0
+       ],
+       "4R": [
+        86.0,
+        96.0
+       ],
+       "5R": [
+        104.0,
+        116.0
+       ],
+       "3G": [
+        110.0,
+        122.0
+       ],
+       "EA": [
+        124.0,
+        140.0
+       ]
+      },
+      "note": "config/rules.toml [flat.ifa_band]"
+     },
+     {
+      "check": "element_budget",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 3287
+     },
+     {
+      "check": "placements_right_handed",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "det(rotation) = +1 for every placement and mapped item"
+     },
+     {
+      "check": "georef",
+      "level": "error",
+      "severity": "error",
+      "count": 1,
+      "examples": [
+       "no IfcMapConversion / IfcProjectedCRS"
+      ]
+     },
+     {
+      "check": "project_identity",
+      "level": "warn",
+      "severity": "warn",
+      "count": 2,
+      "examples": [
+       "IfcProject 3r87896p2P1qLvVjiUZft2 != 1dZ33uP0MTqrdmSLFx2C$g",
+       "IfcSite 2NCSAT59NjgVyuiUwZ$UhW != 1MQJOVbZaJWOqvyD5NQtGb"
+      ],
+      "note": "IfcProject / IfcSite GUIDs from config.identity()"
+     },
+     {
+      "check": "ids:SN5-WALL-EXT",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 1178
+      },
+      "note": "Walls declare whether they are external"
+     },
+     {
+      "check": "ids:SN5-DOOR-NAV",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 447
+      },
+      "note": "Doors declare passability for navigation"
+     },
+     {
+      "check": "ids:SN5-WIN-EXT",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 418
+      },
+      "note": "Windows declare whether they are external"
+     },
+     {
+      "check": "ids:SN5-SPACE-AREA",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 498
+      },
+      "note": "Spaces carry their net floor area"
+     },
+     {
+      "check": "ids:SN5-ZONE-TYPE",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 44
+      },
+      "note": "Flat zones carry an HDB flat type"
+     },
+     {
+      "check": "ids:SN5-STOREY-NAME",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 13
+      },
+      "note": "Storeys are named L1..Ln or RF"
+     },
+     {
+      "check": "ids:SN5-BLDG-BLOCK",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 1
+      },
+      "note": "Buildings declare their block number"
+     }
+    ]
+   },
+   "geometry": {
+    "file": "build/t_pt4.ifc",
+    "runtime_s": 2.78,
+    "mesh_s": 0.27,
+    "summary": {
+     "checks": 19,
+     "failed_errors": 2,
+     "failed_warnings": 1,
+     "error_items": 50,
+     "warning_items": 46
+    },
+    "results": [
+     {
+      "check": "stair_riser",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "max": 0.175,
+       "limit": 0.175,
+       "flights": 48
+      }
+     },
+     {
+      "check": "stair_riser_variation",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 0.005
+     },
+     {
+      "check": "stair_going",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 0.28,
+       "limit": 0.275
+      }
+     },
+     {
+      "check": "stair_risers_per_flight",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "max": 11.0,
+       "limit": 18
+      }
+     },
+     {
+      "check": "stair_width",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 1.11,
+       "limit": 1.0
+      }
+     },
+     {
+      "check": "stair_headroom",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 2.4481,
+       "limit": 2.0
+      }
+     },
+     {
+      "check": "stair_landings",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "each flight starts on a floor / landing and arrives on one"
+     },
+     {
+      "check": "stair_open_sides",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "flight sides bounded by a wall or a balustrade"
+     },
+     {
+      "check": "stair_balustrade_height",
+      "level": "error",
+      "severity": "error",
+      "count": 48,
+      "examples": [
+       "L7 IfcStairFlight L7 stair 2 flight 2: balustrade 0.900 m above the pitch line",
+       "L8 IfcStairFlight L8 stair 2 flight 1: balustrade 0.900 m above the pitch line",
+       "L6 IfcStairFlight L6 stair 1 flight 1: balustrade 0.900 m above the pitch line",
+       "L12 IfcStairFlight L12 stair 2 flight 2: balustrade 0.900 m above the pitch line",
+       "L5 IfcStairFlight L5 stair 2 flight 2: balustrade 0.900 m above the pitch line",
+       "L12 IfcStairFlight L12 stair 1 flight 2: balustrade 0.900 m above the pitch line"
+      ],
+      "value": {
+       "min": 0.9,
+       "limit": 1.0
+      },
+      "note": "measured vertically above the pitch line through the nosings"
+     },
+     {
+      "check": "stair_rise",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 24,
+      "note": "flights of each IfcStair chain from the storey level to the next storey level"
+     },
+     {
+      "check": "barrier_heights",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 1.0,
+      "note": "guard rails and parapet walls"
+     },
+     {
+      "check": "falling_edges",
+      "level": "error",
+      "severity": "error",
+      "count": 2,
+      "examples": [
+       "L12 IfcSlab L12 stair 1 floor landing: 1.21 m unguarded from (-1.44, -3.74) to (-0.21, -3.74), drop 34.40 m, barrier 0.00 m",
+       "L12 IfcSlab L12 stair 2 floor landing: 1.21 m unguarded from (1.35, -3.74) to (2.59, -3.74), drop 34.40 m, barrier 0.00 m"
+      ],
+      "value": {
+       "unguarded_m": 2.42,
+       "samples": 28578,
+       "with_drop": 20028
+      },
+      "note": "edges with a drop > 0.5 m need a barrier >= 1.0 m"
+     },
+     {
+      "check": "falling_edge_gaps",
+      "level": "warn",
+      "severity": "warn",
+      "count": 46,
+      "examples": [
+       "L5 IfcSlab L5 stair 2 floor landing: 0.18 m unguarded from (1.35, -3.74) to (1.44, -3.74), drop 14.80 m, barrier 0.00 m",
+       "L11 IfcSlab L11 stair 1 floor landing: 0.18 m unguarded from (-1.44, -3.74) to (-1.35, -3.74), drop 31.60 m, barrier 0.00 m",
+       "L11 IfcSlab L11 stair 2 mid landing: 0.30 m unguarded from (1.50, -5.70) to (1.30, -5.70), drop 30.20 m, barrier 0.00 m",
+       "L2 IfcSlab L2 stair 2 floor landing: 0.18 m unguarded from (1.35, -3.74) to (1.44, -3.74), drop 6.40 m, barrier 0.00 m",
+       "L7 IfcSlab L7 stair 2 mid landing: 0.30 m unguarded from (1.50, -5.70) to (1.30, -5.70), drop 19.00 m, barrier 0.00 m",
+       "L9 IfcSlab L9 stair 1 mid landing: 0.30 m unguarded from (-1.30, -5.70) to (-1.50, -5.70), drop 24.60 m, barrier 0.00 m"
+      ],
+      "value": {
+       "unguarded_m": 11.98
+      },
+      "note": "unguarded gaps narrower than 0.4 m (stair wells at landings): not passable for the 0.30 m agent, but open to the 100 mm sphere rule"
+     },
+     {
+      "check": "wall_overlap",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "worst_excess_m2": 0.0
+      },
+      "note": "per storey, overlap <= t1 * t2 + 1e-4 m2 (junction tolerance)"
+     },
+     {
+      "check": "opening_clash",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "doors / windows clear of every wall except their host"
+     },
+     {
+      "check": "lift_shaft_slab",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": [
+       {
+        "car": "Lift 2 car",
+        "area": 5.98,
+        "z": [
+         0.01,
+         37.6
+        ]
+       },
+       {
+        "car": "Lift 1 car",
+        "area": 5.98,
+        "z": [
+         0.01,
+         37.6
+        ]
+       }
+      ],
+      "note": "slab area inside a lift shaft <= 0.01 m2"
+     },
+     {
+      "check": "space_overlap",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "IfcSpace overlap per storey <= 0.05 m2"
+     },
+     {
+      "check": "wet_stack",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min_iou": 1.0,
+       "stacks": 4
+      },
+      "note": "wet rooms per stack keep their footprint storey to storey (IoU >= 0.99)"
+     },
+     {
+      "check": "wet_over_dry",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "worst_m2": 0.0
+      },
+      "note": "wet room over a habitable room <= 0.1 m2 per storey pair"
+     }
+    ]
+   },
+   "summary": {
+    "checks": 42,
+    "failed_errors": 4,
+    "failed_warnings": 2,
+    "error_items": 63,
+    "warning_items": 48
+   },
+   "runtime_s": 10.57
+  },
+  {
+   "file": "build/legacy/hdb_block_legacy.ifc",
+   "ifcqa": {
+    "file": "build/legacy/hdb_block_legacy.ifc",
+    "schema": "IFC4X3",
+    "elements": 3156,
+    "runtime_s": 6.28,
+    "summary": {
+     "checks": 23,
+     "failed_errors": 4,
+     "failed_warnings": 1,
+     "error_items": 90,
+     "warning_items": 2
+    },
+    "results": [
+     {
+      "check": "schema",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "ifcopenshell.validate (types, cardinalities, inverses, header)"
+     },
+     {
+      "check": "unique_guids",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": []
+     },
+     {
+      "check": "containment",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcElement in a spatial structure or aggregated into a contained element"
+     },
+     {
+      "check": "space_structure",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcSpace aggregated into the spatial structure"
+     },
+     {
+      "check": "opening_voids",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcOpeningElement voids exactly one element"
+     },
+     {
+      "check": "filling",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcDoor / IfcWindow fills exactly one opening"
+     },
+     {
+      "check": "empty_openings",
+      "level": "info",
+      "severity": "warn",
+      "count": 0,
+      "examples": [],
+      "note": "openings with no door / window"
+     },
+     {
+      "check": "openings_per_wall",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 20,
+      "note": "Bonsai void_limit headroom"
+     },
+     {
+      "check": "representation_sharing",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "IfcShapeModel.WR11: a shape representation belongs to exactly one product shape or one type map"
+     },
+     {
+      "check": "space_in_zone",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "residential spaces (SampleCity_Room) grouped in an IfcZone"
+     },
+     {
+      "check": "required_psets",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "IfcWall": [
+        "Pset_WallCommon"
+       ],
+       "IfcDoor": [
+        "Pset_DoorCommon",
+        "Navigation"
+       ],
+       "IfcWindow": [
+        "Pset_WindowCommon"
+       ],
+       "IfcSpace": [
+        "Qto_SpaceBaseQuantities"
+       ],
+       "IfcZone": [
+        "SampleCity_Flat"
+       ]
+      }
+     },
+     {
+      "check": "zone_ifa",
+      "level": "error",
+      "severity": "error",
+      "count": 44,
+      "examples": [
+       "#02-101: unknown flat type '4-Room'",
+       "#02-103: unknown flat type '4-Room'",
+       "#02-105: unknown flat type '4-Room'",
+       "#02-107: unknown flat type '4-Room'",
+       "#03-101: unknown flat type '4-Room'",
+       "#03-103: unknown flat type '4-Room'"
+      ],
+      "value": {
+       "2RF": [
+        34.0,
+        50.0
+       ],
+       "3R": [
+        60.0,
+        70.0
+       ],
+       "4R": [
+        86.0,
+        96.0
+       ],
+       "5R": [
+        104.0,
+        116.0
+       ],
+       "3G": [
+        110.0,
+        122.0
+       ],
+       "EA": [
+        124.0,
+        140.0
+       ]
+      },
+      "note": "config/rules.toml [flat.ifa_band]"
+     },
+     {
+      "check": "element_budget",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 3156
+     },
+     {
+      "check": "placements_right_handed",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "det(rotation) = +1 for every placement and mapped item"
+     },
+     {
+      "check": "georef",
+      "level": "error",
+      "severity": "error",
+      "count": 1,
+      "examples": [
+       "no IfcMapConversion / IfcProjectedCRS"
+      ]
+     },
+     {
+      "check": "project_identity",
+      "level": "warn",
+      "severity": "warn",
+      "count": 2,
+      "examples": [
+       "IfcProject 0h4bg1TaM6yhZi0ux9P_Sd != 1dZ33uP0MTqrdmSLFx2C$g",
+       "IfcSite 0os03aHZhhrVOzXODA$8oQ != 1MQJOVbZaJWOqvyD5NQtGb"
+      ],
+      "note": "IfcProject / IfcSite GUIDs from config.identity()"
+     },
+     {
+      "check": "ids:SN5-WALL-EXT",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 1030
+      },
+      "note": "Walls declare whether they are external"
+     },
+     {
+      "check": "ids:SN5-DOOR-NAV",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 446
+      },
+      "note": "Doors declare passability for navigation"
+     },
+     {
+      "check": "ids:SN5-WIN-EXT",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 418
+      },
+      "note": "Windows declare whether they are external"
+     },
+     {
+      "check": "ids:SN5-SPACE-AREA",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 496
+      },
+      "note": "Spaces carry their net floor area"
+     },
+     {
+      "check": "ids:SN5-ZONE-TYPE",
+      "level": "error",
+      "severity": "error",
+      "count": 44,
+      "examples": [
+       "#12932 IfcZone #02-101: The property value \"4-Room\" does not match the requirements",
+       "#13463 IfcZone #02-103: The property value \"4-Room\" does not match the requirements",
+       "#13994 IfcZone #02-105: The property value \"4-Room\" does not match the requirements",
+       "#14525 IfcZone #02-107: The property value \"4-Room\" does not match the requirements",
+       "#25353 IfcZone #03-101: The property value \"4-Room\" does not match the requirements",
+       "#25884 IfcZone #03-103: The property value \"4-Room\" does not match the requirements"
+      ],
+      "value": {
+       "applicable": 44
+      },
+      "note": "Flat zones carry an HDB flat type"
+     },
+     {
+      "check": "ids:SN5-STOREY-NAME",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 13
+      },
+      "note": "Storeys are named L1..Ln or RF"
+     },
+     {
+      "check": "ids:SN5-BLDG-BLOCK",
+      "level": "error",
+      "severity": "error",
+      "count": 1,
+      "examples": [
+       "#247 IfcBuilding Blk 123: The required property set does not exist"
+      ],
+      "value": {
+       "applicable": 1
+      },
+      "note": "Buildings declare their block number"
+     }
+    ]
+   },
+   "geometry": {
+    "file": "build/legacy/hdb_block_legacy.ifc",
+    "runtime_s": 1.91,
+    "mesh_s": 0.29,
+    "summary": {
+     "checks": 19,
+     "failed_errors": 2,
+     "failed_warnings": 1,
+     "error_items": 228,
+     "warning_items": 95
+    },
+    "results": [
+     {
+      "check": "stair_riser",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "max": 0.175,
+       "limit": 0.175,
+       "flights": 48
+      }
+     },
+     {
+      "check": "stair_riser_variation",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 0.005
+     },
+     {
+      "check": "stair_going",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 0.28,
+       "limit": 0.275
+      }
+     },
+     {
+      "check": "stair_risers_per_flight",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "max": 11.0,
+       "limit": 18
+      }
+     },
+     {
+      "check": "stair_width",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 1.11,
+       "limit": 1.0
+      }
+     },
+     {
+      "check": "stair_headroom",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 2.4481,
+       "limit": 2.0
+      }
+     },
+     {
+      "check": "stair_landings",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "each flight starts on a floor / landing and arrives on one"
+     },
+     {
+      "check": "stair_open_sides",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "flight sides bounded by a wall or a balustrade"
+     },
+     {
+      "check": "stair_balustrade_height",
+      "level": "error",
+      "severity": "error",
+      "count": 48,
+      "examples": [
+       "L6 IfcStairFlight L6 stair 1 flight 2: balustrade 0.900 m above the pitch line",
+       "L11 IfcStairFlight L11 stair 1 flight 2: balustrade 0.900 m above the pitch line",
+       "L1 IfcStairFlight L1 stair 2 flight 1: balustrade 0.900 m above the pitch line",
+       "L10 IfcStairFlight L10 stair 2 flight 1: balustrade 0.900 m above the pitch line",
+       "L7 IfcStairFlight L7 stair 1 flight 1: balustrade 0.900 m above the pitch line",
+       "L3 IfcStairFlight L3 stair 2 flight 1: balustrade 0.900 m above the pitch line"
+      ],
+      "value": {
+       "min": 0.9,
+       "limit": 1.0
+      },
+      "note": "measured vertically above the pitch line through the nosings"
+     },
+     {
+      "check": "stair_rise",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 24,
+      "note": "flights of each IfcStair chain from the storey level to the next storey level"
+     },
+     {
+      "check": "barrier_heights",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 1.0,
+      "note": "guard rails and parapet walls"
+     },
+     {
+      "check": "falling_edges",
+      "level": "error",
+      "severity": "error",
+      "count": 180,
+      "examples": [
+       "L8 IfcSlab #08-103 AC ledge: 0.58 m unguarded from (3.60, 10.69) to (3.60, 10.21), drop 20.40 m, barrier 0.00 m",
+       "L8 IfcSlab #08-103 AC ledge: 0.58 m unguarded from (5.60, 10.21) to (5.60, 10.69), drop 20.40 m, barrier 0.00 m",
+       "L7 IfcSlab #07-101 AC ledge: 0.58 m unguarded from (-3.60, 10.21) to (-3.60, 10.69), drop 17.60 m, barrier 0.00 m",
+       "L7 IfcSlab #07-101 AC ledge: 0.58 m unguarded from (-5.60, 10.69) to (-5.60, 10.21), drop 17.60 m, barrier 0.00 m",
+       "L11 IfcSlab #11-107 AC ledge: 0.58 m unguarded from (-5.60, -10.21) to (-5.60, -10.69), drop 28.80 m, barrier 0.00 m",
+       "L11 IfcSlab #11-107 AC ledge: 0.58 m unguarded from (-3.60, -10.69) to (-3.60, -10.21), drop 28.80 m, barrier 0.00 m"
+      ],
+      "value": {
+       "unguarded_m": 109.46,
+       "samples": 24294,
+       "with_drop": 19104
+      },
+      "note": "edges with a drop > 0.5 m need a barrier >= 1.0 m"
+     },
+     {
+      "check": "falling_edge_gaps",
+      "level": "warn",
+      "severity": "warn",
+      "count": 95,
+      "examples": [
+       "L4 IfcSlab L4 floor slab: 0.99 m unguarded from (-1.90, -1.50) to (-1.00, -1.50), drop 9.20 m, barrier 0.00 m",
+       "L4 IfcSlab L4 floor slab: 0.99 m unguarded from (1.00, -1.50) to (1.90, -1.50), drop 9.20 m, barrier 0.00 m",
+       "L6 IfcSlab L6 stair 2 mid landing: 0.20 m unguarded from (1.50, -5.80) to (1.40, -5.80), drop 16.20 m, barrier 0.00 m",
+       "L8 IfcSlab L8 stair 1 mid landing: 0.20 m unguarded from (-1.40, -5.80) to (-1.50, -5.80), drop 21.80 m, barrier 0.00 m",
+       "L6 IfcSlab L6 floor slab: 0.99 m unguarded from (-1.90, -1.50) to (-1.00, -1.50), drop 14.80 m, barrier 0.00 m",
+       "L6 IfcSlab L6 floor slab: 0.99 m unguarded from (1.00, -1.50) to (1.90, -1.50), drop 14.80 m, barrier 0.00 m"
+      ],
+      "value": {
+       "unguarded_m": 48.08
+      },
+      "note": "unguarded gaps narrower than 0.4 m (stair wells at landings): not passable for the 0.30 m agent, but open to the 100 mm sphere rule"
+     },
+     {
+      "check": "wall_overlap",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "worst_excess_m2": 0.0
+      },
+      "note": "per storey, overlap <= t1 * t2 + 1e-4 m2 (junction tolerance)"
+     },
+     {
+      "check": "opening_clash",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "doors / windows clear of every wall except their host"
+     },
+     {
+      "check": "lift_shaft_slab",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": [
+       {
+        "car": "Lift 1 car",
+        "area": 5.75,
+        "z": [
+         0.01,
+         37.6
+        ]
+       },
+       {
+        "car": "Lift 2 car",
+        "area": 5.75,
+        "z": [
+         0.01,
+         37.6
+        ]
+       }
+      ],
+      "note": "slab area inside a lift shaft <= 0.01 m2"
+     },
+     {
+      "check": "space_overlap",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "IfcSpace overlap per storey <= 0.05 m2"
+     },
+     {
+      "check": "wet_stack",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min_iou": 1.0,
+       "stacks": 4
+      },
+      "note": "wet rooms per stack keep their footprint storey to storey (IoU >= 0.99)"
+     },
+     {
+      "check": "wet_over_dry",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "worst_m2": 0.0
+      },
+      "note": "wet room over a habitable room <= 0.1 m2 per storey pair"
+     }
+    ]
+   },
+   "summary": {
+    "checks": 42,
+    "failed_errors": 6,
+    "failed_warnings": 2,
+    "error_items": 318,
+    "warning_items": 97
+   },
+   "runtime_s": 8.22
+  },
+  {
+   "file": "build/validate_tests/BLK_505.ifc",
+   "ifcqa": {
+    "file": "build/validate_tests/BLK_505.ifc",
+    "schema": "IFC4X3",
+    "elements": 7070,
+    "runtime_s": 10.04,
+    "summary": {
+     "checks": 23,
+     "failed_errors": 1,
+     "failed_warnings": 0,
+     "error_items": 12,
+     "warning_items": 0
+    },
+    "results": [
+     {
+      "check": "schema",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "ifcopenshell.validate (types, cardinalities, inverses, header)"
+     },
+     {
+      "check": "unique_guids",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": []
+     },
+     {
+      "check": "containment",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcElement in a spatial structure or aggregated into a contained element"
+     },
+     {
+      "check": "space_structure",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcSpace aggregated into the spatial structure"
+     },
+     {
+      "check": "opening_voids",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcOpeningElement voids exactly one element"
+     },
+     {
+      "check": "filling",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcDoor / IfcWindow fills exactly one opening"
+     },
+     {
+      "check": "empty_openings",
+      "level": "info",
+      "severity": "warn",
+      "count": 0,
+      "examples": [],
+      "note": "openings with no door / window"
+     },
+     {
+      "check": "openings_per_wall",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 20,
+      "note": "Bonsai void_limit headroom"
+     },
+     {
+      "check": "representation_sharing",
+      "level": "error",
+      "severity": "error",
+      "count": 12,
+      "examples": [
+       "#663 Body used 199x (e.g. #648 IfcOpeningElement L1 stair 1 fire door opening)",
+       "#2293 Body used 192x (e.g. #2278 IfcOpeningElement #02-107 Master bedroom window opening)",
+       "#2379 Body used 96x (e.g. #2364 IfcOpeningElement #02-107 Bedroom 2 window opening)",
+       "#2487 Body used 192x (e.g. #2472 IfcOpeningElement #02-107 Dining window opening)",
+       "#2736 Body used 384x (e.g. #2721 IfcOpeningElement #02-107 Master bedroom door opening)",
+       "#2914 Body used 288x (e.g. #2899 IfcOpeningElement #02-107 Master bathroom door opening)"
+      ],
+      "note": "IfcShapeModel.WR11: a shape representation belongs to exactly one product shape or one type map"
+     },
+     {
+      "check": "space_in_zone",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "residential spaces (SampleCity_Room) grouped in an IfcZone"
+     },
+     {
+      "check": "required_psets",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "IfcWall": [
+        "Pset_WallCommon"
+       ],
+       "IfcDoor": [
+        "Pset_DoorCommon",
+        "Navigation"
+       ],
+       "IfcWindow": [
+        "Pset_WindowCommon"
+       ],
+       "IfcSpace": [
+        "Qto_SpaceBaseQuantities"
+       ],
+       "IfcZone": [
+        "SampleCity_Flat"
+       ]
+      }
+     },
+     {
+      "check": "zone_ifa",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "2RF": [
+        34.0,
+        50.0
+       ],
+       "3R": [
+        60.0,
+        70.0
+       ],
+       "4R": [
+        86.0,
+        96.0
+       ],
+       "5R": [
+        104.0,
+        116.0
+       ],
+       "3G": [
+        110.0,
+        122.0
+       ],
+       "EA": [
+        124.0,
+        140.0
+       ]
+      },
+      "note": "config/rules.toml [flat.ifa_band]"
+     },
+     {
+      "check": "element_budget",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 7070
+     },
+     {
+      "check": "placements_right_handed",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "det(rotation) = +1 for every placement and mapped item"
+     },
+     {
+      "check": "georef",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "Eastings": 30000.0,
+       "Northings": 36000.0,
+       "OrthogonalHeight": 15.0,
+       "XAxisAbscissa": null,
+       "XAxisOrdinate": null,
+       "Scale": null,
+       "CRS": "EPSG:3414",
+       "GeodeticDatum": null,
+       "MapProjection": null,
+       "count": 1
+      }
+     },
+     {
+      "check": "project_identity",
+      "level": "info",
+      "severity": "warn",
+      "count": 0,
+      "examples": [],
+      "note": "IfcProject / IfcSite GUIDs from config.identity()"
+     },
+     {
+      "check": "ids:SN5-WALL-EXT",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 2530
+      },
+      "note": "Walls declare whether they are external"
+     },
+     {
+      "check": "ids:SN5-DOOR-NAV",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 967
+      },
+      "note": "Doors declare passability for navigation"
+     },
+     {
+      "check": "ids:SN5-WIN-EXT",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 912
+      },
+      "note": "Windows declare whether they are external"
+     },
+     {
+      "check": "ids:SN5-SPACE-AREA",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 1083
+      },
+      "note": "Spaces carry their net floor area"
+     },
+     {
+      "check": "ids:SN5-ZONE-TYPE",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 96
+      },
+      "note": "Flat zones carry an HDB flat type"
+     },
+     {
+      "check": "ids:SN5-STOREY-NAME",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 26
+      },
+      "note": "Storeys are named L1..Ln or RF"
+     },
+     {
+      "check": "ids:SN5-BLDG-BLOCK",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 1
+      },
+      "note": "Buildings declare their block number"
+     }
+    ]
+   },
+   "geometry": {
+    "file": "build/validate_tests/BLK_505.ifc",
+    "runtime_s": 5.65,
+    "mesh_s": 0.43,
+    "summary": {
+     "checks": 19,
+     "failed_errors": 2,
+     "failed_warnings": 1,
+     "error_items": 102,
+     "warning_items": 98
+    },
+    "results": [
+     {
+      "check": "stair_riser",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "max": 0.175,
+       "limit": 0.175,
+       "flights": 100
+      }
+     },
+     {
+      "check": "stair_riser_variation",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 0.005
+     },
+     {
+      "check": "stair_going",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 0.28,
+       "limit": 0.275
+      }
+     },
+     {
+      "check": "stair_risers_per_flight",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "max": 11.0,
+       "limit": 18
+      }
+     },
+     {
+      "check": "stair_width",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 1.11,
+       "limit": 1.0
+      }
+     },
+     {
+      "check": "stair_headroom",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 2.4481,
+       "limit": 2.0
+      }
+     },
+     {
+      "check": "stair_landings",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "each flight starts on a floor / landing and arrives on one"
+     },
+     {
+      "check": "stair_open_sides",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "flight sides bounded by a wall or a balustrade"
+     },
+     {
+      "check": "stair_balustrade_height",
+      "level": "error",
+      "severity": "error",
+      "count": 100,
+      "examples": [
+       "L7 IfcStairFlight L7 stair 1 flight 2: balustrade 0.900 m above the pitch line",
+       "L12 IfcStairFlight L12 stair 1 flight 2: balustrade 0.900 m above the pitch line",
+       "L20 IfcStairFlight L20 stair 1 flight 2: balustrade 0.900 m above the pitch line",
+       "L20 IfcStairFlight L20 stair 2 flight 2: balustrade 0.900 m above the pitch line",
+       "L18 IfcStairFlight L18 stair 2 flight 1: balustrade 0.900 m above the pitch line",
+       "L5 IfcStairFlight L5 stair 2 flight 1: balustrade 0.900 m above the pitch line"
+      ],
+      "value": {
+       "min": 0.9,
+       "limit": 1.0
+      },
+      "note": "measured vertically above the pitch line through the nosings"
+     },
+     {
+      "check": "stair_rise",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 50,
+      "note": "flights of each IfcStair chain from the storey level to the next storey level"
+     },
+     {
+      "check": "barrier_heights",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 1.0,
+      "note": "guard rails and parapet walls"
+     },
+     {
+      "check": "falling_edges",
+      "level": "error",
+      "severity": "error",
+      "count": 2,
+      "examples": [
+       "L25 IfcSlab L25 stair 1 floor landing: 1.21 m unguarded from (258.74, 233.56) to (258.74, 234.79), drop 70.80 m, barrier 0.00 m",
+       "L25 IfcSlab L25 stair 2 floor landing: 1.21 m unguarded from (258.74, 236.35) to (258.74, 237.59), drop 70.80 m, barrier 0.00 m"
+      ],
+      "value": {
+       "unguarded_m": 2.42,
+       "samples": 58712,
+       "with_drop": 41764
+      },
+      "note": "edges with a drop > 0.5 m need a barrier >= 1.0 m"
+     },
+     {
+      "check": "falling_edge_gaps",
+      "level": "warn",
+      "severity": "warn",
+      "count": 98,
+      "examples": [
+       "L13 IfcSlab L13 stair 2 floor landing: 0.18 m unguarded from (258.74, 236.35) to (258.74, 236.45), drop 37.20 m, barrier 0.00 m",
+       "L19 IfcSlab L19 stair 1 mid landing: 0.30 m unguarded from (260.70, 233.70) to (260.70, 233.50), drop 52.60 m, barrier 0.00 m",
+       "L6 IfcSlab L6 stair 1 mid landing: 0.30 m unguarded from (260.70, 233.70) to (260.70, 233.50), drop 16.20 m, barrier 0.00 m",
+       "L20 IfcSlab L20 stair 1 mid landing: 0.30 m unguarded from (260.70, 233.70) to (260.70, 233.50), drop 55.40 m, barrier 0.00 m",
+       "L14 IfcSlab L14 stair 2 mid landing: 0.30 m unguarded from (260.70, 236.50) to (260.70, 236.30), drop 38.60 m, barrier 0.00 m",
+       "L11 IfcSlab L11 stair 2 mid landing: 0.30 m unguarded from (260.70, 236.50) to (260.70, 236.30), drop 30.20 m, barrier 0.00 m"
+      ],
+      "value": {
+       "unguarded_m": 24.4
+      },
+      "note": "unguarded gaps narrower than 0.4 m (stair wells at landings): not passable for the 0.30 m agent, but open to the 100 mm sphere rule"
+     },
+     {
+      "check": "wall_overlap",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "worst_excess_m2": 0.0
+      },
+      "note": "per storey, overlap <= t1 * t2 + 1e-4 m2 (junction tolerance)"
+     },
+     {
+      "check": "opening_clash",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "doors / windows clear of every wall except their host"
+     },
+     {
+      "check": "lift_shaft_slab",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": [
+       {
+        "car": "Lift 1 car",
+        "area": 5.98,
+        "z": [
+         0.01,
+         74.0
+        ]
+       },
+       {
+        "car": "Lift 2 car",
+        "area": 5.98,
+        "z": [
+         0.01,
+         74.0
+        ]
+       }
+      ],
+      "note": "slab area inside a lift shaft <= 0.01 m2"
+     },
+     {
+      "check": "space_overlap",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "IfcSpace overlap per storey <= 0.05 m2"
+     },
+     {
+      "check": "wet_stack",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min_iou": 1.0,
+       "stacks": 4
+      },
+      "note": "wet rooms per stack keep their footprint storey to storey (IoU >= 0.99)"
+     },
+     {
+      "check": "wet_over_dry",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "worst_m2": 0.0
+      },
+      "note": "wet room over a habitable room <= 0.1 m2 per storey pair"
+     }
+    ]
+   },
+   "summary": {
+    "checks": 42,
+    "failed_errors": 3,
+    "failed_warnings": 1,
+    "error_items": 114,
+    "warning_items": 98
+   },
+   "runtime_s": 15.74
+  },
+  {
+   "file": "build/validate_tests/BLK_502.ifc",
+   "ifcqa": {
+    "file": "build/validate_tests/BLK_502.ifc",
+    "schema": "IFC4X3",
+    "elements": 5393,
+    "runtime_s": 7.66,
+    "summary": {
+     "checks": 23,
+     "failed_errors": 1,
+     "failed_warnings": 0,
+     "error_items": 18,
+     "warning_items": 0
+    },
+    "results": [
+     {
+      "check": "schema",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "ifcopenshell.validate (types, cardinalities, inverses, header)"
+     },
+     {
+      "check": "unique_guids",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": []
+     },
+     {
+      "check": "containment",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcElement in a spatial structure or aggregated into a contained element"
+     },
+     {
+      "check": "space_structure",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcSpace aggregated into the spatial structure"
+     },
+     {
+      "check": "opening_voids",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcOpeningElement voids exactly one element"
+     },
+     {
+      "check": "filling",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "every IfcDoor / IfcWindow fills exactly one opening"
+     },
+     {
+      "check": "empty_openings",
+      "level": "info",
+      "severity": "warn",
+      "count": 0,
+      "examples": [],
+      "note": "openings with no door / window"
+     },
+     {
+      "check": "openings_per_wall",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 20,
+      "note": "Bonsai void_limit headroom"
+     },
+     {
+      "check": "representation_sharing",
+      "level": "error",
+      "severity": "error",
+      "count": 18,
+      "examples": [
+       "#590 Body used 158x (e.g. #575 IfcOpeningElement L1 stair 1 fire door opening)",
+       "#2138 Body used 38x (e.g. #2123 IfcOpeningElement #02-107 Kitchen rear window opening)",
+       "#2224 Body used 152x (e.g. #2209 IfcOpeningElement #02-107 Master bedroom window opening)",
+       "#2309 Body used 76x (e.g. #2294 IfcOpeningElement #02-107 Bedroom 2 window opening)",
+       "#2441 Body used 152x (e.g. #2426 IfcOpeningElement #02-105 Master bathroom vent window opening)",
+       "#2596 Body used 228x (e.g. #2581 IfcOpeningElement #02-107 Service yard door opening)"
+      ],
+      "note": "IfcShapeModel.WR11: a shape representation belongs to exactly one product shape or one type map"
+     },
+     {
+      "check": "space_in_zone",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "residential spaces (SampleCity_Room) grouped in an IfcZone"
+     },
+     {
+      "check": "required_psets",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "IfcWall": [
+        "Pset_WallCommon"
+       ],
+       "IfcDoor": [
+        "Pset_DoorCommon",
+        "Navigation"
+       ],
+       "IfcWindow": [
+        "Pset_WindowCommon"
+       ],
+       "IfcSpace": [
+        "Qto_SpaceBaseQuantities"
+       ],
+       "IfcZone": [
+        "SampleCity_Flat"
+       ]
+      }
+     },
+     {
+      "check": "zone_ifa",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "2RF": [
+        34.0,
+        50.0
+       ],
+       "3R": [
+        60.0,
+        70.0
+       ],
+       "4R": [
+        86.0,
+        96.0
+       ],
+       "5R": [
+        104.0,
+        116.0
+       ],
+       "3G": [
+        110.0,
+        122.0
+       ],
+       "EA": [
+        124.0,
+        140.0
+       ]
+      },
+      "note": "config/rules.toml [flat.ifa_band]"
+     },
+     {
+      "check": "element_budget",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 5393
+     },
+     {
+      "check": "placements_right_handed",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "det(rotation) = +1 for every placement and mapped item"
+     },
+     {
+      "check": "georef",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "Eastings": 30000.0,
+       "Northings": 36000.0,
+       "OrthogonalHeight": 15.0,
+       "XAxisAbscissa": null,
+       "XAxisOrdinate": null,
+       "Scale": null,
+       "CRS": "EPSG:3414",
+       "GeodeticDatum": null,
+       "MapProjection": null,
+       "count": 1
+      }
+     },
+     {
+      "check": "project_identity",
+      "level": "info",
+      "severity": "warn",
+      "count": 0,
+      "examples": [],
+      "note": "IfcProject / IfcSite GUIDs from config.identity()"
+     },
+     {
+      "check": "ids:SN5-WALL-EXT",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 1803
+      },
+      "note": "Walls declare whether they are external"
+     },
+     {
+      "check": "ids:SN5-DOOR-NAV",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 747
+      },
+      "note": "Doors declare passability for navigation"
+     },
+     {
+      "check": "ids:SN5-WIN-EXT",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 760
+      },
+      "note": "Windows declare whether they are external"
+     },
+     {
+      "check": "ids:SN5-SPACE-AREA",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 800
+      },
+      "note": "Spaces carry their net floor area"
+     },
+     {
+      "check": "ids:SN5-ZONE-TYPE",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 76
+      },
+      "note": "Flat zones carry an HDB flat type"
+     },
+     {
+      "check": "ids:SN5-STOREY-NAME",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 21
+      },
+      "note": "Storeys are named L1..Ln or RF"
+     },
+     {
+      "check": "ids:SN5-BLDG-BLOCK",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "applicable": 1
+      },
+      "note": "Buildings declare their block number"
+     }
+    ]
+   },
+   "geometry": {
+    "file": "build/validate_tests/BLK_502.ifc",
+    "runtime_s": 3.76,
+    "mesh_s": 0.36,
+    "summary": {
+     "checks": 19,
+     "failed_errors": 2,
+     "failed_warnings": 1,
+     "error_items": 120,
+     "warning_items": 78
+    },
+    "results": [
+     {
+      "check": "stair_riser",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "max": 0.175,
+       "limit": 0.175,
+       "flights": 80
+      }
+     },
+     {
+      "check": "stair_riser_variation",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 0.005
+     },
+     {
+      "check": "stair_going",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 0.28,
+       "limit": 0.275
+      }
+     },
+     {
+      "check": "stair_risers_per_flight",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "max": 11.0,
+       "limit": 18
+      }
+     },
+     {
+      "check": "stair_width",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 1.11,
+       "limit": 1.0
+      }
+     },
+     {
+      "check": "stair_headroom",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min": 2.4481,
+       "limit": 2.0
+      }
+     },
+     {
+      "check": "stair_landings",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "each flight starts on a floor / landing and arrives on one"
+     },
+     {
+      "check": "stair_open_sides",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "flight sides bounded by a wall or a balustrade"
+     },
+     {
+      "check": "stair_balustrade_height",
+      "level": "error",
+      "severity": "error",
+      "count": 80,
+      "examples": [
+       "L14 IfcStairFlight L14 stair 1 flight 1: balustrade 0.900 m above the pitch line",
+       "L2 IfcStairFlight L2 stair 2 flight 1: balustrade 0.900 m above the pitch line",
+       "L12 IfcStairFlight L12 stair 1 flight 2: balustrade 0.900 m above the pitch line",
+       "L15 IfcStairFlight L15 stair 2 flight 1: balustrade 0.900 m above the pitch line",
+       "L9 IfcStairFlight L9 stair 1 flight 2: balustrade 0.900 m above the pitch line",
+       "L5 IfcStairFlight L5 stair 1 flight 2: balustrade 0.900 m above the pitch line"
+      ],
+      "value": {
+       "min": 0.9,
+       "limit": 1.0
+      },
+      "note": "measured vertically above the pitch line through the nosings"
+     },
+     {
+      "check": "stair_rise",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 40,
+      "note": "flights of each IfcStair chain from the storey level to the next storey level"
+     },
+     {
+      "check": "barrier_heights",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": 1.0,
+      "note": "guard rails and parapet walls"
+     },
+     {
+      "check": "falling_edges",
+      "level": "error",
+      "severity": "error",
+      "count": 40,
+      "examples": [
+       "L7 IfcSlab L7 floor slab: 1.00 m unguarded from (341.90, 340.00) to (341.90, 340.90), drop 17.60 m, barrier 0.90 m",
+       "L7 IfcSlab L7 floor slab: 1.00 m unguarded from (318.10, 350.00) to (318.10, 349.10), drop 17.60 m, barrier 0.90 m",
+       "L18 IfcSlab L18 floor slab: 1.00 m unguarded from (341.90, 340.00) to (341.90, 340.90), drop 48.40 m, barrier 0.90 m",
+       "L18 IfcSlab L18 floor slab: 1.00 m unguarded from (318.10, 350.00) to (318.10, 349.10), drop 48.40 m, barrier 0.90 m",
+       "L19 IfcSlab L19 floor slab: 1.00 m unguarded from (341.90, 340.00) to (341.90, 340.90), drop 51.20 m, barrier 0.90 m",
+       "L19 IfcSlab L19 floor slab: 1.00 m unguarded from (318.10, 350.00) to (318.10, 349.10), drop 51.20 m, barrier 0.90 m"
+      ],
+      "value": {
+       "unguarded_m": 40.33,
+       "samples": 43036,
+       "with_drop": 32387
+      },
+      "note": "edges with a drop > 0.5 m need a barrier >= 1.0 m"
+     },
+     {
+      "check": "falling_edge_gaps",
+      "level": "warn",
+      "severity": "warn",
+      "count": 78,
+      "examples": [
+       "L18 IfcSlab L18 stair 2 floor landing: 0.18 m unguarded from (331.36, 341.26) to (331.45, 341.26), drop 51.20 m, barrier 0.00 m",
+       "L9 IfcSlab L9 stair 1 mid landing: 0.30 m unguarded from (328.70, 339.30) to (328.50, 339.30), drop 24.60 m, barrier 0.00 m",
+       "L7 IfcSlab L7 stair 2 mid landing: 0.30 m unguarded from (331.50, 339.30) to (331.30, 339.30), drop 19.00 m, barrier 0.00 m",
+       "L9 IfcSlab L9 stair 2 floor landing: 0.18 m unguarded from (331.36, 341.26) to (331.45, 341.26), drop 26.00 m, barrier 0.00 m",
+       "L10 IfcSlab L10 stair 2 mid landing: 0.30 m unguarded from (331.50, 339.30) to (331.30, 339.30), drop 27.40 m, barrier 0.00 m",
+       "L9 IfcSlab L9 stair 1 floor landing: 0.18 m unguarded from (328.56, 341.26) to (328.65, 341.26), drop 26.00 m, barrier 0.00 m"
+      ],
+      "value": {
+       "unguarded_m": 19.62
+      },
+      "note": "unguarded gaps narrower than 0.4 m (stair wells at landings): not passable for the 0.30 m agent, but open to the 100 mm sphere rule"
+     },
+     {
+      "check": "wall_overlap",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "worst_excess_m2": 0.0
+      },
+      "note": "per storey, overlap <= t1 * t2 + 1e-4 m2 (junction tolerance)"
+     },
+     {
+      "check": "opening_clash",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "doors / windows clear of every wall except their host"
+     },
+     {
+      "check": "lift_shaft_slab",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": [
+       {
+        "car": "Lift 1 car",
+        "area": 5.98,
+        "z": [
+         0.01,
+         60.0
+        ]
+       },
+       {
+        "car": "Lift 2 car",
+        "area": 5.98,
+        "z": [
+         0.01,
+         60.0
+        ]
+       }
+      ],
+      "note": "slab area inside a lift shaft <= 0.01 m2"
+     },
+     {
+      "check": "space_overlap",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "note": "IfcSpace overlap per storey <= 0.05 m2"
+     },
+     {
+      "check": "wet_stack",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "min_iou": 1.0,
+       "stacks": 4
+      },
+      "note": "wet rooms per stack keep their footprint storey to storey (IoU >= 0.99)"
+     },
+     {
+      "check": "wet_over_dry",
+      "level": "info",
+      "severity": "error",
+      "count": 0,
+      "examples": [],
+      "value": {
+       "worst_m2": 0.0
+      },
+      "note": "wet room over a habitable room <= 0.1 m2 per storey pair"
+     }
+    ]
+   },
+   "summary": {
+    "checks": 42,
+    "failed_errors": 3,
+    "failed_warnings": 1,
+    "error_items": 138,
+    "warning_items": 78
+   },
+   "runtime_s": 11.46
+  }
+ ],
+ "federation": null,
+ "options": {
+  "schema": true,
+  "express_rules": false,
+  "ids": true,
+  "geometry": true
+ },
+ "summary": {
+  "files": 4,
+  "files_with_errors": 4,
+  "failed_checks": 16,
+  "runtime_s": 46.0
+ }
+}

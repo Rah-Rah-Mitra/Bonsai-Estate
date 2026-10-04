@@ -1,0 +1,10 @@
+# Source is LF everywhere (core.autocrlf would otherwise rewrite it on Windows checkouts)
+* text=auto eol=lf
+
+# Model and binary files are stored byte for byte (hdb_block*.ifc is the regression baseline)
+*.ifc -text
+*.glb binary
+*.blend binary
+*.zip binary
+*.png binary
+*.sqlite binary

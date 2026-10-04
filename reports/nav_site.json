@@ -1,0 +1,2276 @@
+{
+ "cell": 0.25,
+ "targets": [
+  {
+   "id": "BLK_501",
+   "kind": "block",
+   "name": "Blk 501",
+   "lobbies": [
+    [
+     254.4,
+     345.0
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     254.4,
+     345.0
+    ]
+   ]
+  },
+  {
+   "id": "BLK_502",
+   "kind": "block",
+   "name": "Blk 502",
+   "lobbies": [
+    [
+     329.4,
+     345.0
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     329.4,
+     345.0
+    ]
+   ]
+  },
+  {
+   "id": "BLK_503",
+   "kind": "block",
+   "name": "Blk 503",
+   "lobbies": [
+    [
+     254.4,
+     290.0
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     254.4,
+     290.0
+    ]
+   ]
+  },
+  {
+   "id": "BLK_504",
+   "kind": "block",
+   "name": "Blk 504",
+   "lobbies": [
+    [
+     329.4,
+     290.0
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     329.4,
+     290.0
+    ]
+   ]
+  },
+  {
+   "id": "BLK_505",
+   "kind": "block",
+   "name": "Blk 505",
+   "lobbies": [
+    [
+     254.4,
+     235.0
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     254.4,
+     235.0
+    ]
+   ]
+  },
+  {
+   "id": "BLK_506",
+   "kind": "block",
+   "name": "Blk 506",
+   "lobbies": [
+    [
+     329.4,
+     235.0
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     329.4,
+     235.0
+    ]
+   ]
+  },
+  {
+   "id": "BLK_507",
+   "kind": "block",
+   "name": "Blk 507",
+   "lobbies": [
+    [
+     93.2,
+     148.5
+    ],
+    [
+     133.8,
+     148.5
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     93.2,
+     148.5
+    ],
+    [
+     133.8,
+     148.5
+    ]
+   ]
+  },
+  {
+   "id": "BLK_508",
+   "kind": "block",
+   "name": "Blk 508",
+   "lobbies": [
+    [
+     82.4,
+     98.5
+    ],
+    [
+     122.6,
+     98.5
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     82.4,
+     98.5
+    ],
+    [
+     122.6,
+     98.5
+    ]
+   ]
+  },
+  {
+   "id": "BLK_509",
+   "kind": "block",
+   "name": "Blk 509",
+   "lobbies": [
+    [
+     68.5,
+     48.5
+    ],
+    [
+     108.5,
+     48.5
+    ],
+    [
+     148.5,
+     48.5
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     68.5,
+     48.5
+    ],
+    [
+     108.5,
+     48.5
+    ],
+    [
+     148.5,
+     48.5
+    ]
+   ]
+  },
+  {
+   "id": "BLK_510",
+   "kind": "block",
+   "name": "Blk 510",
+   "lobbies": [
+    [
+     232.6,
+     180.3
+    ],
+    [
+     226.7,
+     139.6
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     232.6,
+     180.3
+    ],
+    [
+     226.7,
+     139.6
+    ]
+   ]
+  },
+  {
+   "id": "BLK_511",
+   "kind": "block",
+   "name": "Blk 511",
+   "lobbies": [
+    [
+     352.4,
+     178.7
+    ],
+    [
+     358.3,
+     138.0
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     352.4,
+     178.7
+    ],
+    [
+     358.3,
+     138.0
+    ]
+   ]
+  },
+  {
+   "id": "BLK_512",
+   "kind": "block",
+   "name": "Blk 512",
+   "lobbies": [
+    [
+     290.4,
+     48.5
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     290.4,
+     48.5
+    ]
+   ]
+  },
+  {
+   "id": "MSCP_513",
+   "kind": "mscp",
+   "name": "Multi-storey car park 513",
+   "lobbies": [
+    [
+     179.05,
+     256.0
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     179.05,
+     256.0
+    ]
+   ]
+  },
+  {
+   "id": "NC_514",
+   "kind": "nc",
+   "name": "Sample Town N5 neighbourhood centre",
+   "lobbies": [
+    [
+     152.0,
+     344.7
+    ]
+   ],
+   "approximate": false,
+   "snapped": [
+    [
+     152.0,
+     344.7
+    ]
+   ]
+  }
+ ],
+ "bus_stops": [
+  {
+   "id": "BS1",
+   "road": "AVE5",
+   "at": [
+    100.0,
+    377.0
+   ]
+  },
+  {
+   "id": "BS2",
+   "road": "AVE5",
+   "at": [
+    300.0,
+    377.0
+   ]
+  },
+  {
+   "id": "BS3",
+   "road": "ST51",
+   "at": [
+    22.0,
+    100.0
+   ]
+  },
+  {
+   "id": "BS4",
+   "road": "ST52",
+   "at": [
+    290.0,
+    22.0
+   ]
+  }
+ ],
+ "thresholds": {
+  "max_walk_m": 400.0,
+  "min_covered_share": 0.9,
+  "kerb_ramp_max": 0.1,
+  "ramp_max": 0.08333333333333333
+ },
+ "source": "model/SITE_graph.json",
+ "graph": {
+  "nodes": 566,
+  "edges": 618,
+  "ifc_sha256": "4175e9c4e900e0e573355fc676ea35d6d29cd2faff51dcce8eaa166c2c209331",
+  "not_step_free_edges": []
+ },
+ "graph_checks": {
+  "edges": 618,
+  "covered_claimed_m": 2871.6,
+  "covered_measured_m": 2871.6,
+  "covered_short_edges": 0,
+  "covered_short_m": 0,
+  "covered_short_examples": [],
+  "edges_over_carriageway": 10,
+  "zebras_crossed": [
+   "Zebra crossing X01",
+   "Zebra crossing X02",
+   "Zebra crossing X03",
+   "Zebra crossing X04",
+   "Zebra crossing X05",
+   "Zebra crossing X06",
+   "Zebra crossing X07",
+   "Zebra crossing X08",
+   "Zebra crossing X09",
+   "Zebra crossing X10"
+  ],
+  "kerb_drops": [],
+  "zebras_listed": 10,
+  "zebras_missing": [],
+  "off_paving_m": 0.0,
+  "ok": true
+ },
+ "mode": "graph",
+ "assumptions": [],
+ "routes": [
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_501",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00413",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 189.2,
+   "route_m": 243.3,
+   "covered_share": 0.947,
+   "step_free": true,
+   "crossings": [
+    "n00325-n00329",
+    "n00380-n00388",
+    "n00388-n00391"
+   ],
+   "lobby_xy": [
+    254.4,
+    345.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_502",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00493",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 264.2,
+   "route_m": 318.3,
+   "covered_share": 0.96,
+   "step_free": true,
+   "crossings": [
+    "n00325-n00329",
+    "n00380-n00388",
+    "n00388-n00391"
+   ],
+   "lobby_xy": [
+    329.4,
+    345.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_503",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00412",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 244.2,
+   "route_m": 298.3,
+   "covered_share": 0.937,
+   "step_free": true,
+   "crossings": [
+    "n00325-n00329",
+    "n00364-n00363",
+    "n00363-n00362",
+    "n00362-n00384",
+    "n00384-n00390"
+   ],
+   "lobby_xy": [
+    254.4,
+    290.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_504",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00492",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 319.2,
+   "route_m": 373.3,
+   "covered_share": 0.966,
+   "step_free": true,
+   "crossings": [
+    "n00325-n00329",
+    "n00380-n00388",
+    "n00388-n00391"
+   ],
+   "lobby_xy": [
+    329.4,
+    290.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_505",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00411",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 311.2,
+   "route_m": 386.5,
+   "covered_share": 0.951,
+   "step_free": true,
+   "crossings": [
+    "n00325-n00329",
+    "n00382-n00383",
+    "n00383-n00389"
+   ],
+   "lobby_xy": [
+    254.4,
+    235.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_506",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00491",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 374.2,
+   "route_m": 428.3,
+   "covered_share": 0.97,
+   "step_free": true,
+   "crossings": [
+    "n00325-n00329",
+    "n00380-n00388",
+    "n00388-n00391"
+   ],
+   "lobby_xy": [
+    329.4,
+    235.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_507",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00191",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 407.3,
+   "route_m": 415.4,
+   "covered_share": 0.97,
+   "step_free": true,
+   "crossings": [
+    "n00296-n00295"
+   ],
+   "lobby_xy": [
+    93.2,
+    148.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_507",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00233",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 366.7,
+   "route_m": 374.8,
+   "covered_share": 0.967,
+   "step_free": true,
+   "crossings": [
+    "n00296-n00295"
+   ],
+   "lobby_xy": [
+    133.8,
+    148.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_508",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00157",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 427.4,
+   "route_m": 476.2,
+   "covered_share": 0.973,
+   "step_free": true,
+   "crossings": [
+    "n00037-n00036"
+   ],
+   "lobby_xy": [
+    82.4,
+    98.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_508",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00212",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 427.9,
+   "route_m": 436.0,
+   "covered_share": 0.97,
+   "step_free": true,
+   "crossings": [
+    "n00296-n00295",
+    "n00260-n00259"
+   ],
+   "lobby_xy": [
+    122.6,
+    98.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_509",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00129",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 463.5,
+   "route_m": 540.1,
+   "covered_share": 0.957,
+   "step_free": true,
+   "crossings": [
+    "n00037-n00036"
+   ],
+   "lobby_xy": [
+    68.5,
+    48.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_509",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00206",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 492.0,
+   "route_m": 500.1,
+   "covered_share": 0.953,
+   "step_free": true,
+   "crossings": [
+    "n00296-n00295",
+    "n00279-n00278",
+    "n00275-n00274",
+    "n00274-n00273",
+    "n00273-n00265"
+   ],
+   "lobby_xy": [
+    108.5,
+    48.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_509",
+   "lobby": 2,
+   "mode": "graph",
+   "node": "n00244",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 452.0,
+   "route_m": 460.1,
+   "covered_share": 0.949,
+   "step_free": true,
+   "crossings": [
+    "n00296-n00295",
+    "n00279-n00278",
+    "n00275-n00274",
+    "n00274-n00273",
+    "n00273-n00265"
+   ],
+   "lobby_xy": [
+    148.5,
+    48.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_510",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00378",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 484.5,
+   "route_m": 538.6,
+   "covered_share": 0.976,
+   "step_free": true,
+   "crossings": [
+    "n00325-n00329",
+    "n00380-n00388",
+    "n00388-n00391"
+   ],
+   "lobby_xy": [
+    232.6,
+    180.3
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_510",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00343",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 529.2,
+   "route_m": 583.3,
+   "covered_share": 0.975,
+   "step_free": true,
+   "crossings": [
+    "n00325-n00329",
+    "n00380-n00388",
+    "n00388-n00391"
+   ],
+   "lobby_xy": [
+    226.7,
+    139.6
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_511",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00523",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 453.1,
+   "route_m": 507.2,
+   "covered_share": 0.975,
+   "step_free": true,
+   "crossings": [
+    "n00325-n00329",
+    "n00380-n00388",
+    "n00388-n00391"
+   ],
+   "lobby_xy": [
+    352.4,
+    178.7
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_511",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00549",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 497.5,
+   "route_m": 551.7,
+   "covered_share": 0.974,
+   "step_free": true,
+   "crossings": [
+    "n00325-n00329",
+    "n00380-n00388",
+    "n00388-n00391"
+   ],
+   "lobby_xy": [
+    358.3,
+    138.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "BLK_512",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00441",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 573.1,
+   "route_m": 600.4,
+   "covered_share": 0.93,
+   "step_free": true,
+   "crossings": [
+    "n00325-n00329",
+    "n00407-n00408",
+    "n00408-n00409"
+   ],
+   "lobby_xy": [
+    290.4,
+    48.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "MSCP_513",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00282",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 211.7,
+   "route_m": 219.9,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    179.05,
+    256.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS1",
+   "target": "NC_514",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00246",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 83.5,
+   "route_m": 91.6,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    152.0,
+    344.7
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_501",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00413",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 75.9,
+   "route_m": 75.9,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    254.4,
+    345.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_502",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00493",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 59.7,
+   "route_m": 59.7,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    329.4,
+    345.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_503",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00412",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 177.7,
+   "route_m": 177.7,
+   "covered_share": 0.959,
+   "step_free": true,
+   "crossings": [
+    "n00391-n00388",
+    "n00388-n00380",
+    "n00364-n00363",
+    "n00363-n00362",
+    "n00362-n00384",
+    "n00384-n00390"
+   ],
+   "lobby_xy": [
+    254.4,
+    290.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_504",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00492",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 114.7,
+   "route_m": 114.7,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    329.4,
+    290.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_505",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00411",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 185.9,
+   "route_m": 203.9,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    254.4,
+    235.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_506",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00491",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 169.7,
+   "route_m": 169.7,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    329.4,
+    235.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_507",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00191",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 437.7,
+   "route_m": 484.8,
+   "covered_share": 0.948,
+   "step_free": true,
+   "crossings": [
+    "n00329-n00325",
+    "n00296-n00295"
+   ],
+   "lobby_xy": [
+    93.2,
+    148.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_507",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00233",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 397.1,
+   "route_m": 444.2,
+   "covered_share": 0.943,
+   "step_free": true,
+   "crossings": [
+    "n00329-n00325",
+    "n00296-n00295"
+   ],
+   "lobby_xy": [
+    133.8,
+    148.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_508",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00157",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 498.5,
+   "route_m": 545.6,
+   "covered_share": 0.953,
+   "step_free": true,
+   "crossings": [
+    "n00329-n00325",
+    "n00296-n00295",
+    "n00260-n00259"
+   ],
+   "lobby_xy": [
+    82.4,
+    98.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_508",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00212",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 458.3,
+   "route_m": 505.4,
+   "covered_share": 0.949,
+   "step_free": true,
+   "crossings": [
+    "n00329-n00325",
+    "n00296-n00295",
+    "n00260-n00259"
+   ],
+   "lobby_xy": [
+    122.6,
+    98.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_509",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00129",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 562.4,
+   "route_m": 609.5,
+   "covered_share": 0.94,
+   "step_free": true,
+   "crossings": [
+    "n00329-n00325",
+    "n00296-n00295",
+    "n00279-n00278",
+    "n00275-n00274",
+    "n00274-n00273",
+    "n00273-n00265"
+   ],
+   "lobby_xy": [
+    68.5,
+    48.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_509",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00206",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 522.4,
+   "route_m": 569.5,
+   "covered_share": 0.936,
+   "step_free": true,
+   "crossings": [
+    "n00329-n00325",
+    "n00296-n00295",
+    "n00279-n00278",
+    "n00275-n00274",
+    "n00274-n00273",
+    "n00273-n00265"
+   ],
+   "lobby_xy": [
+    108.5,
+    48.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_509",
+   "lobby": 2,
+   "mode": "graph",
+   "node": "n00244",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 482.4,
+   "route_m": 529.5,
+   "covered_share": 0.931,
+   "step_free": true,
+   "crossings": [
+    "n00329-n00325",
+    "n00296-n00295",
+    "n00279-n00278",
+    "n00275-n00274",
+    "n00274-n00273",
+    "n00273-n00265"
+   ],
+   "lobby_xy": [
+    148.5,
+    48.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_510",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00378",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 280.0,
+   "route_m": 280.0,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    232.6,
+    180.3
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_510",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00343",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 324.7,
+   "route_m": 324.7,
+   "covered_share": 0.995,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    226.7,
+    139.6
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_511",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00523",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 248.6,
+   "route_m": 248.6,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    352.4,
+    178.7
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_511",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00549",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 293.0,
+   "route_m": 293.0,
+   "covered_share": 0.995,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    358.3,
+    138.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "BLK_512",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00441",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 450.5,
+   "route_m": 450.5,
+   "covered_share": 0.985,
+   "step_free": true,
+   "crossings": [
+    "n00553-n00552",
+    "n00552-n00551",
+    "n00551-n00540"
+   ],
+   "lobby_xy": [
+    290.4,
+    48.5
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "MSCP_513",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00282",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 244.8,
+   "route_m": 289.2,
+   "covered_share": 0.956,
+   "step_free": true,
+   "crossings": [
+    "n00329-n00325"
+   ],
+   "lobby_xy": [
+    179.05,
+    256.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS2",
+   "target": "NC_514",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00246",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 183.1,
+   "route_m": 227.6,
+   "covered_share": 0.944,
+   "step_free": true,
+   "crossings": [
+    "n00329-n00325"
+   ],
+   "lobby_xy": [
+    152.0,
+    344.7
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_501",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00413",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 530.0,
+   "route_m": 536.6,
+   "covered_share": 0.952,
+   "step_free": true,
+   "crossings": [
+    "n00295-n00296",
+    "n00325-n00329",
+    "n00380-n00388",
+    "n00388-n00391"
+   ],
+   "lobby_xy": [
+    254.4,
+    345.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_502",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00493",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 605.0,
+   "route_m": 611.6,
+   "covered_share": 0.958,
+   "step_free": true,
+   "crossings": [
+    "n00295-n00296",
+    "n00325-n00329",
+    "n00380-n00388",
+    "n00388-n00391"
+   ],
+   "lobby_xy": [
+    329.4,
+    345.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_503",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00412",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 585.0,
+   "route_m": 591.6,
+   "covered_share": 0.946,
+   "step_free": true,
+   "crossings": [
+    "n00295-n00296",
+    "n00325-n00329",
+    "n00364-n00363",
+    "n00363-n00362",
+    "n00362-n00384",
+    "n00384-n00390"
+   ],
+   "lobby_xy": [
+    254.4,
+    290.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_504",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00492",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 659.3,
+   "route_m": 659.3,
+   "covered_share": 0.966,
+   "step_free": true,
+   "crossings": [
+    "n00265-n00273",
+    "n00273-n00272",
+    "n00322-n00326",
+    "n00340-n00341"
+   ],
+   "lobby_xy": [
+    329.4,
+    290.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_505",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00411",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 530.6,
+   "route_m": 638.5,
+   "covered_share": 0.965,
+   "step_free": true,
+   "crossings": [
+    "n00265-n00273",
+    "n00273-n00272",
+    "n00322-n00326",
+    "n00382-n00383",
+    "n00383-n00389"
+   ],
+   "lobby_xy": [
+    254.4,
+    235.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_506",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00491",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 604.3,
+   "route_m": 604.3,
+   "covered_share": 0.963,
+   "step_free": true,
+   "crossings": [
+    "n00265-n00273",
+    "n00273-n00272",
+    "n00322-n00326",
+    "n00340-n00341"
+   ],
+   "lobby_xy": [
+    329.4,
+    235.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_507",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00191",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 127.7,
+   "route_m": 127.7,
+   "covered_share": 0.995,
+   "step_free": true,
+   "crossings": [
+    "n00086-n00087"
+   ],
+   "lobby_xy": [
+    93.2,
+    148.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_507",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00233",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 168.3,
+   "route_m": 168.3,
+   "covered_share": 0.996,
+   "step_free": true,
+   "crossings": [
+    "n00086-n00087"
+   ],
+   "lobby_xy": [
+    133.8,
+    148.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_508",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00157",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 67.1,
+   "route_m": 67.1,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    82.4,
+    98.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_508",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00212",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 107.3,
+   "route_m": 107.3,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    122.6,
+    98.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_509",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00129",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 103.2,
+   "route_m": 103.2,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    68.5,
+    48.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_509",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00206",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 143.2,
+   "route_m": 143.2,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    108.5,
+    48.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_509",
+   "lobby": 2,
+   "mode": "graph",
+   "node": "n00244",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 183.2,
+   "route_m": 183.2,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    148.5,
+    48.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_510",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00378",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 453.2,
+   "route_m": 453.2,
+   "covered_share": 0.951,
+   "step_free": true,
+   "crossings": [
+    "n00265-n00273",
+    "n00273-n00272",
+    "n00322-n00326",
+    "n00340-n00341"
+   ],
+   "lobby_xy": [
+    232.6,
+    180.3
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_510",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00343",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 408.5,
+   "route_m": 408.5,
+   "covered_share": 0.949,
+   "step_free": true,
+   "crossings": [
+    "n00265-n00273",
+    "n00273-n00272",
+    "n00322-n00326",
+    "n00340-n00341"
+   ],
+   "lobby_xy": [
+    226.7,
+    139.6
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_511",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00523",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 574.6,
+   "route_m": 574.6,
+   "covered_share": 0.961,
+   "step_free": true,
+   "crossings": [
+    "n00265-n00273",
+    "n00273-n00272",
+    "n00322-n00326",
+    "n00340-n00341"
+   ],
+   "lobby_xy": [
+    352.4,
+    178.7
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_511",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00549",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 537.9,
+   "route_m": 537.9,
+   "covered_share": 0.952,
+   "step_free": true,
+   "crossings": [
+    "n00265-n00273",
+    "n00273-n00272",
+    "n00322-n00326",
+    "n00407-n00408",
+    "n00408-n00409",
+    "n00540-n00551",
+    "n00551-n00552",
+    "n00552-n00553"
+   ],
+   "lobby_xy": [
+    358.3,
+    138.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "BLK_512",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00441",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 380.5,
+   "route_m": 380.5,
+   "covered_share": 0.946,
+   "step_free": true,
+   "crossings": [
+    "n00265-n00273",
+    "n00273-n00272",
+    "n00322-n00326",
+    "n00407-n00408",
+    "n00408-n00409"
+   ],
+   "lobby_xy": [
+    290.4,
+    48.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "MSCP_513",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00282",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 331.2,
+   "route_m": 335.2,
+   "covered_share": 0.961,
+   "step_free": true,
+   "crossings": [
+    "n00295-n00296"
+   ],
+   "lobby_xy": [
+    179.05,
+    256.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS3",
+   "target": "NC_514",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00246",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 382.6,
+   "route_m": 382.6,
+   "covered_share": 0.934,
+   "step_free": true,
+   "crossings": [
+    "n00036-n00037"
+   ],
+   "lobby_xy": [
+    152.0,
+    344.7
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_501",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00413",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 497.5,
+   "route_m": 497.5,
+   "covered_share": 0.986,
+   "step_free": true,
+   "crossings": [
+    "n00540-n00551",
+    "n00551-n00552",
+    "n00552-n00553"
+   ],
+   "lobby_xy": [
+    254.4,
+    345.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_502",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00493",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 463.3,
+   "route_m": 463.3,
+   "covered_share": 0.985,
+   "step_free": true,
+   "crossings": [
+    "n00540-n00551",
+    "n00551-n00552",
+    "n00552-n00553"
+   ],
+   "lobby_xy": [
+    329.4,
+    345.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_503",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00412",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 442.5,
+   "route_m": 442.5,
+   "covered_share": 0.985,
+   "step_free": true,
+   "crossings": [
+    "n00540-n00551",
+    "n00551-n00552",
+    "n00552-n00553"
+   ],
+   "lobby_xy": [
+    254.4,
+    290.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_504",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00492",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 408.3,
+   "route_m": 408.3,
+   "covered_share": 0.983,
+   "step_free": true,
+   "crossings": [
+    "n00540-n00551",
+    "n00551-n00552",
+    "n00552-n00553"
+   ],
+   "lobby_xy": [
+    329.4,
+    290.0
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_505",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00411",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 358.2,
+   "route_m": 387.5,
+   "covered_share": 0.982,
+   "step_free": true,
+   "crossings": [
+    "n00382-n00383",
+    "n00383-n00389"
+   ],
+   "lobby_xy": [
+    254.4,
+    235.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_506",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00491",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 353.3,
+   "route_m": 353.3,
+   "covered_share": 0.981,
+   "step_free": true,
+   "crossings": [
+    "n00540-n00551",
+    "n00551-n00552",
+    "n00552-n00553"
+   ],
+   "lobby_xy": [
+    329.4,
+    235.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_507",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00191",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 347.6,
+   "route_m": 400.3,
+   "covered_share": 0.927,
+   "step_free": true,
+   "crossings": [
+    "n00326-n00322",
+    "n00272-n00273",
+    "n00273-n00274",
+    "n00274-n00275",
+    "n00278-n00279"
+   ],
+   "lobby_xy": [
+    93.2,
+    148.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_507",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00233",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 307.0,
+   "route_m": 359.7,
+   "covered_share": 0.918,
+   "step_free": true,
+   "crossings": [
+    "n00326-n00322",
+    "n00272-n00273",
+    "n00273-n00274",
+    "n00274-n00275",
+    "n00278-n00279"
+   ],
+   "lobby_xy": [
+    133.8,
+    148.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_508",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00157",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 292.6,
+   "route_m": 345.3,
+   "covered_share": 0.913,
+   "step_free": true,
+   "crossings": [
+    "n00326-n00322",
+    "n00272-n00273",
+    "n00273-n00274",
+    "n00274-n00275",
+    "n00278-n00279",
+    "n00260-n00259"
+   ],
+   "lobby_xy": [
+    82.4,
+    98.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_508",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00212",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 252.4,
+   "route_m": 305.1,
+   "covered_share": 0.902,
+   "step_free": true,
+   "crossings": [
+    "n00326-n00322",
+    "n00272-n00273",
+    "n00273-n00274",
+    "n00274-n00275",
+    "n00278-n00279",
+    "n00260-n00259"
+   ],
+   "lobby_xy": [
+    122.6,
+    98.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_509",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00129",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 256.3,
+   "route_m": 309.0,
+   "covered_share": 0.933,
+   "step_free": true,
+   "crossings": [
+    "n00326-n00322",
+    "n00272-n00273",
+    "n00273-n00265"
+   ],
+   "lobby_xy": [
+    68.5,
+    48.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_509",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00206",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 216.3,
+   "route_m": 269.0,
+   "covered_share": 0.923,
+   "step_free": true,
+   "crossings": [
+    "n00326-n00322",
+    "n00272-n00273",
+    "n00273-n00265"
+   ],
+   "lobby_xy": [
+    108.5,
+    48.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_509",
+   "lobby": 2,
+   "mode": "graph",
+   "node": "n00244",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 176.3,
+   "route_m": 229.0,
+   "covered_share": 0.91,
+   "step_free": true,
+   "crossings": [
+    "n00326-n00322",
+    "n00272-n00273",
+    "n00273-n00265"
+   ],
+   "lobby_xy": [
+    148.5,
+    48.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_510",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00378",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 231.2,
+   "route_m": 231.2,
+   "covered_share": 0.988,
+   "step_free": true,
+   "crossings": [
+    "n00409-n00408",
+    "n00408-n00407",
+    "n00340-n00341"
+   ],
+   "lobby_xy": [
+    232.6,
+    180.3
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_510",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00343",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 186.5,
+   "route_m": 186.5,
+   "covered_share": 0.993,
+   "step_free": true,
+   "crossings": [
+    "n00409-n00408",
+    "n00408-n00407",
+    "n00340-n00341"
+   ],
+   "lobby_xy": [
+    226.7,
+    139.6
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_511",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00523",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 233.6,
+   "route_m": 233.6,
+   "covered_share": 0.971,
+   "step_free": true,
+   "crossings": [
+    "n00540-n00551",
+    "n00551-n00552",
+    "n00552-n00553"
+   ],
+   "lobby_xy": [
+    352.4,
+    178.7
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_511",
+   "lobby": 1,
+   "mode": "graph",
+   "node": "n00549",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 189.1,
+   "route_m": 189.1,
+   "covered_share": 0.972,
+   "step_free": true,
+   "crossings": [
+    "n00540-n00551",
+    "n00551-n00552",
+    "n00552-n00553"
+   ],
+   "lobby_xy": [
+    358.3,
+    138.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "BLK_512",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00441",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 31.7,
+   "route_m": 31.7,
+   "covered_share": 1.0,
+   "step_free": true,
+   "crossings": [],
+   "lobby_xy": [
+    290.4,
+    48.5
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "MSCP_513",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00282",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 352.9,
+   "route_m": 424.2,
+   "covered_share": 0.902,
+   "step_free": true,
+   "crossings": [
+    "n00326-n00322",
+    "n00295-n00296"
+   ],
+   "lobby_xy": [
+    179.05,
+    256.0
+   ],
+   "ok_length": true,
+   "ok_covered": true
+  },
+  {
+   "bus_stop": "BS4",
+   "target": "NC_514",
+   "lobby": 0,
+   "mode": "graph",
+   "node": "n00246",
+   "snap_m": 0.0,
+   "reachable": true,
+   "length_m": 469.2,
+   "route_m": 540.5,
+   "covered_share": 0.923,
+   "step_free": true,
+   "crossings": [
+    "n00326-n00322",
+    "n00295-n00296"
+   ],
+   "lobby_xy": [
+    152.0,
+    344.7
+   ],
+   "ok_length": false,
+   "ok_covered": true
+  }
+ ],
+ "summary": {
+  "routes": 80,
+  "reachable": 80,
+  "unreachable": [],
+  "step_free": 80,
+  "lobbies": 20,
+  "nearest_stop_max_walk_m": 233.6,
+  "nearest_stop_over_400m": [],
+  "nearest_stop_min_covered_share": 0.91,
+  "nearest_stop_covered_below_target": [],
+  "any_stop_max_walk_m": 659.3,
+  "any_stop_over_400m": 33,
+  "any_stop_mean_covered_share": 0.965,
+  "any_stop_covered_below_target": 0,
+  "reachability_ok": true,
+  "walk_ok": true,
+  "covered_ok": true,
+  "step_free_ok": true,
+  "ok": true
+ },
+ "timing_s": 1.65
+}

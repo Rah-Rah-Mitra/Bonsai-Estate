@@ -1,0 +1,189 @@
+# 4-room flat for L-block wings: bedroom 2 takes the corridor corner (high window) off the dining, a galley kitchen
+# runs along that party wall to the service yard on the rear facade, the living/dining fills the middle and the rear
+# beside it (balcony option), and the master suite takes the other rear corner: an L-shaped bedroom wrapped around
+# its en-suite, which vents to the rear. Bedroom 3 (corridor), the common bath and the master bedroom open off a
+# short hall; the foyer opens into the dining.
+# Frame: x along the common corridor (both sides party walls in a mid unit), y from the corridor (0) to the rear facade.
+id = "4R-L"
+type = "4R"
+title = "4-room, L-block wing (galley kitchen, rear master suite, balcony option)"
+fits = ["SL"]
+shelter_wall = "HS250"
+notes = "Different from the slab 4-rooms: the kitchen is a galley on one party wall lit and aired through the rear yard (or open to the dining), bedroom 2 opens off the dining, and the master bedroom wraps around its en-suite in the other rear corner (master bath vents to the rear, common bath mechanically vented). Bedrooms 2 and 3 take high windows on the corridor; the shelter opens out into the dining. The balcony variant spans the rear of the living (the living window then opens onto it) and replaces the dining window with the balcony door."
+
+x = [0.0, 1.8, 3.6, 5.2, 5.6, 7.0, 8.6, 10.2]
+y = [0.0, 2.4, 3.4, 5.6, 7.6, 9.4]
+open = [["F", "LD"], ["LD", "H"]]
+
+[rooms]
+B2 = [[0.0, 0.0, 3.6, 3.4]]
+HS = [[3.6, 0.0, 5.2, 2.4]]
+F = [[5.2, 0.0, 7.0, 3.4]]
+B3 = [[7.0, 0.0, 10.2, 3.4]]
+K = [[0.0, 3.4, 1.8, 7.6]]
+SY = [[0.0, 7.6, 1.8, 9.4]]
+LD = [[3.6, 2.4, 5.2, 3.4], [1.8, 3.4, 7.0, 5.6], [1.8, 5.6, 5.6, 9.4]]
+H = [[7.0, 3.4, 8.6, 5.6]]
+CB = [[8.6, 3.4, 10.2, 5.6]]
+MB = [[5.6, 5.6, 8.6, 9.4], [8.6, 5.6, 10.2, 7.6]]
+MBa = [[8.6, 7.6, 10.2, 9.4]]
+
+[[doors]]
+name = "Main door"
+between = ["F", "@entry"]
+at = [6.1, 0.0]
+width = 1.0
+kind = "main"
+into = "F"
+hinge = "hi"
+
+[[doors]]
+name = "Bedroom 2 door"
+between = ["B2", "LD"]
+at = [2.7, 3.4]
+width = 0.9
+into = "B2"
+
+[[doors]]
+name = "Household shelter door"
+between = ["HS", "LD"]
+at = [4.4, 2.4]
+width = 0.8
+kind = "shelter"
+into = "LD"
+
+[[doors]]
+name = "Bedroom 3 door"
+between = ["B3", "H"]
+at = [7.8, 3.4]
+width = 0.9
+into = "B3"
+
+[[doors]]
+name = "Common bathroom door"
+between = ["CB", "H"]
+at = [8.6, 4.5]
+width = 0.8
+kind = "bath"
+into = "CB"
+
+[[doors]]
+name = "Master bedroom door"
+between = ["MB", "H"]
+at = [7.8, 5.6]
+width = 0.9
+into = "MB"
+
+[[doors]]
+name = "Master bathroom door"
+between = ["MBa", "MB"]
+at = [8.6, 8.5]
+width = 0.8
+kind = "bath"
+into = "MBa"
+
+[[doors]]
+name = "Kitchen door"
+between = ["K", "LD"]
+at = [1.8, 6.6]
+width = 0.9
+into = "K"
+hinge = "hi"
+
+[[doors]]
+name = "Service yard door"
+between = ["SY", "K"]
+at = [0.6, 7.6]
+width = 0.8
+into = "SY"
+
+[[windows]]
+name = "Bedroom 2 high window"
+room = "B2"
+at = [1.8, 0.0]
+width = 2.0
+sill = 1.4
+height = 0.8
+
+[[windows]]
+name = "Bedroom 3 high window"
+room = "B3"
+at = [8.6, 0.0]
+width = 1.8
+sill = 1.4
+height = 0.8
+
+[[windows]]
+name = "Service yard opening"
+room = "SY"
+at = [0.9, 9.4]
+width = 1.2
+sill = 1.2
+height = 1.1
+kind = "opening"
+
+[[windows]]
+name = "Living window"
+room = "LD"
+at = [2.8, 9.4]
+width = 1.5
+sill = 0.4
+height = 1.9
+
+[[windows]]
+name = "Dining window"
+room = "LD"
+at = [4.65, 9.4]
+width = 1.5
+sill = 0.4
+height = 1.9
+
+[[windows]]
+name = "Master bedroom window"
+room = "MB"
+at = [7.4, 9.4]
+width = 1.6
+sill = 1.0
+
+[[windows]]
+name = "Master bathroom vent window"
+room = "MBa"
+at = [9.6, 9.4]
+width = 0.6
+sill = 1.6
+height = 0.6
+kind = "vent"
+
+[[ledges]]
+name = "AC ledge"
+rect = [5.7, 9.4, 6.5, 10.0]
+
+[[ledges]]
+name = "AC ledge"
+rect = [8.3, 9.4, 9.2, 10.0]
+
+[variants]
+mirror = true
+kitchen = ["closed", "open"]
+outdoor = ["ac_ledge", "none", "balcony"]
+mechanical_vent = ["CB"]
+
+[variants.kitchen_open]
+remove_doors = ["Kitchen door"]
+open = [["K", "LD"]]
+
+[variants.balcony]
+rect = [1.8, 9.4, 5.5, 11.0]
+replace_windows = ["Dining window"]
+ledges = [{ name = "AC ledge", rect = [5.7, 9.4, 6.5, 10.0] }, { name = "AC ledge", rect = [8.3, 9.4, 9.2, 10.0] }]
+
+[variants.balcony.door]
+name = "Balcony door"
+between = ["LD", "BAL"]
+at = [4.65, 9.4]
+width = 1.4
+kind = "balcony"
+into = "BAL"
+
+[variants.stretch]
+x = [[1.8, 1.8], [1.6, 1.9], [1.6, 1.6], [0.4, 0.4], [1.35, 1.45], [1.6, 1.65], [1.55, 1.6]]
