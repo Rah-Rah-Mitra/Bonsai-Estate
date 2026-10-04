@@ -3,8 +3,10 @@
 The suite builds its own files under build/parametric_tests/ (the PT4 test block with and without the parametric
 data, and the neighbourhood centre twice; about 25 s), so it never reads a stale build/t_pt4.ifc. Bonsai's own
 wall regenerator (ifcopenshell.api.geometry.regenerate_wall_representation) and door / window mapping are run
-without Blender. The Blender test opens a .blend made from the PT4 block in blender.exe with Bonsai, runs Bonsai's
-door editing and wall recalculation operators and takes about a minute; set ESTATE_SKIP_BLENDER=1 to skip it.
+without Blender; regenerated walls are compared by their sections in every height band, not only in plan (a plan
+union cannot see a wall cut back to the face of a lower one). The Blender test opens a .blend made from the PT4
+block in blender.exe with Bonsai, runs Bonsai's door editing and wall recalculation operators and takes about a
+minute; set ESTATE_SKIP_BLENDER=1 to skip it.
 """
 from __future__ import annotations
 
@@ -14,6 +16,7 @@ import sys
 import unittest
 from collections import Counter, defaultdict
 from pathlib import Path
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from estate.env import bootstrap  # noqa: E402
@@ -91,8 +94,9 @@ def axis_world(w):
     return [(M @ np.array([p[0], p[1], 0.0, 1.0]))[:2] for p in urep.get_reference_line(w)]
 
 
-def footprints(f, els) -> dict:
-    """{entity id: plan footprint} of the bodies (openings not cut), from the tessellation in world coordinates."""
+def sections(f, els) -> dict:
+    """{entity id: (plan footprint, bottom z, top z)} of the bodies (openings not cut), from the tessellation in
+    world coordinates. Wall bodies are vertical prisms, so footprint and z range give the section at any height."""
     s = ifcopenshell.geom.settings()
     s.set("use-world-coords", True)
     s.set("disable-opening-subtractions", True)
@@ -101,12 +105,40 @@ def footprints(f, els) -> dict:
     if it.initialize():
         while True:
             sh = it.get()
-            v = np.array(sh.geometry.verts).reshape(-1, 3)[:, :2]
-            tris = [shapely.Polygon(v[t]) for t in np.array(sh.geometry.faces).reshape(-1, 3)]
-            out[sh.id] = shapely.union_all([t for t in tris if t.area > 1e-10])
+            v = np.array(sh.geometry.verts).reshape(-1, 3)
+            tris = [shapely.Polygon(v[t][:, :2]) for t in np.array(sh.geometry.faces).reshape(-1, 3)]
+            out[sh.id] = (shapely.union_all([t for t in tris if t.area > 1e-10]), float(v[:, 2].min()),
+                          float(v[:, 2].max()))
             if not it.next():
                 break
     return out
+
+
+def section_differences(before: dict, after: dict, tol=1e-6) -> list:
+    """Wall sections of a storey before / after (sections()): in every height band between the distinct body
+    bottoms and tops, the union of the walls cut at the band's middle. [(z, missing m², extra m²)] for the bands
+    that differ. A plan-only comparison cannot see a wall that is cut back to the face of a lower one."""
+    zs = sorted({round(z, 6) for sec in (before, after) for _, z0, z1 in sec.values() for z in (z0, z1)})
+    out = []
+    for a, b in zip(zs, zs[1:]):
+        z = (a + b) / 2
+        ub = shapely.union_all([fp for fp, z0, z1 in before.values() if z0 < z < z1])
+        ua = shapely.union_all([fp for fp, z0, z1 in after.values() if z0 < z < z1])
+        missing, extra = ub.difference(ua).area, ua.difference(ub).area
+        if missing > tol or extra > tol:
+            out.append((round(z, 3), round(missing, 6), round(extra, 6)))
+    return out
+
+
+def body_height(w) -> float:
+    item = urep.get_representation(w, "Model", "Body", "MODEL_VIEW").Items[0]
+    while item.is_a("IfcBooleanResult"):
+        item = item.FirstOperand
+    return float(item.Depth)
+
+
+def layer_priority(w) -> int:
+    return uel.get_material(w, should_inherit=False).ForLayerSet.MaterialLayers[0].Priority
 
 
 def item_vertices(item) -> np.ndarray:
@@ -218,10 +250,29 @@ class TestWallJoins(unittest.TestCase):
         self.assertGreater(kinds["T"], 100)
         self.assertGreater(kinds["L"], 100)
 
+    def test_joined_walls_alike_in_height(self):
+        """Bonsai extrudes a rebuilt corner to each wall's own height, so joined walls have one height, except a T
+        on a taller wall at least as strong as the stem (it fills the corner above the stem); in this block they
+        all have one height (the lobby facade wall continued by the lobby parapet turns the corner into the facade
+        wall, not the parapet)."""
+        for r in self.rels:
+            a, b = r.RelatingElement, r.RelatedElement
+            if abs(body_height(a) - body_height(b)) > TOL:
+                self.assertEqual(r.RelatedConnectionType, joins.ATPATH, a.Name)
+                self.assertGreater(body_height(b), body_height(a), a.Name)
+                self.assertGreaterEqual(layer_priority(b), layer_priority(a), a.Name)
+        self.assertEqual([r.RelatingElement.Name for r in self.rels
+                          if abs(body_height(r.RelatingElement) - body_height(r.RelatedElement)) > TOL], [])
+        lobby = [r for r in self.rels if {r.RelatingElement.Name, r.RelatedElement.Name} ==
+                 {f"{TYPICAL} EXT LOBBY|U107:SY", f"{TYPICAL} EXT @out|U107:LD"}]
+        self.assertEqual([(r.RelatingConnectionType, r.RelatedConnectionType) for r in lobby],
+                         [(joins.ATSTART, joins.ATEND)])          # an L at the lobby corner, not a T
+
     def test_one_join_per_touching_wall_end(self):
         """A wall end meeting a perpendicular wall's reference line has exactly one join unless a collinear wall
         continues from it; an end meeting nothing has none; no end has two. A continued end is joined only as the
-        thicker of the two collinear walls at a corner (shelter wall continued by a partition)."""
+        wall a corner turns into: of the corner wall's height, and the thicker of the collinear walls of that height
+        (a shelter wall continued by a partition; the lobby facade wall continued by the lobby parapet)."""
         by_storey = defaultdict(list)
         for w in self.walls:
             by_storey[storey_of(w)].append(w)
@@ -261,7 +312,10 @@ class TestWallJoins(unittest.TestCase):
                     elif n:
                         o, k = partner[(w.id(), role)]
                         self.assertLess(np.linalg.norm(self.ends_of(o)[k] - e), TOL, w.Name)
-                        tc = max(uel.get_material(c, should_inherit=False).ForLayerSet.TotalThickness for c in coll)
+                        self.assertLess(abs(body_height(o) - body_height(w)), TOL, w.Name)
+                        level = [c for c in coll if abs(body_height(c) - body_height(w)) < TOL]
+                        tc = max([uel.get_material(c, should_inherit=False).ForLayerSet.TotalThickness for c in level],
+                                 default=0.0)
                         self.assertGreater(t, tc - TOL, f"{w.Name}: a continued end joined although not the thicker")
                     checked[(touch, bool(coll), n)] += 1
         self.assertGreater(checked[(True, False, 1)], 1000)
@@ -323,26 +377,103 @@ class TestWallJoins(unittest.TestCase):
 
 
 # ----------------------------------------------------------------------------- 2. Bonsai's wall regenerator
+def regenerate_storey(test, f, walls):
+    """Bonsai's regenerator on every wall of a storey: (sections before, sections after, reference lines kept)."""
+    before = sections(f, walls)
+    axes = {w.id(): axis_world(w) for w in walls}
+    for w in walls:
+        test.assertIsNotNone(geometry.regenerate_wall_representation(f, w), w.Name)
+    after = sections(f, walls)
+    kept = all(np.linalg.norm(p - q) < TOL for w in walls for p, q in zip(axes[w.id()], axis_world(w)))
+    return before, after, kept
+
+
+def synthetic_runs():
+    """Six small corners 20 m apart, one per case of plate_joins' height rules (finished and merged as derive does):
+    A a lobby-type corner (a storey-high wall on a facade wall continued by a parapet), B a storey-high wall on two
+    collinear parapet-high walls, C a parapet on a core wall passing through, D a storey-high wall on a parapet
+    passing through, E an L of a storey-high wall and a parapet, F an L of two storey-high walls."""
+    from estate.geom.arrangement import Run, finish_runs, merge_collinear
+    from estate.rules import WALL_TYPES
+
+    def run(name, x0, y0, x1, y1, wall, height="storey"):
+        return Run((float(x0), float(y0)), (float(x1), float(y1)), name, "out", wall, WALL_TYPES[wall][1], height)
+    runs = [run("Astem", 0, 0, 5, 0, "EXT"), run("Afacade", 0, 0, 0, 4, "EXT"),
+            run("Aparapet", 0, -3, 0, 0, "PARAPET", "parapet"),
+            run("Bstem", 20, 0, 25, 0, "EXT"), run("Blow", 20, 0, 20, 4, "EXT", "parapet"),
+            run("Bparapet", 20, -3, 20, 0, "PARAPET", "parapet"),
+            run("Cparapet", 40, 0, 45, 0, "PARAPET", "parapet"), run("Ccore", 40, -3, 40, 0, "CORE"),
+            run("Ccore", 40, 0, 40, 4, "CORE"),
+            run("Dstem", 60, 0, 65, 0, "EXT"), run("Dparapet", 60, -3, 60, 0, "PARAPET", "parapet"),
+            run("Dparapet", 60, 0, 60, 4, "PARAPET", "parapet"),
+            run("Eparapet", 80, 0, 85, 0, "PARAPET", "parapet"), run("Ewall", 80, 0, 80, 4, "EXT"),
+            run("Fx", 100, 0, 105, 0, "EXT"), run("Fy", 100, 0, 100, 4, "EXT")]
+    for i, r in enumerate(runs):
+        r.idx = i
+    return merge_collinear(finish_runs(runs), [])[0]
+
+
 class TestRegenerate(unittest.TestCase):
-    def test_regenerated_storey_covers_the_same_footprint(self):
-        """Bonsai's regenerator (regenerate_wall_representation, run by its wall tools) on every wall of a typical
-        storey rebuilds the bodies from the reference lines, usages and joins alone: the union of the regenerated
-        footprints equals the generated one (symmetric difference < 1 % of the union area; it is exact)."""
-        f = ifcopenshell.open(str(built("pt4")))
-        walls = [w for w in f.by_type("IfcWall") if storey_of(w) == TYPICAL]
-        before = footprints(f, walls)
-        axes = {w.id(): axis_world(w) for w in walls}
-        for w in walls:
-            self.assertIsNotNone(geometry.regenerate_wall_representation(f, w), w.Name)
-        after = footprints(f, walls)
-        ub, ua = shapely.union_all(list(before.values())), shapely.union_all(list(after.values()))
-        self.assertLess(ub.symmetric_difference(ua).area, 0.01 * ub.area)
-        self.assertLess(ub.symmetric_difference(ua).area, 1e-6)
-        changed = sum(before[k].symmetric_difference(after[k]).area > 1e-6 for k in before)
-        self.assertGreater(changed, 20)                  # Bonsai really rebuilt the corners its own way
-        for w in walls:                                   # and kept the reference lines on the nodes
-            for p, q in zip(axes[w.id()], axis_world(w)):
-                self.assertLess(np.linalg.norm(p - q), TOL, w.Name)
+    def test_regenerated_storeys_keep_every_wall_section(self):
+        """Bonsai's regenerator (regenerate_wall_representation, run by its wall tools) on every wall of a storey
+        rebuilds the bodies from the reference lines, usages and joins alone. On the PT4 block's void deck, typical
+        storey and roof (lobby corners, lift and stair towers continued by the roof parapet) and on every storey of
+        the neighbourhood centre, the union of the wall sections is the generated one in every height band
+        (missing and extra < 1e-6 m²; it is exact). The plan union alone (the spec's < 1 % criterion) would not
+        see a wall cut back to the face of a lower one."""
+        for which, only in (("pt4", ("L1", TYPICAL, "RF")), ("nc", None)):
+            f = ifcopenshell.open(str(built(which)))
+            by = defaultdict(list)
+            for w in f.by_type("IfcWall"):
+                by[storey_of(w)].append(w)
+            for st in sorted(by, key=str):
+                if only and st not in only:
+                    continue
+                with self.subTest(file=which, storey=st):
+                    before, after, kept = regenerate_storey(self, f, by[st])
+                    self.assertEqual(section_differences(before, after), [])
+                    self.assertTrue(kept)                       # the reference lines stay on the nodes
+                    ub = shapely.union_all([s[0] for s in before.values()])
+                    ua = shapely.union_all([s[0] for s in after.values()])
+                    self.assertLess(ub.symmetric_difference(ua).area, 0.01 * ub.area)
+                    if which == "pt4" and st == TYPICAL:     # Bonsai really rebuilt the corners its own way
+                        changed = sum(before[k][0].symmetric_difference(after[k][0]).area > 1e-6 for k in before)
+                        self.assertGreater(changed, 20)
+
+    def test_height_rules(self):
+        """plate_joins joins walls only where Bonsai gives back the generated corner at every height; an extended end
+        it leaves unjoined keeps its extension in the reference line. Built (mscp.plate_walls, as the car park and
+        centre storeys) and regenerated in Bonsai, every corner keeps every wall section."""
+        from estate.ifc.writer import IfcWriter
+        from estate.rules import PARAPET_H
+        from estate.site.mscp import plate_walls
+        runs = synthetic_runs()
+        name = {r.idx: r.left for r in runs}
+        by = {r.left: r for r in runs}
+        jn = joins.plate_joins(runs, lambda r: 2.8 if r.height == "storey" else PARAPET_H)
+        got = sorted((name[j.relating], j.relating_end, name[j.related], j.related_end) for j in jn)
+        self.assertEqual(got, [("Astem", joins.ATSTART, "Afacade", joins.ATSTART),       # L into the facade wall
+                               ("Cparapet", joins.ATSTART, "Ccore", joins.ATPATH),       # T on the taller core
+                               ("Fx", joins.ATSTART, "Fy", joins.ATSTART)])
+        joined = joins.joined_ends(jn)
+        for nm in ("Bstem", "Dstem", "Eparapet", "Ewall"):      # unjoined, extended: the line runs to the body end
+            r = by[nm]
+            self.assertGreater(r.ext0, 0.0, nm)
+            self.assertEqual(joins.run_axis(r, joined), (0.0, r.ext0 + r.length), nm)
+        self.assertEqual(joins.run_axis(by["Astem"], joined), joins.run_axis(by["Astem"]))
+        W = IfcWriter(guid_key="test/heights", typed_openings=True, **config.identity(config.load()))
+        st = W.storeys(W.building("Height rules"), ["L1"], [0.0])[0]
+        plate_walls(W, SimpleNamespace(runs=runs, openings=[]), 0.0, 2.8, st, "H")
+        W.flush()
+        out = OUT / "heights" / "height_rules.ifc"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        W.write(out)
+        W.close()
+        f = ifcopenshell.open(str(out))
+        self.assertEqual(len(f.by_type("IfcRelConnectsPathElements")), 3)
+        before, after, kept = regenerate_storey(self, f, f.by_type("IfcWall"))
+        self.assertEqual(section_differences(before, after), [])
+        self.assertTrue(kept)
 
 
 # ----------------------------------------------------------------------------- 3. door / window data
@@ -504,19 +635,40 @@ sys.path.insert(0, ROOT)
 from estate.blender import _boot  # noqa: E402
 
 
-def footprint(f, els):
+def sections(f, els):
+    """[(plan footprint, bottom z, top z)] of the bodies (as tests/test_parametric.sections)."""
     import numpy as np
     import shapely
     import ifcopenshell.geom
     s = ifcopenshell.geom.settings()
     s.set("use-world-coords", True)
     s.set("disable-opening-subtractions", True)
-    polys = []
+    out = []
     for el in els:
         sh = ifcopenshell.geom.create_shape(s, el)
-        v = np.array(sh.geometry.verts).reshape(-1, 3)[:, :2]
-        polys += [p for p in (shapely.Polygon(v[t]) for t in np.array(sh.geometry.faces).reshape(-1, 3)) if p.area > 1e-10]
-    return shapely.union_all(polys)
+        v = np.array(sh.geometry.verts).reshape(-1, 3)
+        tris = (shapely.Polygon(v[t][:, :2]) for t in np.array(sh.geometry.faces).reshape(-1, 3))
+        out.append((shapely.union_all([p for p in tris if p.area > 1e-10]), float(v[:, 2].min()), float(v[:, 2].max())))
+    return out
+
+
+def footprint(f, els):
+    import shapely
+    return shapely.union_all([s[0] for s in sections(f, els)])
+
+
+def band_differences(before, after):
+    """[(z, missing m², extra m²)] of the height bands whose wall section union differs (> 1e-6 m²)."""
+    import shapely
+    zs = sorted({round(z, 6) for sec in (before, after) for _, z0, z1 in sec for z in (z0, z1)})
+    out = []
+    for a, b in zip(zs, zs[1:]):
+        z = (a + b) / 2
+        ub = shapely.union_all([fp for fp, z0, z1 in before if z0 < z < z1])
+        ua = shapely.union_all([fp for fp, z0, z1 in after if z0 < z < z1])
+        if ub.difference(ua).area > 1e-6 or ua.difference(ub).area > 1e-6:
+            out.append((z, ub.difference(ua).area, ua.difference(ub).area))
+    return out
 
 
 def world_bounds(obj):
@@ -536,6 +688,7 @@ def select_only(obj):
 
 def run(a):
     import bpy
+    import shapely
     _boot.boot()
     import bonsai.tool as tool
     import ifcopenshell.util.element as uel
@@ -560,12 +713,14 @@ def run(a):
     storey = uel.get_container(wall)
     walls = [w for w in f.by_type("IfcWall") if uel.get_container(w) == storey]
     rebuilt = [wall] + [r.RelatedElement for r in wall.ConnectedTo] + [r.RelatingElement for r in wall.ConnectedFrom]
-    fp0, own0 = footprint(f, walls), footprint(f, [wall])
+    sec0, own0 = sections(f, walls), footprint(f, [wall])
     select_only(tool.Ifc.get_object(wall))
     r3 = bpy.ops.bim.recalculate_wall()
-    fp1, own1 = footprint(f, walls), footprint(f, [wall])
+    sec1, own1 = sections(f, walls), footprint(f, [wall])
+    fp0, fp1 = (shapely.union_all([s[0] for s in sec]) for sec in (sec0, sec1))
     out["wall"] = {"recalculate": sorted(r3), "rebuilt": len(rebuilt), "union": [fp0.area, fp1.area],
-                   "symdiff": fp0.symmetric_difference(fp1).area, "own_change": own0.symmetric_difference(own1).area,
+                   "symdiff": fp0.symmetric_difference(fp1).area, "bands": band_differences(sec0, sec1),
+                   "own_change": own0.symmetric_difference(own1).area,
                    "mesh_bounds": world_bounds(tool.Ifc.get_object(wall)), "ifc_bounds": list(own1.bounds)}
     return out
 
@@ -580,7 +735,8 @@ class TestBonsai(unittest.TestCase):
     def test_bonsai_edits_doors_and_walls(self):
         """In Bonsai: a door and a window are parametric (BBIM data inherited from their types); enable -> finish
         editing a door rebuilds it from its data within 1 mm; bim.recalculate_wall on a wall (Bonsai regenerates it
-        and the walls joined to it) keeps the storey's wall footprint and the wall's mesh matches its new IFC body."""
+        and the walls joined to it, here at a lobby corner where a parapet continues the facade wall) keeps every
+        wall section of the storey at every height, and the wall's mesh matches its new IFC body."""
         from estate.blender.run import run_blender
         d = TESTS / "BLK_P"
         shutil.rmtree(d, ignore_errors=True)
@@ -604,6 +760,7 @@ class TestBonsai(unittest.TestCase):
         self.assertEqual(wr["recalculate"], ["FINISHED"])
         self.assertGreater(wr["rebuilt"], 1)
         self.assertLess(wr["symdiff"], 0.01 * wr["union"][0])
+        self.assertEqual(wr["bands"], [])                      # and every wall section, at every height
         self.assertGreater(wr["own_change"], 1e-3)             # Bonsai rebuilt the wall's corners itself
         mb, ib = np.array(wr["mesh_bounds"]), np.array(wr["ifc_bounds"])
         self.assertLess(np.abs(mb[:, :2].ravel() - ib[[0, 1, 2, 3]].reshape(2, 2).ravel()).max(), 1e-3)

@@ -38,7 +38,7 @@ from estate import config, env, guids
 from estate.blocks.builder import derive
 from estate.blocks.plate import LIFT, LOBBY, OUT, PLANT, REFUSE, STAIR, VOID, DoorSpec, Face, Plate
 from estate.geom.walls import Opening, WallSpec, frame, translate
-from estate.ifc.joins import plate_joins, run_axis, segment_joins
+from estate.ifc.joins import joined_ends, plate_joins, run_axis, segment_joins
 from estate.ifc.stairs import flight_run, stair
 from estate.ifc.vegetation import tree_types
 from estate.ifc.writer import IfcWriter
@@ -87,25 +87,27 @@ def plate_walls(W, dp, z, wall_h, storey, prefix, space_of=None):
     space_of(face id, probe xy) names the IfcSpace on each side of a door for its Navigation FromSpace / ToSpace;
     the probe is a point 0.3 m into that side, so faces without a space of their own (OUT, open walkways) can be
     resolved against the spaces around them. The walls are joined as the residential blocks' (ifc/joins.py)."""
+    def height(r):
+        if r.height == "storey":
+            return wall_h
+        return PARAPET_H if r.height == "parapet" else TOWER_H.get(r.meta.get("core_kind"), 3.0)
+
     ops_by_run = {}
     for o in dp.openings:
         ops_by_run.setdefault(o.run, []).append(o)
+    wall_joins = plate_joins(dp.runs, height)
+    joined = joined_ends(wall_joins)
     built, walls_by_run = [], {}
     for r in dp.runs:
         if not r.wall or r.wall == "RAILING":
             continue
-        if r.height == "storey":
-            h = wall_h
-        elif r.height == "parapet":
-            h = PARAPET_H
-        else:
-            h = TOWER_H.get(r.meta.get("core_kind"), 3.0)
+        h = height(r)
         u = r.u
         w = WallSpec(np.asarray(r.p0, float) - u * r.ext0, u, r.length + r.ext0 + r.ext1, r.t, -r.t / 2, z, h,
                      f"{prefix} {r.wall} {r.left}|{r.right}", r.wall, r.external, storey, r.climbable,
                      faces=(r.left, r.right),
                      meta={"key": f"{prefix}/{r.wall}/{r.p0[0]:.3f},{r.p0[1]:.3f}/{r.p1[0]:.3f},{r.p1[1]:.3f}",
-                           "axis": run_axis(r)})
+                           "axis": run_axis(r, joined)})
         n = np.array([-u[1], u[0]])                    # left of p0 -> p1
         for o in sorted(ops_by_run.get(r.idx, []), key=lambda o: o.s0):
             meta = dict(o.meta, hinge=o.hinge)
@@ -119,7 +121,7 @@ def plate_walls(W, dp, z, wall_h, storey, prefix, space_of=None):
                                       o.door_kind, o.swing, meta))
         built.append(W.build_wall(w))
         walls_by_run[r.idx] = built[-1][0]
-    W.connect_walls(walls_by_run, plate_joins(dp.runs))
+    W.connect_walls(walls_by_run, wall_joins)
     return built
 
 

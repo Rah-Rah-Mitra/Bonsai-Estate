@@ -9,22 +9,34 @@ with the corner extensions already applied (geom/arrangement.finish_runs), so th
 the same corners:
 
 - L corner: two walls end at the same node at right angles: end <-> end (ATSTART is the end at the smaller local
-  x, ATEND the larger). Where a wall ends on two collinear walls of different thickness that both end there (a
-  shelter wall continued by a thinner partition), it turns the corner into the thicker one.
+  x, ATEND the larger). Where a wall ends on two collinear walls that both end there, it turns the corner into
+  one of them: the one of its own height where the other is lower (a lobby facade wall continued by the lobby
+  parapet, a lift tower wall continued by the roof parapet), else the thicker one (a shelter wall continued by a
+  thinner partition).
 - T junction: a wall ends on a wall that passes through the node (a merged run's pass-through node), or on two
-  collinear walls of one thickness that both end there (a type change): the stem's end (relating) <-> the bar
-  (related, ATPATH).
+  collinear walls of its own height and thickness that both end there (a type change): the stem's end (relating)
+  <-> the bar (related, ATPATH).
 - A collinear continuation (a same-orientation wall ends at the node) and X crossings get no join: there the body
   ends at the node.
 
-So every end that finish_runs extended (ext > 0) gets exactly one join, free ends none, and the reference line
-runs node to node (the extensions stay in the body only); the only unextended end with a join is the thicker wall
-of a shelter-type corner. Relating / related priorities stay empty: non-empty priority lists crash Bonsai's
-regenerator; the layer priorities of the wall types (``LAYER_PRIORITY``) decide which wall runs through.
+Bonsai rebuilds a corner in plan and extrudes each wall to its own height, so walls are joined only where that
+gives back the generated corner at every height: walls of one height, or a T on a taller wall that is at least as
+strong (the stem stops at its face, and the taller wall fills the corner square above the stem). A T on a lower
+wall would cut the stem back to the lower wall's face and leave the corner square above it empty; an L with a
+lower wall would mitre it. So every end that finish_runs extended (ext > 0) gets exactly one join unless it only
+meets walls of another height (in the estate one lift tower corner, on the roof of BLK_510), free ends get none,
+and the reference line runs node to node (the extensions stay in the body only). An extended end left unjoined
+keeps its extension in the reference line too (``run_axis``), because Bonsai stops an unjoined end at its
+reference line end. The only unextended ends with a join are the continued walls a corner turns into. Relating /
+related priorities stay empty: non-empty priority lists crash Bonsai's regenerator; the layer priorities of the
+wall types (``LAYER_PRIORITY``) decide which wall runs through.
 
-Regenerating every wall of a storey in Bonsai reproduces the generated footprint exactly. Regenerating only some
-walls can leave one gap: at a shelter-type corner the thicker wall's body ends at the node, so until it is
-regenerated too the corner square is short of the triangle Bonsai's mitre gives it.
+Regenerating every wall of a storey in Bonsai gives back the generated wall bodies' union exactly, at every height
+(tests/test_parametric.py compares sections at each height band). Regenerating only some walls can leave one gap:
+where a corner turns into a continued wall (shelter-type and lobby-type corners) that wall's body ends at the
+node, so when Bonsai regenerates the other wall of the corner but not this one (Recalculate Wall on a wall joined
+to the other one's far end), the corner square is short of the triangle Bonsai's mitre gives the continued wall
+until that wall is regenerated too.
 
 Doors and windows carry Bonsai's ``BBIM_Door`` / ``BBIM_Window`` data (one IfcText "Data" property holding the
 JSON its door / window tools edit). The representation of every type is built from that data through the same
@@ -67,10 +79,22 @@ def through_nodes(r) -> list:
     return [(snap(r.p0[0] + u[0] * b), snap(r.p0[1] + u[1] * b)) for _, b, *_ in parts[:-1]]
 
 
-def plate_joins(runs) -> list[Join]:
-    """Joins between the wall runs of a derived plate (after merge_collinear), keyed by run idx. Exactly one join
-    per wall end that finish_runs extended into a perpendicular wall; none elsewhere."""
+def priority(r) -> int:
+    return LAYER_PRIORITY.get(r.wall, 0)
+
+
+def plate_joins(runs, height) -> list[Join]:
+    """Joins between the wall runs of a derived plate (after merge_collinear), keyed by run idx; height(run) is the
+    height of the run's wall (all of a plate's walls stand on its floor). At most one join per wall end that
+    finish_runs extended into a perpendicular wall, none elsewhere (bar the continued walls corners turn into).
+
+    Bonsai rebuilds a joined corner in plan and extrudes it to each wall's own height, so a join is only written
+    where that gives back the generated corner at every height: between walls of one height, or a T on a wall
+    passing through that is at least as tall and at least as strong (the stem stops at its face, the taller wall
+    fills the corner square above the stem). Every other extended end stays unjoined (run_axis keeps its body end)."""
     walls = [r for r in runs if r.wall and r.wall != "RAILING" and r.t > 0]
+    hgt = {r.idx: float(height(r)) for r in walls}
+    level = lambda o, r: abs(hgt[o.idx] - hgt[r.idx]) < TOL  # noqa: E731
     at = defaultdict(list)                    # node -> [(run, ATSTART | ATEND | ATPATH)]
     for r in walls:
         at[r.p0].append((r, ATSTART))
@@ -84,23 +108,32 @@ def plate_joins(runs) -> list[Join]:
             if any(o.horizontal == r.horizontal for o, _ in here):
                 continue                      # collinear continuation: the body ends at the node
             bars = [o for o, k in here if k == ATPATH]
-            ends = [(o, k) for o, k in here if k != ATPATH]
-            if bars:                          # T on a wall passing through
-                out.append(Join(r.idx, role, bars[0].idx, ATPATH))
+            if bars:                          # T on a wall passing through (merged runs: at most one)
+                o = bars[0]
+                if level(o, r) or (hgt[o.idx] > hgt[r.idx] and priority(o) >= priority(r)):
+                    out.append(Join(r.idx, role, o.idx, ATPATH))
                 continue
+            ends = [(o, k) for o, k in here if level(o, r)]
             if not ends:
+                # only walls of another height end here (a lift tower wall on two lower stair tower walls): any
+                # join would let Bonsai cut the corner square down to a lower wall's top, or raise a lower one
                 continue
-            strength = lambda e: (e[0].t, LAYER_PRIORITY.get(e[0].wall, 0), -e[0].idx)  # noqa: E731
+            strength = lambda e: (e[0].t, priority(e[0]), -e[0].idx)  # noqa: E731
             if len(ends) == 2 and abs(ends[0][0].t - ends[1][0].t) < TOL:
-                # two collinear walls of one thickness end here (a type change along a facade): a T on the stronger
-                # one; whichever end Bonsai stops this wall at, the two walls cover the junction
+                # two collinear walls of one thickness and of this wall's height end here (a type change along a
+                # facade): a T on the stronger one; whichever face Bonsai stops this wall at, the two walls fill
+                # the corner square to the full height
                 out.append(Join(r.idx, role, max(ends, key=strength)[0].idx, ATPATH))
                 continue
-            # an L corner. Where a thicker and a thinner collinear wall end here (a shelter wall continued by a
-            # partition) the corner turns into the thicker one and the thinner one continues unjoined:
-            # finish_runs ran this end to the thicker wall's far face, which only an L reproduces in Bonsai (a T
-            # would stop it at the near face and leave a notch beside the thinner wall)
+            # an L corner. Where two collinear walls end here, the corner turns into one of them and the other
+            # continues unjoined from the node: into the one of this wall's height where the other is lower (a lobby
+            # facade wall continued by the lobby parapet: a T would stop this wall at the facade wall's face and
+            # leave the corner square above the parapet empty), into the thicker one where both are (a shelter wall
+            # continued by a partition: finish_runs ran this end to the thicker wall's far face, which only an L
+            # reproduces; a T would leave a notch beside the thinner wall)
             o, k = max(ends, key=strength)
+            if o.t < max(p.t for p, _ in here) - TOL:
+                continue                      # a thicker, lower wall: this end runs past the L to its far face
             pair = tuple(sorted(((r.idx, role), (o.idx, k))))
             if pair not in paired:            # written once, from the first of the two walls
                 paired.add(pair)
@@ -108,9 +141,23 @@ def plate_joins(runs) -> list[Join]:
     return out
 
 
-def run_axis(r) -> tuple:
-    """Reference line of a run's wall in wall-local x (the body starts ext0 before the run's first node)."""
-    return (r.ext0, r.ext0 + r.length)
+def joined_ends(wall_joins) -> set:
+    """{(wall key, ATSTART | ATEND)} of the wall ends that a join resets (not the bar side of a T)."""
+    out = {(j.relating, j.relating_end) for j in wall_joins}
+    return out | {(j.related, j.related_end) for j in wall_joins if j.related_end != ATPATH}
+
+
+def run_axis(r, joined=None) -> tuple:
+    """Reference line of a run's wall in wall-local x (the body starts ext0 before the run's first node): node to
+    node. With `joined` (joined_ends of the plate's joins), an extended end left without a join (it meets only walls
+    of another height) runs to the body's end instead: Bonsai stops an unjoined end at its reference line end."""
+    a0, a1 = r.ext0, r.ext0 + r.length
+    if joined is not None:
+        if r.ext0 > 0 and (r.idx, ATSTART) not in joined:
+            a0 = 0.0
+        if r.ext1 > 0 and (r.idx, ATEND) not in joined:
+            a1 = r.ext0 + r.length + r.ext1
+    return (a0, a1)
 
 
 # ----------------------------------------------------------------------------- free-standing walls
