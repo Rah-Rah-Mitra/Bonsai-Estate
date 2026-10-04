@@ -6,9 +6,11 @@ import csv
 import importlib
 import json
 import multiprocessing as mp
+import sys
 import time
 from collections import Counter, defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from pathlib import Path
 
 from estate import env
 
@@ -340,8 +342,24 @@ def cmd_report(a):
     return 0
 
 
+def ensure_test_fixtures() -> None:
+    """Build the shared fixtures the suites read from build/ when missing (a fresh clone or worktree has none):
+    build/t_pt4.ifc (tests/fixtures/make_t_pt4.py) and build/legacy/hdb_block_legacy.ifc (estate legacy)."""
+    import subprocess
+    jobs = []
+    if not (env.BUILD / "t_pt4.ifc").exists():
+        jobs.append([str(env.ROOT / "tests" / "fixtures" / "make_t_pt4.py")])
+    if not (env.BUILD / "legacy" / "hdb_block_legacy.ifc").exists():
+        jobs.append([str(env.ROOT / "estate.py"), "legacy"])
+    for args in jobs:
+        print("building test fixture:", " ".join(Path(x).name for x in args))
+        subprocess.run([sys.executable, "-I", "-B", *args], cwd=env.ROOT, check=True)
+
+
 def cmd_test(a):
     import unittest
+    if not a.no_fixtures:
+        ensure_test_fixtures()
     suite = unittest.defaultTestLoader.discover(str(env.ROOT / "tests"), pattern=a.pattern)
     r = unittest.TextTestRunner(verbosity=2 if a.verbose else 1).run(suite)
     return 0 if r.wasSuccessful() else 1
@@ -380,6 +398,7 @@ def register(sub):
     p = sub.add_parser("test", help="run the unit tests in tests/")
     p.add_argument("--pattern", default="test_*.py")
     p.add_argument("--verbose", "-v", action="store_true")
+    p.add_argument("--no-fixtures", action="store_true", help="do not build missing build/ fixtures first")
     p.set_defaults(fn=cmd_test)
 
     p = sub.add_parser("catalogue", help="check flat templates in test harnesses and render the flat gallery")
