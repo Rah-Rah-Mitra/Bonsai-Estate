@@ -14,7 +14,7 @@
    ],
    "detected": true,
    "example": "#28619 IfcDoor L5 lift 1 landing door fills 0 openings",
-   "runtime_s": 2.74
+   "runtime_s": 2.71
   },
   {
    "mutation": "duplicate_guid",
@@ -28,7 +28,7 @@
    ],
    "detected": true,
    "example": "1eFir04aq9wH6ob4hqfn6L: #537 IfcWall L1 EXT AM2|@out / #561 IfcWall L1 CORE STAIR1|@out",
-   "runtime_s": 2.74
+   "runtime_s": 2.73
   },
   {
    "mutation": "uncontain_wall",
@@ -42,7 +42,7 @@
    ],
    "detected": true,
    "example": "#29124 IfcWall L5 CORE @out|LIFT1",
-   "runtime_s": 2.77
+   "runtime_s": 2.74
   },
   {
    "mutation": "space_out_of_zone",
@@ -56,7 +56,7 @@
    ],
    "detected": true,
    "example": "#33049 IfcSpace #05-101 B2",
-   "runtime_s": 2.8
+   "runtime_s": 2.81
   },
   {
    "mutation": "strip_navigation",
@@ -72,7 +72,7 @@
    ],
    "detected": true,
    "example": "#28619 IfcDoor L5 lift 1 landing door: Navigation",
-   "runtime_s": 2.76
+   "runtime_s": 2.72
   },
   {
    "mutation": "mirror_mapped_item",
@@ -86,7 +86,7 @@
    ],
    "detected": true,
    "example": "#174660 IfcMappedItem mirrored (det -1.000)",
-   "runtime_s": 2.76
+   "runtime_s": 2.75
   },
   {
    "mutation": "degenerate_placement",
@@ -100,7 +100,7 @@
    ],
    "detected": true,
    "example": "#154450 det +0.0000 ortho inf #29124 IfcWall L5 CORE @out|LIFT1",
-   "runtime_s": 2.8
+   "runtime_s": 2.81
   },
   {
    "mutation": "zone_ifa_out_of_band",
@@ -130,7 +130,7 @@
    ],
    "detected": true,
    "example": "#06-101: 4R IFA 110.00 outside [86.0, 96.0]",
-   "runtime_s": 2.74
+   "runtime_s": 2.73
   },
   {
    "mutation": "bad_room_code",
@@ -172,7 +172,7 @@
    ],
    "detected": true,
    "example": "#75086 IfcOpeningElement #11-101 Service yard door opening voids 0 elements",
-   "runtime_s": 2.75
+   "runtime_s": 2.73
   },
   {
    "mutation": "too_many_openings",
@@ -201,7 +201,7 @@
    ],
    "detected": true,
    "example": "#536 Body used 2x (e.g. #537 IfcWall L1 EXT AM2|@out)",
-   "runtime_s": 2.75
+   "runtime_s": 2.81
   },
   {
    "mutation": "shelter_out_of_zone",
@@ -215,7 +215,7 @@
    ],
    "detected": true,
    "example": "#05-101: 5R needs HS",
-   "runtime_s": 2.57
+   "runtime_s": 2.5
   },
   {
    "mutation": "shrink_room_area",
@@ -230,7 +230,7 @@
    ],
    "detected": true,
    "example": "#05-101 B2: 7.50 m2 < 8.5",
-   "runtime_s": 2.54
+   "runtime_s": 2.53
   },
   {
    "mutation": "shrink_shelter",
@@ -245,7 +245,7 @@
    ],
    "detected": true,
    "example": "#05-101 HS: 1.20 m2 < 2.8 m2 for IFA 110.0 m2 (InternalFloorArea)",
-   "runtime_s": 2.53
+   "runtime_s": 2.57
   },
   {
    "mutation": "remove_bath_vent",
@@ -259,7 +259,7 @@
    ],
    "detected": true,
    "example": "#05-101 CB: vent windows 0.00 m2 < 0.2 m2 and no mechanical_vent",
-   "runtime_s": 2.53
+   "runtime_s": 2.54
   },
   {
    "mutation": "shrink_bedroom_windows",
@@ -273,7 +273,7 @@
    ],
    "detected": true,
    "example": "#05-101 B2: glazing 0.32 m2 = 2.9% of 10.97 m2",
-   "runtime_s": 2.53
+   "runtime_s": 2.62
   },
   {
    "mutation": "stale_door_spaces",
@@ -287,7 +287,7 @@
    ],
    "detected": true,
    "example": "#05-101 Bedroom 2 door: Navigation #05-101 B2 / #05-101 B3, geometry #05-101 B2 / #05-101 H",
-   "runtime_s": 2.54
+   "runtime_s": 2.58
   },
   {
    "mutation": "remove_main_door",
@@ -302,7 +302,7 @@
    ],
    "detected": true,
    "example": "#05-101: no main door",
-   "runtime_s": 2.53
+   "runtime_s": 2.63
   },
   {
    "mutation": "raise_riser",
@@ -319,7 +319,7 @@
    ],
    "detected": true,
    "example": "L11 IfcStairFlight L11 stair 1 flight 1: riser 0.1950 m",
-   "runtime_s": 3.97
+   "runtime_s": 4.13
   },
   {
    "mutation": "delete_stair_flight",
@@ -334,7 +334,7 @@
    ],
    "detected": true,
    "example": "L11 stair 1: climbs 30.200..31.600, storeys 28.800..31.600",
-   "runtime_s": 3.96
+   "runtime_s": 4.1
   },
   {
    "mutation": "delete_balustrade",
@@ -348,7 +348,7 @@
    ],
    "detected": true,
    "example": "L11 IfcStairFlight L11 stair 1 flight 1: left side open (no wall, no balustrade)",
-   "runtime_s": 3.94
+   "runtime_s": 4.05
   },
   {
    "mutation": "overlapping_wall",
@@ -362,8 +362,8 @@
     "wall_overlap"
    ],
    "detected": true,
-   "example": "L11 IfcWall L11 EXT U107:MB|@out duplicate / L11 EXT U107:MB|@out: 2.2200 m2 > 0.0401 m2",
-   "runtime_s": 4.0
+   "example": "L11 IfcWall L11 EXT U107:MB|@out / L11 EXT U107:MB|@out duplicate: 2.2200 m2 > 0.0401 m2",
+   "runtime_s": 4.15
   },
   {
    "mutation": "slab_in_lift_shaft",
@@ -378,7 +378,7 @@
    ],
    "detected": true,
    "example": "L11 IfcSlab Slab across the lift shaft: 2.700 m2 inside the Lift 1 car shaft",
-   "runtime_s": 4.01
+   "runtime_s": 4.2
   },
   {
    "mutation": "remove_roof_parapet",
@@ -392,7 +392,7 @@
    ],
    "detected": true,
    "example": "RF IfcSlab Roof slab: 23.28 m unguarded from (240.90, 356.59) to (240.90, 333.41), drop 56.80 m, barrier 0.00 m",
-   "runtime_s": 3.95
+   "runtime_s": 4.18
   },
   {
    "mutation": "overlapping_space",
@@ -405,8 +405,8 @@
     "space_overlap"
    ],
    "detected": true,
-   "example": "L5 IfcSpace #05-101 LD copy / #05-101 K: 1.575 m2",
-   "runtime_s": 3.97
+   "example": "L5 IfcSpace #05-101 B3 / #05-101 LD copy: 4.422 m2",
+   "runtime_s": 4.16
   },
   {
    "mutation": "shift_wet_room",
@@ -422,7 +422,7 @@
    ],
    "detected": true,
    "example": "stack 101 L6->L7: wet IoU 0.875",
-   "runtime_s": 4.01
+   "runtime_s": 4.13
   },
   {
    "mutation": "door_clash",
@@ -436,7 +436,7 @@
    ],
    "detected": true,
    "example": "L5 IfcDoor #05-101 Bedroom 2 door x L5 INT U101:MB|U101:B2: 0.0105 m2",
-   "runtime_s": 3.99
+   "runtime_s": 4.18
   },
   {
    "mutation": "georef_eastings",
@@ -450,7 +450,7 @@
    ],
    "detected": true,
    "example": "{'Eastings': 30000.0, 'Northings': 36000.0, 'OrthogonalHeight': 15.0, 'XAxisAbscissa': None, 'XAxisOrdinate': None, 'Scale': None, 'CRS': 'EPSG:3414'}: <memory 0>",
-   "runtime_s": 0.93
+   "runtime_s": 1.0
   },
   {
    "mutation": "federation_duplicate_guid",
@@ -543,5 +543,5 @@
    "federation_units": 0
   }
  },
- "runtime_s": 104.65
+ "runtime_s": 106.34
 }

@@ -346,7 +346,7 @@
  "graph": {
   "nodes": 566,
   "edges": 618,
-  "ifc_sha256": "4175e9c4e900e0e573355fc676ea35d6d29cd2faff51dcce8eaa166c2c209331",
+  "ifc_sha256": "1722b93f3de75a0879769952c4c1869e0b90efc4703536e662dd50a830c70c8f",
   "not_step_free_edges": []
  },
  "graph_checks": {

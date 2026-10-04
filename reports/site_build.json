@@ -14,9 +14,10 @@
   "IfcSlab": 231
  },
  "linked_models": 14,
- "seconds": 2.4,
+ "seconds": 2.5,
  "graph": "C:\\Users\\rapiular\\Documents\\Workspace\\Environment-BIM\\model\\SITE_graph.json",
  "site_plan": "C:\\Users\\rapiular\\Documents\\Workspace\\Environment-BIM\\reports\\site_plan.png",
+ "site_plan_svg": "C:\\Users\\rapiular\\Documents\\Workspace\\Environment-BIM\\reports\\site_plan.svg",
  "graph_stats": {
   "nodes": 566,
   "edges": 618,
@@ -60,15 +61,15 @@
   "NC_514 entrance 3: moved 0.6 m along the facade, clear of the ground floor"
  ],
  "timings": {
-  "grounds": 10.51,
-  "roads+greens": 1.06,
-  "driveways": 0.44,
-  "linkways": 0.74,
-  "footpaths": 0.33,
-  "surfaces": 0.5,
+  "grounds": 14.94,
+  "roads+greens": 1.6,
+  "driveways": 0.72,
+  "linkways": 1.2,
+  "footpaths": 0.53,
+  "surfaces": 0.63,
   "landscape": 0.11,
-  "graph": 1.97,
-  "total_plan": 15.67
+  "graph": 2.01,
+  "total_plan": 21.75
  },
  "trees": 778,
  "crossings": 10,
@@ -96,59 +97,59 @@
   "buildings": {
    "BLK_501": {
     "source": "model/BLK_501/BLK_501.ifc",
-    "sha256": "49d782b79712e2bb4db421159c4f156aa5a334bd25d3eb2ee4095fd9294a920c"
+    "sha256": "185a377d5a62240e5e36a95a1e8cc79068d4f3823bf205efff0ef18c11594a2f"
    },
    "BLK_502": {
     "source": "model/BLK_502/BLK_502.ifc",
-    "sha256": "520b179e059080e03b037db3de0a2b6a7189f055fbf32262daf0e70bcf460c22"
+    "sha256": "f027cfb98a461c3e38fa2e9107dd3d94c80f7b72f4021e3c00accc450331d9e7"
    },
    "BLK_503": {
     "source": "model/BLK_503/BLK_503.ifc",
-    "sha256": "9d054e8075a5f4123017835ca4dff017bdbed1c8bc1f06cac59db1cd26c10e4f"
+    "sha256": "cec21606d1cbd1bbe3555499e82d1507e236b31d9fb1197dd26e2b49417fe660"
    },
    "BLK_504": {
     "source": "model/BLK_504/BLK_504.ifc",
-    "sha256": "83e349e5cb932ba5c2b7c7972451d32b64a64e349b852cab3424d4338f859227"
+    "sha256": "8e38ad365a83af5c20d0c08d86ca573ab5b9ef4961c67c64bc74ae69dad7333b"
    },
    "BLK_505": {
     "source": "model/BLK_505/BLK_505.ifc",
-    "sha256": "83c22594ba9308ee627716456e31a48f666a93b5c76e3aa4e52e99ac7f4ad25a"
+    "sha256": "e153879470199516ab370a8cc3f77dc4268492517d0462835dba319fd93b241b"
    },
    "BLK_506": {
     "source": "model/BLK_506/BLK_506.ifc",
-    "sha256": "0a9b8bf9768746a610b3f5a064f98f58f7bc32816f1e868f6fad4fc2455a374b"
+    "sha256": "cf0b8eae47ca4398af42623f638949187bd874d1d3cbd8e03cf83a36333ba34d"
    },
    "BLK_507": {
     "source": "model/BLK_507/BLK_507.ifc",
-    "sha256": "d99c0d596e7935c1144667e5aa489c1eda16282e08c00e05deeec4346b22fae2"
+    "sha256": "50752ebddf973a723d5fb7249587bdd8b7b4b29cd47d360b969b79cc8f04b96a"
    },
    "BLK_508": {
     "source": "model/BLK_508/BLK_508.ifc",
-    "sha256": "c7df117fca1e86ea5a40fd9ab410c40f913d830fee9a59e7ddee2d45f071abe8"
+    "sha256": "53f56783376a3772cdc77069983802e63a2650198b50f906af3ca41ad6003ac9"
    },
    "BLK_509": {
     "source": "model/BLK_509/BLK_509.ifc",
-    "sha256": "05e2dbca2481c8cb9ae5fd5903f499d72ebf3560b7ec4d280f67e3b620ed5944"
+    "sha256": "d139881289ef2d779a88db8df2c99aa5ca5d1019fbe375fd4f0e52c0c49579dd"
    },
    "BLK_510": {
     "source": "model/BLK_510/BLK_510.ifc",
-    "sha256": "dd4206009d08cf31a70022fa75f0c78d6e754f4a8c8601281cd06ab4aae6c32d"
+    "sha256": "3edc818c7f375e23f27df9f2fd315d828d6229c1dd8defb70cad8b9ce2587bfa"
    },
    "BLK_511": {
     "source": "model/BLK_511/BLK_511.ifc",
-    "sha256": "84cc6a352513672f83d65068d90b5407956df17d5123696137a10fe765418021"
+    "sha256": "081435141b1f09114e7b7392ab5a79a948a7c75f4c604e893a4c6ec7ce8f1406"
    },
    "BLK_512": {
     "source": "model/BLK_512/BLK_512.ifc",
-    "sha256": "fdc8e793d0eca3c9e297b7eb03b601bd4594b6e4567de2b7b4ad05c38e4e1c4d"
+    "sha256": "b8f2e5edb1665a15a0241d51db2868398309feedbc32cdc780aea9da279778b3"
    },
    "MSCP_513": {
     "source": "model/MSCP_513/MSCP_513.ifc",
-    "sha256": "f25fdff6be18f80e29f457dd17e29d336c648bebb85b3b016eb1cb23982be331"
+    "sha256": "2f1f4920b893127f8ef3bf4b428fd4fe570cd6fe80e8c1282bf8b297a56d6c36"
    },
    "NC_514": {
     "source": "model/NC_514/NC_514.ifc",
-    "sha256": "7596f244ecba231861d201104a462929734e9aef78c528da29e80a0250234cb3"
+    "sha256": "31ef8e79cdba9e1a2d93919ce05b0322fd57a9dec4d602a4c57cf8b140ed2de9"
    }
   }
  }

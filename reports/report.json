@@ -1,0 +1,3330 @@
+{
+ "report": {
+  "title": "Sample Town N5 - build report",
+  "estate": "Sample Town N5",
+  "html": "report.html",
+  "json": "report.json",
+  "bcf": "issues.bcf"
+ },
+ "files": [
+  {
+   "path": "model/masterplan.json",
+   "sections": [
+    "report",
+    "kpi",
+    "buildings"
+   ],
+   "bytes": 30163,
+   "sha256": "f809a8ddd2f8da2c1a2f5c9c55435038d584f9eeffdd19eefcf4fd40f3e35f80"
+  },
+  {
+   "path": "reports/plan_check.json",
+   "sections": [
+    "kpi",
+    "mix",
+    "layout_variety"
+   ],
+   "bytes": 350,
+   "sha256": "591c2d0d640ed1cbe92cc59f703a782f83952a8ee13af3992a11c7fb64e446d4"
+  },
+  {
+   "path": "model/.state.json",
+   "sections": [
+    "buildings",
+    "engine"
+   ],
+   "bytes": 39364,
+   "sha256": "e22d3c71e39a5fed22312fd2a7f608c48af12a908e2f3426d78536d7053a6558"
+  },
+  {
+   "path": "reports/build_failures.json",
+   "sections": [
+    "build"
+   ],
+   "bytes": 2,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+   "path": "model/BLK_501/BLK_501_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 28199,
+   "sha256": "d19d76d6058de9b9204f9716b71e774b47626914ca39180c42ac4ebc0d512e02"
+  },
+  {
+   "path": "model/BLK_501/BLK_501_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 266608,
+   "sha256": "920cef4a81d25ab85479af12bebca5e9b6de78cecabd21a59b32322ead79c702"
+  },
+  {
+   "path": "model/BLK_502/BLK_502_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 28190,
+   "sha256": "9ab5f0298715192712f562f9f8f4616342b44dca6334bce0fd0e952b5edbfb10"
+  },
+  {
+   "path": "model/BLK_502/BLK_502_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 266337,
+   "sha256": "e243e66a3919558bcfc5f7688205b26257ab94f3d2940393b996cf8a1a47df83"
+  },
+  {
+   "path": "model/BLK_503/BLK_503_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 23406,
+   "sha256": "272ec71f5630248c103700774e115266d89cd3c0ca367d0d0894325203caeff6"
+  },
+  {
+   "path": "model/BLK_503/BLK_503_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 272662,
+   "sha256": "4b6e8f3b79238a46f06e1faae27a47c893b246d86a1bf005c6196b248bdd24a1"
+  },
+  {
+   "path": "model/BLK_504/BLK_504_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 23413,
+   "sha256": "7860a578eaf7a13b79e6759291fd99c65f0c03ba5a4f91a5132e5bcef195728b"
+  },
+  {
+   "path": "model/BLK_504/BLK_504_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 272408,
+   "sha256": "935770b2656727553643f0bebddd568c24a3b85f8b247f685a38e0b1f62b4162"
+  },
+  {
+   "path": "model/BLK_505/BLK_505_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 17002,
+   "sha256": "191f313951e73b48e479a4ca5961ec9df9180c7d2d7e2038f39167f149126a99"
+  },
+  {
+   "path": "model/BLK_505/BLK_505_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 335386,
+   "sha256": "3983d9c35682d8296e1229e5bbdbe4d4973acceed489a5b013125902192a2d23"
+  },
+  {
+   "path": "model/BLK_506/BLK_506_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 44573,
+   "sha256": "7e794974d438df16298f48b4e47ca76840feb8c1cb3980112e246ce0282e51f4"
+  },
+  {
+   "path": "model/BLK_506/BLK_506_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 335342,
+   "sha256": "3177912dc4da24f2dc9405be4077084f34935780e850c6d70149f6a9c8783a27"
+  },
+  {
+   "path": "model/BLK_507/BLK_507_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 18081,
+   "sha256": "260c755682d45fd12c328d6f2c11e0c7f4d10afc95cd265713d258dbbae52ad9"
+  },
+  {
+   "path": "model/BLK_507/BLK_507_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 307322,
+   "sha256": "4b920a43241996b2011248623b63d0ac2787a06120fbab596bfd9fc016d18619"
+  },
+  {
+   "path": "model/BLK_508/BLK_508_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 18081,
+   "sha256": "46101f4552f9fc367ebdb61ec6f8b0c4f42ff6cc30a11c6ff657aac565feb6a1"
+  },
+  {
+   "path": "model/BLK_508/BLK_508_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 307308,
+   "sha256": "97f6d74c6765b88b88e62a9e5554028fa61a9fcd20c914238dd9f0f828fc4f98"
+  },
+  {
+   "path": "model/BLK_509/BLK_509_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 27106,
+   "sha256": "90e58f7294232f225f291ee87598fa277fca1486d6d394c68ebba7ab6b744e02"
+  },
+  {
+   "path": "model/BLK_509/BLK_509_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 466170,
+   "sha256": "9de4e2e280b13f32ab3c407cf20aa44a388c644682e005c0a0115bf18b5b14fa"
+  },
+  {
+   "path": "model/BLK_510/BLK_510_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 102600,
+   "sha256": "c5400aed6c185b1557ec995ce6d7d7ee7711685cdfe44479990d5bd45ce77831"
+  },
+  {
+   "path": "model/BLK_510/BLK_510_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 463276,
+   "sha256": "06f23c5bb217e45407a9daf99dbeb75dc036b4de8fda37c0036ea22ca69b2ed7"
+  },
+  {
+   "path": "model/BLK_511/BLK_511_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 43607,
+   "sha256": "619fabd3b9f4faef33b33ecd15e23439f8407f270a6c9702b6c4427a52428b16"
+  },
+  {
+   "path": "model/BLK_511/BLK_511_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 470615,
+   "sha256": "85363ae2a99e351cf813faa4f823aba8f770e35596f99ccc2b5e5d4b4cffd780"
+  },
+  {
+   "path": "model/BLK_512/BLK_512_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 57431,
+   "sha256": "3170615f046b9bee2ca4bcf7dd977524e90bdd423eb6c97e93d30da407549542"
+  },
+  {
+   "path": "model/BLK_512/BLK_512_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 251226,
+   "sha256": "35965ce22467fa308dc0bbafc06330a22f82deefa4824be0d22404d5250fd567"
+  },
+  {
+   "path": "model/MSCP_513/MSCP_513_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 15904,
+   "sha256": "ac7ba3edb45a545bb935b60aa394d0657bdafbbc44ce2c9208b9645533bf2973"
+  },
+  {
+   "path": "model/MSCP_513/MSCP_513_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 354588,
+   "sha256": "d6c76c6348ca24ea072be6a3bc6e22687b9a556606f64473febc1d8c9fd74a2a"
+  },
+  {
+   "path": "model/NC_514/NC_514_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 16000,
+   "sha256": "c6441360465936c1238599f1a40d8c78f9370580e0cca215a0cae0e4b4704016"
+  },
+  {
+   "path": "model/NC_514/NC_514_nav.json",
+   "sections": [
+    "buildings"
+   ],
+   "bytes": 29445,
+   "sha256": "718a7fa78d1d928c1445734c3336eae5daf6b778052efdb1f14cd62fa676a6a2"
+  },
+  {
+   "path": "model/SITE_validation.json",
+   "sections": [
+    "buildings",
+    "validation"
+   ],
+   "bytes": 15275,
+   "sha256": "e8a8c35286bf34dae6b9488227ce0f04ae3eece374f822d7787ab7363e450081"
+  },
+  {
+   "path": "reports/nav_estate.json",
+   "sections": [
+    "walkability"
+   ],
+   "bytes": 728336,
+   "sha256": "9ed70a98074944808cb429dab61f64085e3ee8b7f0308670029d791dc3b88ee3"
+  },
+  {
+   "path": "reports/nav_site.json",
+   "sections": [
+    "walkability"
+   ],
+   "bytes": 40169,
+   "sha256": "636683835368bab8c984243adf3c72417962efa2bf7514a7e044caeb1a5293c4"
+  },
+  {
+   "path": "reports/validation_summary.json",
+   "sections": [
+    "validation"
+   ],
+   "bytes": 6076,
+   "sha256": "547b29eaa3eea5e45798798d158f1018970a48b73be00dea667ed8fe8ffa11ef"
+  },
+  {
+   "path": "reports/mutations.json",
+   "sections": [
+    "mutations"
+   ],
+   "bytes": 13307,
+   "sha256": "87cf91537fddea40b802315f3eace3d1ea13956d8d91e935d2bdc936d2c8b3ec"
+  },
+  {
+   "path": "build/legacy/legacy_counts.json",
+   "sections": [
+    "legacy"
+   ],
+   "bytes": 697,
+   "sha256": "ceea37e948556a1b57b378c14b3c1023fdc5c41ab4afcc508a554c7979b53e66"
+  },
+  {
+   "path": "model/estate_manifest.json",
+   "sections": [
+    "engine"
+   ],
+   "bytes": 306167,
+   "sha256": "b25ee3765cef70ce3c2e59774d5a98f21dca2ee11a28242fb31ed93344632b72"
+  },
+  {
+   "path": "build/logs/blender/estate_blend.json",
+   "sections": [
+    "estate_blend"
+   ],
+   "bytes": 26836,
+   "sha256": "61251b0f2ac5614a9d3fa5dcfe31d549c55b1e93327b28559b531771c90e2dba"
+  },
+  {
+   "path": "reports/site_plan.png",
+   "sections": [
+    "site_plan"
+   ],
+   "bytes": 214874,
+   "sha256": "341b07aa2384cc4ff8a7e320f5415fa24b777cb088e5f5a58279717fd9610da8"
+  },
+  {
+   "path": "reports/site_plan.svg",
+   "sections": [
+    "site_plan"
+   ],
+   "bytes": 150594,
+   "sha256": "4d43812ce50aa589d45141ed5b226c6d4db62d2656b12d9b0bade4c364cac6a7"
+  },
+  {
+   "path": "model/BLK_501/plans/BLK_501_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 55392,
+   "sha256": "2075f009b2283a42a2b75ae657aea60f8c9312deefb2686157e2bac2abe89a10"
+  },
+  {
+   "path": "model/BLK_502/plans/BLK_502_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 55598,
+   "sha256": "d89ca965dde33a9edd8995c4c3c3cec3c99738bbe971bc893a2d8296a59aaef4"
+  },
+  {
+   "path": "model/BLK_503/plans/BLK_503_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 53641,
+   "sha256": "7e3b9116b9de32196ec09437eedb32618cd6a346294f8e5000391e43efe84555"
+  },
+  {
+   "path": "model/BLK_504/plans/BLK_504_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 53286,
+   "sha256": "f114d48f7c210446eeba817d3b42626823dde6ead88c6afd5fee8de07486d7b9"
+  },
+  {
+   "path": "model/BLK_505/plans/BLK_505_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 54593,
+   "sha256": "0aae7254f0b2c7968e07e42c0938e12cf3eed965881c5e8b5a67c090580b0a0b"
+  },
+  {
+   "path": "model/BLK_506/plans/BLK_506_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 55804,
+   "sha256": "af2ffa1e7ceb231a88c34cfe657e95c567046071996119d7901fbe0a4c4a8b05"
+  },
+  {
+   "path": "model/BLK_507/plans/BLK_507_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 78289,
+   "sha256": "007378813f00d0fa056f11c5469382da72486503f98ac2f31e0c67649d1b289f"
+  },
+  {
+   "path": "model/BLK_508/plans/BLK_508_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 80581,
+   "sha256": "7f6f2b2172c09a75c6e5efa4a1a1b7f1a58c336ed22b504d5a7f4edd8d85efe7"
+  },
+  {
+   "path": "model/BLK_509/plans/BLK_509_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 100037,
+   "sha256": "4dabbe11bde613aa7b9f00dc3ed853c3d76aa08500ed22c4af82fa9535bb587a"
+  },
+  {
+   "path": "model/BLK_510/plans/BLK_510_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 129884,
+   "sha256": "6fd0bf08b8c7e80c1af5221bd87ad3fb53e4669298bb0fb8e539201004858e40"
+  },
+  {
+   "path": "model/BLK_511/plans/BLK_511_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 130288,
+   "sha256": "05530ee82569f082352fa58ae6a9a9c085d18811566c0ade62f63e19cc594411"
+  },
+  {
+   "path": "model/BLK_512/plans/BLK_512_typical.png",
+   "sections": [
+    "typical_plans"
+   ],
+   "bytes": 60231,
+   "sha256": "be1450826c57ba6860f0093cfa3414b863bd6c4b38d084a7d7d9740af9f95765"
+  },
+  {
+   "path": "reports/renders/ESTATE/ESTATE_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1825156,
+   "sha256": "8a0da5d8e99772a76f4bcbd44cba71014c55f45b852e091d1508c6d9fe51faa3"
+  },
+  {
+   "path": "reports/renders/ESTATE/ESTATE_aerial_SW.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1884652,
+   "sha256": "0249333ed25684606ad5142e4e6e2e88a696778ee7d86f4e7ed3b9c34a4b4367"
+  },
+  {
+   "path": "reports/renders/ESTATE/ESTATE_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1874418,
+   "sha256": "181468b6dab68e292829a7391ece7cb11880821d4e1d0dcf241e166ba83d0e1e"
+  },
+  {
+   "path": "reports/renders/ESTATE/ESTATE_street_BS1.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1234709,
+   "sha256": "5c3f8ae4c77da8815aa12b3f9fcb47f09477a337fd2e712a4fbf7bfec363f09b"
+  },
+  {
+   "path": "reports/renders/ESTATE/ESTATE_top.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 2127402,
+   "sha256": "7fbddf81bbcb7d9d4bad41e8ac4c7604ff68dd5a43ca6ae2c5850624ac8ea07e"
+  },
+  {
+   "path": "reports/renders/BLK_501/BLK_501_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1605807,
+   "sha256": "50b20c4d48d4e75f3d1665667860e3cad93ef196797271001bcb14e5207448ca"
+  },
+  {
+   "path": "reports/renders/BLK_501/BLK_501_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1689400,
+   "sha256": "45d50a4f8caaf9dcfa315f2b8539405ec28fd2e5d4ec2fffa91da3268f5e49ca"
+  },
+  {
+   "path": "reports/renders/BLK_501/BLK_501_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1573021,
+   "sha256": "8f723413cbcc027e0c1e087ecb9fe6fba9fa43b91c774455e9299e87273e8ac0"
+  },
+  {
+   "path": "reports/renders/BLK_502/BLK_502_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1589101,
+   "sha256": "e0c3ea7274bf01f548b498a5d849fbdba081d02fec63f085b90dfe4dd73c6236"
+  },
+  {
+   "path": "reports/renders/BLK_502/BLK_502_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1706642,
+   "sha256": "b383ad6952fbbd5887c3b781e432ae2eff8b0e03f32886d4bc44fb8b9604a388"
+  },
+  {
+   "path": "reports/renders/BLK_502/BLK_502_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1572048,
+   "sha256": "89302a725eddce0e67d5280d6c1ecea6ea0c8fb63d893b3032f4a38fa70e287f"
+  },
+  {
+   "path": "reports/renders/BLK_503/BLK_503_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1555828,
+   "sha256": "5176c533df92073c1217476f2191ea5259eb9e1be0f9c0091a7db656348f6d19"
+  },
+  {
+   "path": "reports/renders/BLK_503/BLK_503_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1676880,
+   "sha256": "19544ad6d400c37d6c2e8552aab07d03730262f6e97776f4acb0aece85af3616"
+  },
+  {
+   "path": "reports/renders/BLK_503/BLK_503_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1568232,
+   "sha256": "d4006cf6348b2e793c43d386b32f0d8d941d6f168e7a7cc8cf10fd61042c4b24"
+  },
+  {
+   "path": "reports/renders/BLK_504/BLK_504_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1595724,
+   "sha256": "818d3e10e855b57971c1d0f48d3c85dd0375398ff1fcf42a84f723cb476c6388"
+  },
+  {
+   "path": "reports/renders/BLK_504/BLK_504_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1695832,
+   "sha256": "067e21ee0d482485fa35d871a66320cb4bc0d1d9adff0dd54f8a40f2c6817486"
+  },
+  {
+   "path": "reports/renders/BLK_504/BLK_504_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1558065,
+   "sha256": "ac6678417ea95343943cd50530c8b7213932d34737c2bd0cfe8481936e0f860b"
+  },
+  {
+   "path": "reports/renders/BLK_505/BLK_505_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1560780,
+   "sha256": "3e00dd261f9679d1c4c92d2a365236fd360ea531a76b09a0ceec77241e519acf"
+  },
+  {
+   "path": "reports/renders/BLK_505/BLK_505_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1696520,
+   "sha256": "d3d0782d6dd7619869b54e3e8c2397ff10eeb22b108ed878b33da464063cb43d"
+  },
+  {
+   "path": "reports/renders/BLK_505/BLK_505_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1555071,
+   "sha256": "e51300855576af741a70e5381d24f011575a998bb1bc4e6829fb7645f79088e7"
+  },
+  {
+   "path": "reports/renders/BLK_506/BLK_506_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1569970,
+   "sha256": "55706fd5398382abdff220c6566784b7cbc43f8df049a31b6ab8b50138df54d4"
+  },
+  {
+   "path": "reports/renders/BLK_506/BLK_506_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1711834,
+   "sha256": "9a49e5744a5ddee6dcbd6a5129cd09443ab9471a8e6440928a9702183f6cc2ce"
+  },
+  {
+   "path": "reports/renders/BLK_506/BLK_506_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1573203,
+   "sha256": "8a37c80bf2c7b5004ff9d73fb3e545c94040a92ae5c348455f737cb921cab606"
+  },
+  {
+   "path": "reports/renders/BLK_507/BLK_507_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1668164,
+   "sha256": "96255f094c1919fd34cebd8fb6ac2405fd00706bfab03ff070768e0cfae4534e"
+  },
+  {
+   "path": "reports/renders/BLK_507/BLK_507_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1556962,
+   "sha256": "32bbc6a14a036fd9ae039dedc269185112b5e364c360c4410d48146c1e00c4ce"
+  },
+  {
+   "path": "reports/renders/BLK_507/BLK_507_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1617692,
+   "sha256": "5565277ace972f13c420cc811b59688c5e27a268091b6e4d9f6cd73d14744395"
+  },
+  {
+   "path": "reports/renders/BLK_508/BLK_508_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1670278,
+   "sha256": "302bd328e97dd825637e338fca096fba055085f96001696c97cb36bda97036f8"
+  },
+  {
+   "path": "reports/renders/BLK_508/BLK_508_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1555311,
+   "sha256": "759d1fe733e34d0c901c55f7ee6a83b13f8f7ed426bcd9e4ee880e0172e550da"
+  },
+  {
+   "path": "reports/renders/BLK_508/BLK_508_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1616435,
+   "sha256": "17bd25a86c71cb68f884c1ded8edf63e9660cf9e45f757723c948e3dfc6cd253"
+  },
+  {
+   "path": "reports/renders/BLK_509/BLK_509_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1692329,
+   "sha256": "2cb1b1c5f1cd66d8f16e1ef8a311f913950991caf81511acbbe3b17d5232bc57"
+  },
+  {
+   "path": "reports/renders/BLK_509/BLK_509_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1536909,
+   "sha256": "caaedb5bfdf85fd9c64a53581e03d0243847e60fd04ce7fca3dd78e7a845d39e"
+  },
+  {
+   "path": "reports/renders/BLK_509/BLK_509_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1647453,
+   "sha256": "686812f911663b7cfed0e788939d2a8d8b95ed3c05cad9955865877c459c0232"
+  },
+  {
+   "path": "reports/renders/BLK_510/BLK_510_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1644598,
+   "sha256": "f88acda72c9b3646fa724b0293e8ed602cee4d345b4b0faece4e3fd9e4fb440b"
+  },
+  {
+   "path": "reports/renders/BLK_510/BLK_510_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1559233,
+   "sha256": "a283db517d1ed4c4c0b9fc98582e4dc1b216e572c7ad0d97012cc5b582bfa8d9"
+  },
+  {
+   "path": "reports/renders/BLK_510/BLK_510_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1622893,
+   "sha256": "386145368e03788e610cd96d1f25eb7a8942b2d7e911f661619e91d4a97d999c"
+  },
+  {
+   "path": "reports/renders/BLK_511/BLK_511_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1735537,
+   "sha256": "cca436c2257d9cba98af9946282312150575eb48e9164007602a0456b0983e0a"
+  },
+  {
+   "path": "reports/renders/BLK_511/BLK_511_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1573899,
+   "sha256": "300f074a58fcd063c28d44b0cc9a52c719303e922b9661b19f15df6a58ee976d"
+  },
+  {
+   "path": "reports/renders/BLK_511/BLK_511_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1613941,
+   "sha256": "21a32d56ec2f411eae0a284dde79a024b881724486d94ccae539551fb2a783f2"
+  },
+  {
+   "path": "reports/renders/BLK_512/BLK_512_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1668145,
+   "sha256": "3d3919386a17d0f50990ab18745806c35dcc0f73535683b57c8dedb33579e59f"
+  },
+  {
+   "path": "reports/renders/BLK_512/BLK_512_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1585798,
+   "sha256": "d67e57a5cc51c6e472b0cb841ac03649c75b5cc401ea6ce86b57e57f9d32d8d5"
+  },
+  {
+   "path": "reports/renders/BLK_512/BLK_512_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1601519,
+   "sha256": "e0e7ce512865ffdb1cc390715c2ca9afde470e832f249fe64d5a4429084bbc4e"
+  },
+  {
+   "path": "reports/renders/MSCP_513/MSCP_513_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1617651,
+   "sha256": "9ef55f62fd21bd3b4adb3c8512dfe44aaa7b96beeff88c5868ca302609d4de89"
+  },
+  {
+   "path": "reports/renders/MSCP_513/MSCP_513_cutaway_L6.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1668187,
+   "sha256": "dc9a17af38fab0ad4c02b8456af4e6c72caa29377069462da7fcb972b6cf701f"
+  },
+  {
+   "path": "reports/renders/MSCP_513/MSCP_513_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1632415,
+   "sha256": "f0becebb8db18d56e05304390f33cd2cc0096a75f5ffa5a49527c5749983be87"
+  },
+  {
+   "path": "reports/renders/NC_514/NC_514_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1336402,
+   "sha256": "47dbf070ef4e196a52d033b0d6da964e0c7dbd7d65a9aaa931e63374000af69b"
+  },
+  {
+   "path": "reports/renders/NC_514/NC_514_cutaway_L2.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1487013,
+   "sha256": "27f72cd138837c273d3628e1f9bf9d8dbd2d6e86140d580d214a25ad808ed15a"
+  },
+  {
+   "path": "reports/renders/NC_514/NC_514_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1340304,
+   "sha256": "7c1cbf982c1584a302829e29a64a5c3fd86ef4a13a180911a0c4a6372fb1c9b8"
+  },
+  {
+   "path": "reports/renders/SITE/SITE_aerial_NE.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1742107,
+   "sha256": "617adc88888e6bd99f4e8f6a8baf5ded8a77d217d54dd5a8c76c3baec725c67a"
+  },
+  {
+   "path": "reports/renders/SITE/SITE_iso.png",
+   "sections": [
+    "renders"
+   ],
+   "bytes": 1737293,
+   "sha256": "8a650d6fa2c268230bd58669a105ce3eedd92e9a80f2fe8982e5004707c84b36"
+  },
+  {
+   "path": "model/BLK_501/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 27594,
+   "sha256": "31797c81a5b2617773170b4ff6a1cc51e3b0ff1cf0cb309ee7be26e8d181a3b7"
+  },
+  {
+   "path": "model/BLK_501/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 30453,
+   "sha256": "8a0c261c95ae5f60d3778bc83a5a0c1135bc2186322c30905dda46fc7eb20dd5"
+  },
+  {
+   "path": "model/BLK_501/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 27135,
+   "sha256": "8abe2483df2dc53f69478c40d62d8b820f7def76fa1d9f3d42299532d5f03ba3"
+  },
+  {
+   "path": "model/BLK_502/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 27947,
+   "sha256": "c0813a4095cc5700df33b8ddbe5a44c2050c60fe2bed99d6d83dac3a7698b65a"
+  },
+  {
+   "path": "model/BLK_502/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 30497,
+   "sha256": "93d503bb318ec857fbc6fe22044d685215d553b4f7dfd577178318e4c29eb7d6"
+  },
+  {
+   "path": "model/BLK_502/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 27375,
+   "sha256": "9c0f7c7e1b0ea159647b0a8c1667beb6f473a23302eb3ffb8b324156bc1cfa5b"
+  },
+  {
+   "path": "model/BLK_503/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 27048,
+   "sha256": "fac62ba8bc2089d16b037596435ae7679f1fba6c15bbba120d980a1316cfc94c"
+  },
+  {
+   "path": "model/BLK_503/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 29702,
+   "sha256": "95dfc1b9ecffcbe9d0e74ac228a459d57d1d2dc0fe3c74507e503bd2e31a1287"
+  },
+  {
+   "path": "model/BLK_503/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 26731,
+   "sha256": "5a5954d934d2aa70fc1a197c11a0f171b0dda15632e9a29a6c1f24a845e3f1ae"
+  },
+  {
+   "path": "model/BLK_504/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 26281,
+   "sha256": "179ddab3fc4670cf0f337a435613a37b7190fb374041f19c270ba743f3c8b777"
+  },
+  {
+   "path": "model/BLK_504/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 28641,
+   "sha256": "3aa7366666b997bcb6248266c8bdf431e79e62b6847317eb4979b85752008650"
+  },
+  {
+   "path": "model/BLK_504/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 25787,
+   "sha256": "24ce12facd3023c46413d3ac924145f62d3818c65bab16cd44d44e4171c0a534"
+  },
+  {
+   "path": "model/BLK_505/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 27185,
+   "sha256": "ac2cc881a82c9f2dc6cfe6f4ed8ea410a2843de84926b71ed954ca6f90fdc4c0"
+  },
+  {
+   "path": "model/BLK_505/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 29668,
+   "sha256": "82ef1d8b9621d5f5ff0fb2314ad37485f79ade51bd2855e50352a48f48a89c49"
+  },
+  {
+   "path": "model/BLK_505/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 26613,
+   "sha256": "35c5dd08012b3e8614ba45f94b5fcaad07a8567757246d6b9fdcd245cbfbaf28"
+  },
+  {
+   "path": "model/BLK_506/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 28092,
+   "sha256": "d2babb6c66115423e40be0702651acc059c780d7eadf167e2c446177234e668c"
+  },
+  {
+   "path": "model/BLK_506/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 30789,
+   "sha256": "8661c991179d8ae3d27ddf07a6c09d468bcb52db5871bd5249cc823525e185d5"
+  },
+  {
+   "path": "model/BLK_506/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 27362,
+   "sha256": "d430ef0c392a662aae51620f179e9937dc4ada55f06cf8d44c163d49c5615cb3"
+  },
+  {
+   "path": "model/BLK_507/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 23968,
+   "sha256": "5db3adf0c6ce303f3e041f150f762383198dec215c60ac5220fe808cc54e6962"
+  },
+  {
+   "path": "model/BLK_507/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 26283,
+   "sha256": "50ddfeef1da0b7c1485cbde754506901e4e6685f41cd5c5f71d9cc39aa58d4bd"
+  },
+  {
+   "path": "model/BLK_507/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 23127,
+   "sha256": "a8b34350e7c15de5c03617f0a3e2cbe9279b09ecee652811b130177d874cfba9"
+  },
+  {
+   "path": "model/BLK_508/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 24037,
+   "sha256": "d4cc0eec82f8f7defb6e711bdc29346a9142e2eb58834bb18ceefafe0c16a1ab"
+  },
+  {
+   "path": "model/BLK_508/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 26482,
+   "sha256": "e64a4f1c6ceec21467e1f840414752663eb9ad954ccc2bbb91939c1ac99d9488"
+  },
+  {
+   "path": "model/BLK_508/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 23115,
+   "sha256": "a21d7232e2b03e7456a73d6d747140fc38504c022451a4865da82b00f819a548"
+  },
+  {
+   "path": "model/BLK_509/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 21387,
+   "sha256": "2c748d53879baca11ee7072675afd9aba65962b53bc0027881a614d9ce8105a2"
+  },
+  {
+   "path": "model/BLK_509/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 23691,
+   "sha256": "60d1679ef01192c98c9ca618789c3d6810de450ff21057cee5c0e6a86ffa9b5b"
+  },
+  {
+   "path": "model/BLK_509/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 20866,
+   "sha256": "bab786fc6d124f5ebb76620702960fdb9892a3ce3ba2d2df2dfa25f0484e63e6"
+  },
+  {
+   "path": "model/BLK_510/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 37634,
+   "sha256": "73c48892db575cd686fc83aa4d66da9b211804b74c139207ed1d38568cd6e2f8"
+  },
+  {
+   "path": "model/BLK_510/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 41649,
+   "sha256": "50c60fe0973326f62562e03cd786ddb674f4f98af5add1e5d052f9a2550fd124"
+  },
+  {
+   "path": "model/BLK_510/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 35645,
+   "sha256": "3d2493157d240b2986e54c60462ba29b9fe5e21a7e6cf9cdd4df58bcc3d3512b"
+  },
+  {
+   "path": "model/BLK_511/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 38127,
+   "sha256": "915d43b53848f7368d7dee570de73721d9b85dc31c3fe5277f4efdb0b256ce1a"
+  },
+  {
+   "path": "model/BLK_511/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 42040,
+   "sha256": "effeccd04aa5aa61d5821b28e9609caf67a13e55ba1abebb8ae637c01bd64702"
+  },
+  {
+   "path": "model/BLK_511/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 36076,
+   "sha256": "8de16eabb592aef050c81f5358f253c5cbae289a398690d22a167bdd8e65b533"
+  },
+  {
+   "path": "model/BLK_512/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 23373,
+   "sha256": "477c3beee45471da86b01678e23ab27f54375ee8631fd9e6bc76ebe3ca76c57d"
+  },
+  {
+   "path": "model/BLK_512/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 25874,
+   "sha256": "3169754da4cd21b2144458995c2cf1c619cff7f6deb710e6d3386d5d6c040954"
+  },
+  {
+   "path": "model/BLK_512/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 22913,
+   "sha256": "9870fa8ec1fd327cbd03a7b9a52a81e2d62176ad558971691113ebbaf9cc9ad8"
+  },
+  {
+   "path": "model/MSCP_513/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 39502,
+   "sha256": "04bc0ad039c5cca1d6b17e60d0fbd2b2041a5d1cc2e0c9890b3d16e4087421f6"
+  },
+  {
+   "path": "model/MSCP_513/nav/L5_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 39209,
+   "sha256": "7b8e337a5a6433c54e78bdf055e57d8a9ff54426b09ab9451b481536f3e4d9dd"
+  },
+  {
+   "path": "model/MSCP_513/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 39349,
+   "sha256": "8cfcfd2c0620c5e66f35113098ce638da418db7c038c85943d2382be8b3163c4"
+  },
+  {
+   "path": "model/NC_514/nav/L1_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 34687,
+   "sha256": "0fd8b01931782cdece15ea1b32eced13408cfac6759daccb3a0545783a301902"
+  },
+  {
+   "path": "model/NC_514/nav/L2_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 26210,
+   "sha256": "05af69c985825c34c8cb29eefe4f083e06841024e93fa5753b96cf100b533ebc"
+  },
+  {
+   "path": "model/NC_514/nav/RF_r30.png",
+   "sections": [
+    "walk_maps"
+   ],
+   "bytes": 25665,
+   "sha256": "f7ee4ff79b4d56ccdcab0ce208268d91eaec928d2ac508ed9da2ac738e482456"
+  },
+  {
+   "path": "reports/catalogue.json",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 17773,
+   "sha256": "db766cfee89741fc60190ed9941d55dd00787bd826ff57a02063dd20868f594d"
+  },
+  {
+   "path": "reports/flat_gallery/2RF38-S_M_C_acledge_5.95_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 21702,
+   "sha256": "393bcdb90844a12e18e5d0a17f2c9447ced102d155e4e21a9fb6aabd0d18589a"
+  },
+  {
+   "path": "reports/flat_gallery/2RF47-S_M_C_acledge_6.4_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 23512,
+   "sha256": "32f2ac28ed2e05809676a6387dc20bb8d4772c9108b3f722a320a09768c33782"
+  },
+  {
+   "path": "reports/flat_gallery/3G-C_N_C_acledge_11.5_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 30677,
+   "sha256": "589007dda0808158979b008dc4f8932716d1d14c329f3aa4526aaaec1e58f771"
+  },
+  {
+   "path": "reports/flat_gallery/3G-C2_N_C_acledge_11.5_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 30602,
+   "sha256": "65dc90983af234b56008f11ded9a0f4ae6c965cc14c7432262e63901be360d5b"
+  },
+  {
+   "path": "reports/flat_gallery/3R-PT-A_N_C_acledge_9.35_PT-N.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 25256,
+   "sha256": "caa27eb595dbe3008a0188623adaa7e5da5a2d1ae77cbe698420e3bacc8ddaa8"
+  },
+  {
+   "path": "reports/flat_gallery/3R-S-A_M_C_acledge_8.1_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 24781,
+   "sha256": "d9c917e3b9013b212e57dacebd97ef2c363654662b0bb342675b16f7d9d170d0"
+  },
+  {
+   "path": "reports/flat_gallery/3R-S-B_M_C_acledge_10.1_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 25974,
+   "sha256": "3805e40e45d76081e14c8a53691e41b1c7c723ab6f1f381e7ee96dca2e654d02"
+  },
+  {
+   "path": "reports/flat_gallery/4R-L_M_C_acledge_10.4_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 27990,
+   "sha256": "3028836bdf1e27446c6e75ed8a785ac0cd85e9ec354e3bac77e7c38f25e14bbd"
+  },
+  {
+   "path": "reports/flat_gallery/4R-PT-A_N_C_acledge_PT-N.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 26045,
+   "sha256": "d3a6eccb8ab3bd9eb6687b1a45762542e2d289e9762c1b174b177bb2f8e74512"
+  },
+  {
+   "path": "reports/flat_gallery/4R-PT-B_N_C_acledge_10.1_PT-N.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 26184,
+   "sha256": "875d48b7be327f16c59b7ed3074ee095eeeeeac7d6d74b8b7f584841b8c2b188"
+  },
+  {
+   "path": "reports/flat_gallery/4R-PT-C_N_C_acledge_10.8_PT-N.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 27011,
+   "sha256": "91af0c112bf5b35630801e185cfe0fa40e2ac707d40aa4b0bcb644155322472a"
+  },
+  {
+   "path": "reports/flat_gallery/4R-S-A_M_C_acledge_10.4_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 28792,
+   "sha256": "6fee20fe9965b7bfd6a7f1a9be7248d49f05c1c2b4c3e8518af068d57af08f6a"
+  },
+  {
+   "path": "reports/flat_gallery/4R-S-B_M_C_acledge_10.2_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 27880,
+   "sha256": "44e75e930ec088f7b5fd0c4bef72938bba81882949511811698ee7b3a67724e3"
+  },
+  {
+   "path": "reports/flat_gallery/5R-L_M_C_acledge_10.8_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 28659,
+   "sha256": "9e9923550c55745d498affebab211e9866fd3a454f430f0075c2d88dbc502adc"
+  },
+  {
+   "path": "reports/flat_gallery/5R-PT-A_N_C_acledge_10.8_PT-N.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 27359,
+   "sha256": "87ddcbb4174600c3d251340af5404c95cac559d7c122ff1379b1e850b193a8ff"
+  },
+  {
+   "path": "reports/flat_gallery/5R-S-A_M_C_acledge_10.2_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 29661,
+   "sha256": "85a15c769bd7286b084b8094a2e90370bbcc0c7ff56f78a4a77933bf4452b95c"
+  },
+  {
+   "path": "reports/flat_gallery/EA-S-A_M_C_acledge_11.2_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 30644,
+   "sha256": "89a89ff5efa06d040794cffe0360584b67f4949fc5aadb42ba2e09418eabcfae"
+  },
+  {
+   "path": "reports/flat_gallery/EA-S-B_M_C_acledge_10.3_SL-end.png",
+   "sections": [
+    "catalogue"
+   ],
+   "bytes": 29089,
+   "sha256": "58daec1eaa82acc0d2332ae3cc8d242669143e6a49062bf8cb093d3ff31c263f"
+  }
+ ],
+ "build": {
+  "ok": true,
+  "failures": []
+ },
+ "kpi": {
+  "residential_blocks": 12,
+  "flats": 1206,
+  "stack_layouts_raw": 53,
+  "mirror_canonical_layouts": 44,
+  "plan_errors": 0
+ },
+ "mix": {
+  "total": 1206,
+  "flats": {
+   "5R": 274,
+   "4R": 558,
+   "3R": 196,
+   "2RF": 82,
+   "3G": 30,
+   "EA": 66
+  }
+ },
+ "buildings": [
+  {
+   "id": "BLK_501",
+   "typology": "PT4",
+   "storeys": 20,
+   "flats": 76,
+   "elements": 5080,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 40
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 774624,
+     "components": 16,
+     "start_cells": 6230,
+     "spaces": 920,
+     "reachable": 920,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 76,
+     "flats_reachable": 76,
+     "flats_main_door_step_free": 76,
+     "main_doors_checked_in": {
+      "entry room": 76
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 917,
+     "spaces_by_kind": {
+      "refuse": {
+       "spaces": 20,
+       "reachable": 20,
+       "step_free": 20
+      },
+      "stair": {
+       "spaces": 42,
+       "reachable": 42,
+       "step_free": 40
+      },
+      "room": {
+       "spaces": 857,
+       "reachable": 857,
+       "step_free": 857
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 2,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 283024,
+   "blend_verified": true
+  },
+  {
+   "id": "BLK_502",
+   "typology": "PT4",
+   "storeys": 20,
+   "flats": 76,
+   "elements": 5157,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 40
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 773245,
+     "components": 16,
+     "start_cells": 6240,
+     "spaces": 919,
+     "reachable": 919,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 76,
+     "flats_reachable": 76,
+     "flats_main_door_step_free": 76,
+     "main_doors_checked_in": {
+      "entry room": 76
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 916,
+     "spaces_by_kind": {
+      "refuse": {
+       "spaces": 20,
+       "reachable": 20,
+       "step_free": 20
+      },
+      "stair": {
+       "spaces": 42,
+       "reachable": 42,
+       "step_free": 40
+      },
+      "room": {
+       "spaces": 856,
+       "reachable": 856,
+       "step_free": 856
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 2,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 287148,
+   "blend_verified": true
+  },
+  {
+   "id": "BLK_503",
+   "typology": "PT4",
+   "storeys": 22,
+   "flats": 84,
+   "elements": 5439,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 23
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 677483,
+     "components": 17,
+     "start_cells": 5940,
+     "spaces": 932,
+     "reachable": 932,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 84,
+     "flats_reachable": 84,
+     "flats_main_door_step_free": 84,
+     "main_doors_checked_in": {
+      "entry room": 84
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 929,
+     "spaces_by_kind": {
+      "refuse": {
+       "spaces": 22,
+       "reachable": 22,
+       "step_free": 22
+      },
+      "stair": {
+       "spaces": 46,
+       "reachable": 46,
+       "step_free": 44
+      },
+      "room": {
+       "spaces": 863,
+       "reachable": 863,
+       "step_free": 863
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 2,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 312036,
+   "blend_verified": true
+  },
+  {
+   "id": "BLK_504",
+   "typology": "PT4",
+   "storeys": 22,
+   "flats": 84,
+   "elements": 5396,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 23
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 680372,
+     "components": 17,
+     "start_cells": 5930,
+     "spaces": 931,
+     "reachable": 931,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 84,
+     "flats_reachable": 84,
+     "flats_main_door_step_free": 84,
+     "main_doors_checked_in": {
+      "entry room": 84
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 928,
+     "spaces_by_kind": {
+      "refuse": {
+       "spaces": 22,
+       "reachable": 22,
+       "step_free": 22
+      },
+      "stair": {
+       "spaces": 46,
+       "reachable": 46,
+       "step_free": 44
+      },
+      "room": {
+       "spaces": 862,
+       "reachable": 862,
+       "step_free": 862
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 2,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 307520,
+   "blend_verified": true
+  },
+  {
+   "id": "BLK_505",
+   "typology": "PT4",
+   "storeys": 25,
+   "flats": 96,
+   "elements": 6154,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 2
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 868512,
+     "components": 15,
+     "start_cells": 6010,
+     "spaces": 1159,
+     "reachable": 1159,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [
+      "L1-AM2"
+     ],
+     "roof_reachable": true,
+     "flats": 96,
+     "flats_reachable": 96,
+     "flats_main_door_step_free": 96,
+     "main_doors_checked_in": {
+      "entry room": 96
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 1156,
+     "spaces_by_kind": {
+      "refuse": {
+       "spaces": 25,
+       "reachable": 25,
+       "step_free": 25
+      },
+      "stair": {
+       "spaces": 52,
+       "reachable": 52,
+       "step_free": 50
+      },
+      "room": {
+       "spaces": 1081,
+       "reachable": 1081,
+       "step_free": 1081
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 2,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 347384,
+   "blend_verified": true
+  },
+  {
+   "id": "BLK_506",
+   "typology": "PT4",
+   "storeys": 25,
+   "flats": 96,
+   "elements": 6487,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 98
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 945033,
+     "components": 18,
+     "start_cells": 6250,
+     "spaces": 1159,
+     "reachable": 1159,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 96,
+     "flats_reachable": 96,
+     "flats_main_door_step_free": 96,
+     "main_doors_checked_in": {
+      "entry room": 96
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 1156,
+     "spaces_by_kind": {
+      "refuse": {
+       "spaces": 25,
+       "reachable": 25,
+       "step_free": 25
+      },
+      "stair": {
+       "spaces": 52,
+       "reachable": 52,
+       "step_free": 50
+      },
+      "room": {
+       "spaces": 1081,
+       "reachable": 1081,
+       "step_free": 1081
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 2,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 354076,
+   "blend_verified": true
+  },
+  {
+   "id": "BLK_507",
+   "typology": "SL",
+   "storeys": 14,
+   "flats": 104,
+   "elements": 5910,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 4
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 941222,
+     "components": 28,
+     "start_cells": 12020,
+     "spaces": 1040,
+     "reachable": 1040,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 104,
+     "flats_reachable": 104,
+     "flats_main_door_step_free": 104,
+     "main_doors_checked_in": {
+      "entry room": 104
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 1035,
+     "spaces_by_kind": {
+      "stair": {
+       "spaces": 60,
+       "reachable": 60,
+       "step_free": 56
+      },
+      "refuse": {
+       "spaces": 28,
+       "reachable": 28,
+       "step_free": 28
+      },
+      "room": {
+       "spaces": 951,
+       "reachable": 951,
+       "step_free": 951
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 4,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 297756,
+   "blend_verified": true
+  },
+  {
+   "id": "BLK_508",
+   "typology": "SL",
+   "storeys": 14,
+   "flats": 104,
+   "elements": 5990,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 4
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 937157,
+     "components": 29,
+     "start_cells": 12010,
+     "spaces": 1040,
+     "reachable": 1040,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 104,
+     "flats_reachable": 104,
+     "flats_main_door_step_free": 104,
+     "main_doors_checked_in": {
+      "entry room": 104
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 1035,
+     "spaces_by_kind": {
+      "stair": {
+       "spaces": 60,
+       "reachable": 60,
+       "step_free": 56
+      },
+      "refuse": {
+       "spaces": 28,
+       "reachable": 28,
+       "step_free": 28
+      },
+      "room": {
+       "spaces": 951,
+       "reachable": 951,
+       "step_free": 951
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 4,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 301264,
+   "blend_verified": true
+  },
+  {
+   "id": "BLK_509",
+   "typology": "SL",
+   "storeys": 16,
+   "flats": 150,
+   "elements": 8988,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 35
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 1441451,
+     "components": 35,
+     "start_cells": 15170,
+     "spaces": 1591,
+     "reachable": 1591,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 150,
+     "flats_reachable": 150,
+     "flats_main_door_step_free": 150,
+     "main_doors_checked_in": {
+      "entry room": 150
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 1585,
+     "spaces_by_kind": {
+      "stair": {
+       "spaces": 85,
+       "reachable": 85,
+       "step_free": 80
+      },
+      "refuse": {
+       "spaces": 48,
+       "reachable": 48,
+       "step_free": 48
+      },
+      "room": {
+       "spaces": 1457,
+       "reachable": 1457,
+       "step_free": 1457
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 6,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 455212,
+   "blend_verified": true
+  },
+  {
+   "id": "BLK_510",
+   "typology": "LB",
+   "storeys": 16,
+   "flats": 135,
+   "elements": 8490,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 304
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 1839209,
+     "components": 24,
+     "start_cells": 15160,
+     "spaces": 1603,
+     "reachable": 1603,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 135,
+     "flats_reachable": 135,
+     "flats_main_door_step_free": 135,
+     "main_doors_checked_in": {
+      "entry room": 135
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 1598,
+     "spaces_by_kind": {
+      "stair": {
+       "spaces": 68,
+       "reachable": 68,
+       "step_free": 64
+      },
+      "refuse": {
+       "spaces": 32,
+       "reachable": 32,
+       "step_free": 32
+      },
+      "room": {
+       "spaces": 1502,
+       "reachable": 1502,
+       "step_free": 1502
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 4,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 448944,
+   "blend_verified": true
+  },
+  {
+   "id": "BLK_511",
+   "typology": "LB",
+   "storeys": 16,
+   "flats": 135,
+   "elements": 8663,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 94
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 1871608,
+     "components": 29,
+     "start_cells": 15260,
+     "spaces": 1632,
+     "reachable": 1632,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 135,
+     "flats_reachable": 135,
+     "flats_main_door_step_free": 135,
+     "main_doors_checked_in": {
+      "entry room": 135
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 1627,
+     "spaces_by_kind": {
+      "stair": {
+       "spaces": 68,
+       "reachable": 68,
+       "step_free": 64
+      },
+      "refuse": {
+       "spaces": 32,
+       "reachable": 32,
+       "step_free": 32
+      },
+      "room": {
+       "spaces": 1531,
+       "reachable": 1531,
+       "step_free": 1531
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 4,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 443288,
+   "blend_verified": true
+  },
+  {
+   "id": "BLK_512",
+   "typology": "SL",
+   "storeys": 12,
+   "flats": 66,
+   "elements": 4753,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 146
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 994767,
+     "components": 22,
+     "start_cells": 10870,
+     "spaces": 878,
+     "reachable": 878,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 66,
+     "flats_reachable": 66,
+     "flats_main_door_step_free": 66,
+     "main_doors_checked_in": {
+      "entry room": 66
+     },
+     "zones": 0,
+     "zones_reachable": 0,
+     "spaces_step_free": 874,
+     "spaces_by_kind": {
+      "stair": {
+       "spaces": 39,
+       "reachable": 39,
+       "step_free": 36
+      },
+      "refuse": {
+       "spaces": 12,
+       "reachable": 12,
+       "step_free": 12
+      },
+      "room": {
+       "spaces": 826,
+       "reachable": 826,
+       "step_free": 826
+      },
+      "roof": {
+       "spaces": 1,
+       "reachable": 1,
+       "step_free": 0
+      }
+     },
+     "lifts": 2,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 234824,
+   "blend_verified": true
+  },
+  {
+   "id": "MSCP_513",
+   "typology": "MSCP",
+   "storeys": 7,
+   "flats": null,
+   "elements": null,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 0,
+    "error_items": 0,
+    "warning_items": 0
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 2968359,
+     "components": 58,
+     "start_cells": 14950,
+     "spaces": 1339,
+     "reachable": 1339,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": true,
+     "flats": 0,
+     "flats_reachable": 0,
+     "flats_main_door_step_free": 0,
+     "main_doors_checked_in": {},
+     "zones": 8,
+     "zones_reachable": 8,
+     "spaces_step_free": 1339,
+     "spaces_by_kind": {
+      "room": {
+       "spaces": 1308,
+       "reachable": 1308,
+       "step_free": 1308
+      },
+      "stair": {
+       "spaces": 31,
+       "reachable": 31,
+       "step_free": 31
+      }
+     },
+     "lifts": 2,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 35652,
+   "blend_verified": true
+  },
+  {
+   "id": "NC_514",
+   "typology": "NC",
+   "storeys": 2,
+   "flats": null,
+   "elements": null,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 0,
+    "error_items": 0,
+    "warning_items": 0
+   },
+   "nav": {
+    "ok": true,
+    "summary": {
+     "walkable_cells": 1147763,
+     "components": 212,
+     "start_cells": 18440,
+     "spaces": 90,
+     "reachable": 90,
+     "unreachable": 0,
+     "unreachable_by_room": {},
+     "restricted": [],
+     "roof_reachable": null,
+     "flats": 0,
+     "flats_reachable": 0,
+     "flats_main_door_step_free": 0,
+     "main_doors_checked_in": {},
+     "zones": 22,
+     "zones_reachable": 22,
+     "spaces_step_free": 90,
+     "spaces_by_kind": {
+      "room": {
+       "spaces": 84,
+       "reachable": 84,
+       "step_free": 84
+      },
+      "refuse": {
+       "spaces": 2,
+       "reachable": 2,
+       "step_free": 2
+      },
+      "stair": {
+       "spaces": 4,
+       "reachable": 4,
+       "step_free": 4
+      }
+     },
+     "lifts": 1,
+     "doors_impassable": 0,
+     "ok": true,
+     "step_free_ok": true
+    }
+   },
+   "lod0_triangles": 192636,
+   "blend_verified": true
+  },
+  {
+   "id": "SITE",
+   "typology": "site works",
+   "storeys": null,
+   "flats": null,
+   "elements": null,
+   "validation": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 0,
+    "error_items": 0,
+    "warning_items": 0
+   },
+   "nav": null,
+   "lod0_triangles": 112726,
+   "blend_verified": true
+  }
+ ],
+ "walkability": {
+  "estate": {
+   "bus_stops": 4,
+   "buildings_with_nav": 14,
+   "missing_buildings": [],
+   "flats": 1206,
+   "flats_expected_from_plans": 1206,
+   "reachable_from_every_bus_stop": 1206,
+   "step_free_from_every_bus_stop": 1206,
+   "max_walk_to_lobby_m": 639.5,
+   "site_mode": "graph",
+   "site_ok": true,
+   "site_graph_matches_ifc": true,
+   "main_door_threshold_not_checked": 0,
+   "reachable_share": 1.0,
+   "step_free_share": 1.0,
+   "ok": true
+  },
+  "site": {
+   "routes": 80,
+   "reachable": 80,
+   "unreachable": [],
+   "step_free": 80,
+   "lobbies": 20,
+   "nearest_stop_max_walk_m": 233.6,
+   "nearest_stop_over_400m": [],
+   "nearest_stop_min_covered_share": 0.91,
+   "nearest_stop_covered_below_target": [],
+   "any_stop_max_walk_m": 659.3,
+   "any_stop_over_400m": 33,
+   "any_stop_mean_covered_share": 0.965,
+   "any_stop_covered_below_target": 0,
+   "reachability_ok": true,
+   "walk_ok": true,
+   "covered_ok": true,
+   "step_free_ok": true,
+   "ok": true
+  }
+ },
+ "plan_errors": [],
+ "validation": {
+  "summary": true,
+  "files": 15,
+  "per_file": {
+   "BLK_501": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 40
+   },
+   "BLK_502": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 40
+   },
+   "BLK_503": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 23
+   },
+   "BLK_504": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 23
+   },
+   "BLK_505": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 2
+   },
+   "BLK_506": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 98
+   },
+   "BLK_507": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 4
+   },
+   "BLK_508": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 4
+   },
+   "BLK_509": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 35
+   },
+   "BLK_510": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 304
+   },
+   "BLK_511": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 94
+   },
+   "BLK_512": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 1,
+    "error_items": 0,
+    "warning_items": 146
+   },
+   "MSCP_513": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 0,
+    "error_items": 0,
+    "warning_items": 0
+   },
+   "NC_514": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 0,
+    "error_items": 0,
+    "warning_items": 0
+   },
+   "SITE": {
+    "checks": 60,
+    "failed_errors": 0,
+    "failed_warnings": 0,
+    "error_items": 0,
+    "warning_items": 0
+   }
+  },
+  "federation": {
+   "files": 15,
+   "ok": true,
+   "failing": []
+  },
+  "failing_checks": [
+   {
+    "family": "geometry",
+    "check": "falling_edge_gaps",
+    "level": "warn",
+    "items": 813
+   }
+  ],
+  "bcf": {
+   "file": "issues.bcf",
+   "topics": 813,
+   "errors": 0,
+   "warnings": 813,
+   "with_viewpoint": 813,
+   "by_file": {
+    "BLK_501": 40,
+    "BLK_502": 40,
+    "BLK_503": 23,
+    "BLK_504": 23,
+    "BLK_505": 2,
+    "BLK_506": 98,
+    "BLK_507": 4,
+    "BLK_508": 4,
+    "BLK_509": 35,
+    "BLK_510": 304,
+    "BLK_511": 94,
+    "BLK_512": 146
+   }
+  }
+ },
+ "mutations": {
+  "file": "model/BLK_501/BLK_501.ifc",
+  "detected": 32,
+  "total": 32,
+  "rows": [
+   {
+    "mutation": "remove_door_filling",
+    "describe": "delete the IfcRelFillsElement of a door",
+    "detected": true
+   },
+   {
+    "mutation": "duplicate_guid",
+    "describe": "give a wall the GlobalId of another wall",
+    "detected": true
+   },
+   {
+    "mutation": "uncontain_wall",
+    "describe": "remove a wall from its storey",
+    "detected": true
+   },
+   {
+    "mutation": "space_out_of_zone",
+    "describe": "unassign a flat room from its IfcZone",
+    "detected": true
+   },
+   {
+    "mutation": "strip_navigation",
+    "describe": "delete a door's Navigation pset",
+    "detected": true
+   },
+   {
+    "mutation": "mirror_mapped_item",
+    "describe": "mirror a mapped item, a window's if any (Axis2 = -Y)",
+    "detected": true
+   },
+   {
+    "mutation": "degenerate_placement",
+    "describe": "make a wall's RefDirection parallel to its Axis",
+    "detected": true
+   },
+   {
+    "mutation": "zone_ifa_out_of_band",
+    "describe": "set a flat's InternalFloorArea 10 m2 under its band",
+    "detected": true
+   },
+   {
+    "mutation": "bad_flat_type",
+    "describe": "label a flat '4-Room'",
+    "detected": true
+   },
+   {
+    "mutation": "bad_room_code",
+    "describe": "give a bedroom the RoomCode 'Bedroom'",
+    "detected": true
+   },
+   {
+    "mutation": "bad_storey_name",
+    "describe": "rename a storey 'Level 5'",
+    "detected": true
+   },
+   {
+    "mutation": "orphan_opening",
+    "describe": "delete the IfcRelVoidsElement of an opening",
+    "detected": true
+   },
+   {
+    "mutation": "too_many_openings",
+    "describe": "cut 21 extra openings into one wall",
+    "detected": true
+   },
+   {
+    "mutation": "share_representation",
+    "describe": "make two walls share one Body IfcShapeRepresentation",
+    "detected": true
+   },
+   {
+    "mutation": "shelter_out_of_zone",
+    "describe": "take a household shelter out of its flat zone",
+    "detected": true
+   },
+   {
+    "mutation": "shrink_room_area",
+    "describe": "set a bedroom's NetFloorArea 1 m2 under the minimum",
+    "detected": true
+   },
+   {
+    "mutation": "shrink_shelter",
+    "describe": "set a household shelter's NetFloorArea to 1.2 m2",
+    "detected": true
+   },
+   {
+    "mutation": "remove_bath_vent",
+    "describe": "delete the vent windows of a naturally ventilated bathroom",
+    "detected": true
+   },
+   {
+    "mutation": "shrink_bedroom_windows",
+    "describe": "make a bedroom's windows 0.2 m high",
+    "detected": true
+   },
+   {
+    "mutation": "stale_door_spaces",
+    "describe": "point a bedroom door's Navigation.FromSpace / ToSpace at another room of the flat",
+    "detected": true
+   },
+   {
+    "mutation": "remove_main_door",
+    "describe": "delete a flat's main door",
+    "detected": true
+   },
+   {
+    "mutation": "raise_riser",
+    "describe": "raise the third tread of a flight by 20 mm",
+    "detected": true
+   },
+   {
+    "mutation": "delete_stair_flight",
+    "describe": "delete one flight of a stair",
+    "detected": true
+   },
+   {
+    "mutation": "delete_balustrade",
+    "describe": "delete the well-side balustrade of a flight",
+    "detected": true
+   },
+   {
+    "mutation": "overlapping_wall",
+    "describe": "duplicate the longest wall of a storey 0.3 m along itself",
+    "detected": true
+   },
+   {
+    "mutation": "slab_in_lift_shaft",
+    "describe": "add a floor slab across a lift shaft",
+    "detected": true
+   },
+   {
+    "mutation": "remove_roof_parapet",
+    "describe": "delete the longest roof parapet",
+    "detected": true
+   },
+   {
+    "mutation": "overlapping_space",
+    "describe": "add a copy of a living room shifted 0.5 m",
+    "detected": true
+   },
+   {
+    "mutation": "shift_wet_room",
+    "describe": "move one common bathroom 0.6 m sideways",
+    "detected": true
+   },
+   {
+    "mutation": "door_clash",
+    "describe": "move a door into the nearest wall that does not host it",
+    "detected": true
+   },
+   {
+    "mutation": "georef_eastings",
+    "describe": "change the IfcMapConversion eastings of one file",
+    "detected": true
+   },
+   {
+    "mutation": "federation_duplicate_guid",
+    "describe": "reuse a wall GlobalId of another file",
+    "detected": true
+   }
+  ]
+ },
+ "legacy": {
+  "identical": true,
+  "baseline": {
+   "IfcWall": 1030,
+   "IfcDoor": 446,
+   "IfcWindow": 418,
+   "IfcSpace": 496,
+   "IfcZone": 44,
+   "IfcSlab": 155,
+   "IfcStair": 24,
+   "IfcStairFlight": 48,
+   "IfcRailing": 136,
+   "IfcColumn": 20,
+   "IfcBuildingStorey": 13,
+   "IfcOpeningElement": 864,
+   "IfcTransportElement": 2
+  },
+  "rebuilt": {
+   "IfcWall": 1030,
+   "IfcDoor": 446,
+   "IfcWindow": 418,
+   "IfcSpace": 496,
+   "IfcZone": 44,
+   "IfcSlab": 155,
+   "IfcStair": 24,
+   "IfcStairFlight": 48,
+   "IfcRailing": 136,
+   "IfcColumn": 20,
+   "IfcBuildingStorey": 13,
+   "IfcOpeningElement": 864,
+   "IfcTransportElement": 2
+  }
+ },
+ "engine": {
+  "buildings": 15,
+  "lod0_triangles": 4413490,
+  "lod0_budget": 8000000,
+  "worst_flat_lod0_triangles": 4115.7,
+  "flat_budget": 5000,
+  "interior_chunks": 245,
+  "chunks_ok": true,
+  "manifest": "model/estate_manifest.json"
+ },
+ "estate_blend": {
+  "links": 14,
+  "links_loaded": 14,
+  "links_seconds": 3.85,
+  "links_budget_s": 60,
+  "peak_working_set_mb": 1017.0,
+  "memory_budget_mb": 8192,
+  "verified": true
+ },
+ "layout_variety": {
+  "2RF": 2,
+  "3R": 3,
+  "4R": 6,
+  "5R": 5,
+  "3G": 2,
+  "EA": 3
+ },
+ "site_plan": {
+  "path": "reports/site_plan.png",
+  "caption": "Site plan",
+  "svg": "reports/site_plan.svg"
+ },
+ "typical_plans": [
+  {
+   "path": "model/BLK_501/plans/BLK_501_typical.png",
+   "caption": "BLK 501 typical"
+  },
+  {
+   "path": "model/BLK_502/plans/BLK_502_typical.png",
+   "caption": "BLK 502 typical"
+  },
+  {
+   "path": "model/BLK_503/plans/BLK_503_typical.png",
+   "caption": "BLK 503 typical"
+  },
+  {
+   "path": "model/BLK_504/plans/BLK_504_typical.png",
+   "caption": "BLK 504 typical"
+  },
+  {
+   "path": "model/BLK_505/plans/BLK_505_typical.png",
+   "caption": "BLK 505 typical"
+  },
+  {
+   "path": "model/BLK_506/plans/BLK_506_typical.png",
+   "caption": "BLK 506 typical"
+  },
+  {
+   "path": "model/BLK_507/plans/BLK_507_typical.png",
+   "caption": "BLK 507 typical"
+  },
+  {
+   "path": "model/BLK_508/plans/BLK_508_typical.png",
+   "caption": "BLK 508 typical"
+  },
+  {
+   "path": "model/BLK_509/plans/BLK_509_typical.png",
+   "caption": "BLK 509 typical"
+  },
+  {
+   "path": "model/BLK_510/plans/BLK_510_typical.png",
+   "caption": "BLK 510 typical"
+  },
+  {
+   "path": "model/BLK_511/plans/BLK_511_typical.png",
+   "caption": "BLK 511 typical"
+  },
+  {
+   "path": "model/BLK_512/plans/BLK_512_typical.png",
+   "caption": "BLK 512 typical"
+  }
+ ],
+ "renders": [
+  {
+   "path": "reports/renders/ESTATE/ESTATE_aerial_NE.png",
+   "caption": "ESTATE aerial NE"
+  },
+  {
+   "path": "reports/renders/ESTATE/ESTATE_aerial_SW.png",
+   "caption": "ESTATE aerial SW"
+  },
+  {
+   "path": "reports/renders/ESTATE/ESTATE_iso.png",
+   "caption": "ESTATE iso"
+  },
+  {
+   "path": "reports/renders/ESTATE/ESTATE_street_BS1.png",
+   "caption": "ESTATE street BS1"
+  },
+  {
+   "path": "reports/renders/ESTATE/ESTATE_top.png",
+   "caption": "ESTATE top"
+  },
+  {
+   "path": "reports/renders/BLK_501/BLK_501_aerial_NE.png",
+   "caption": "BLK 501 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_501/BLK_501_cutaway_L6.png",
+   "caption": "BLK 501 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_501/BLK_501_iso.png",
+   "caption": "BLK 501 iso"
+  },
+  {
+   "path": "reports/renders/BLK_502/BLK_502_aerial_NE.png",
+   "caption": "BLK 502 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_502/BLK_502_cutaway_L6.png",
+   "caption": "BLK 502 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_502/BLK_502_iso.png",
+   "caption": "BLK 502 iso"
+  },
+  {
+   "path": "reports/renders/BLK_503/BLK_503_aerial_NE.png",
+   "caption": "BLK 503 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_503/BLK_503_cutaway_L6.png",
+   "caption": "BLK 503 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_503/BLK_503_iso.png",
+   "caption": "BLK 503 iso"
+  },
+  {
+   "path": "reports/renders/BLK_504/BLK_504_aerial_NE.png",
+   "caption": "BLK 504 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_504/BLK_504_cutaway_L6.png",
+   "caption": "BLK 504 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_504/BLK_504_iso.png",
+   "caption": "BLK 504 iso"
+  },
+  {
+   "path": "reports/renders/BLK_505/BLK_505_aerial_NE.png",
+   "caption": "BLK 505 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_505/BLK_505_cutaway_L6.png",
+   "caption": "BLK 505 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_505/BLK_505_iso.png",
+   "caption": "BLK 505 iso"
+  },
+  {
+   "path": "reports/renders/BLK_506/BLK_506_aerial_NE.png",
+   "caption": "BLK 506 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_506/BLK_506_cutaway_L6.png",
+   "caption": "BLK 506 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_506/BLK_506_iso.png",
+   "caption": "BLK 506 iso"
+  },
+  {
+   "path": "reports/renders/BLK_507/BLK_507_aerial_NE.png",
+   "caption": "BLK 507 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_507/BLK_507_cutaway_L6.png",
+   "caption": "BLK 507 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_507/BLK_507_iso.png",
+   "caption": "BLK 507 iso"
+  },
+  {
+   "path": "reports/renders/BLK_508/BLK_508_aerial_NE.png",
+   "caption": "BLK 508 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_508/BLK_508_cutaway_L6.png",
+   "caption": "BLK 508 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_508/BLK_508_iso.png",
+   "caption": "BLK 508 iso"
+  },
+  {
+   "path": "reports/renders/BLK_509/BLK_509_aerial_NE.png",
+   "caption": "BLK 509 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_509/BLK_509_cutaway_L6.png",
+   "caption": "BLK 509 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_509/BLK_509_iso.png",
+   "caption": "BLK 509 iso"
+  },
+  {
+   "path": "reports/renders/BLK_510/BLK_510_aerial_NE.png",
+   "caption": "BLK 510 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_510/BLK_510_cutaway_L6.png",
+   "caption": "BLK 510 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_510/BLK_510_iso.png",
+   "caption": "BLK 510 iso"
+  },
+  {
+   "path": "reports/renders/BLK_511/BLK_511_aerial_NE.png",
+   "caption": "BLK 511 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_511/BLK_511_cutaway_L6.png",
+   "caption": "BLK 511 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_511/BLK_511_iso.png",
+   "caption": "BLK 511 iso"
+  },
+  {
+   "path": "reports/renders/BLK_512/BLK_512_aerial_NE.png",
+   "caption": "BLK 512 aerial NE"
+  },
+  {
+   "path": "reports/renders/BLK_512/BLK_512_cutaway_L6.png",
+   "caption": "BLK 512 cutaway L6"
+  },
+  {
+   "path": "reports/renders/BLK_512/BLK_512_iso.png",
+   "caption": "BLK 512 iso"
+  },
+  {
+   "path": "reports/renders/MSCP_513/MSCP_513_aerial_NE.png",
+   "caption": "MSCP 513 aerial NE"
+  },
+  {
+   "path": "reports/renders/MSCP_513/MSCP_513_cutaway_L6.png",
+   "caption": "MSCP 513 cutaway L6"
+  },
+  {
+   "path": "reports/renders/MSCP_513/MSCP_513_iso.png",
+   "caption": "MSCP 513 iso"
+  },
+  {
+   "path": "reports/renders/NC_514/NC_514_aerial_NE.png",
+   "caption": "NC 514 aerial NE"
+  },
+  {
+   "path": "reports/renders/NC_514/NC_514_cutaway_L2.png",
+   "caption": "NC 514 cutaway L2"
+  },
+  {
+   "path": "reports/renders/NC_514/NC_514_iso.png",
+   "caption": "NC 514 iso"
+  },
+  {
+   "path": "reports/renders/SITE/SITE_aerial_NE.png",
+   "caption": "SITE aerial NE"
+  },
+  {
+   "path": "reports/renders/SITE/SITE_iso.png",
+   "caption": "SITE iso"
+  }
+ ],
+ "walk_maps": [
+  {
+   "path": "model/BLK_501/nav/L1_r30.png",
+   "caption": "BLK_501 L1_r30"
+  },
+  {
+   "path": "model/BLK_501/nav/L5_r30.png",
+   "caption": "BLK_501 L5_r30"
+  },
+  {
+   "path": "model/BLK_501/nav/RF_r30.png",
+   "caption": "BLK_501 RF_r30"
+  },
+  {
+   "path": "model/BLK_502/nav/L1_r30.png",
+   "caption": "BLK_502 L1_r30"
+  },
+  {
+   "path": "model/BLK_502/nav/L5_r30.png",
+   "caption": "BLK_502 L5_r30"
+  },
+  {
+   "path": "model/BLK_502/nav/RF_r30.png",
+   "caption": "BLK_502 RF_r30"
+  },
+  {
+   "path": "model/BLK_503/nav/L1_r30.png",
+   "caption": "BLK_503 L1_r30"
+  },
+  {
+   "path": "model/BLK_503/nav/L5_r30.png",
+   "caption": "BLK_503 L5_r30"
+  },
+  {
+   "path": "model/BLK_503/nav/RF_r30.png",
+   "caption": "BLK_503 RF_r30"
+  },
+  {
+   "path": "model/BLK_504/nav/L1_r30.png",
+   "caption": "BLK_504 L1_r30"
+  },
+  {
+   "path": "model/BLK_504/nav/L5_r30.png",
+   "caption": "BLK_504 L5_r30"
+  },
+  {
+   "path": "model/BLK_504/nav/RF_r30.png",
+   "caption": "BLK_504 RF_r30"
+  },
+  {
+   "path": "model/BLK_505/nav/L1_r30.png",
+   "caption": "BLK_505 L1_r30"
+  },
+  {
+   "path": "model/BLK_505/nav/L5_r30.png",
+   "caption": "BLK_505 L5_r30"
+  },
+  {
+   "path": "model/BLK_505/nav/RF_r30.png",
+   "caption": "BLK_505 RF_r30"
+  },
+  {
+   "path": "model/BLK_506/nav/L1_r30.png",
+   "caption": "BLK_506 L1_r30"
+  },
+  {
+   "path": "model/BLK_506/nav/L5_r30.png",
+   "caption": "BLK_506 L5_r30"
+  },
+  {
+   "path": "model/BLK_506/nav/RF_r30.png",
+   "caption": "BLK_506 RF_r30"
+  },
+  {
+   "path": "model/BLK_507/nav/L1_r30.png",
+   "caption": "BLK_507 L1_r30"
+  },
+  {
+   "path": "model/BLK_507/nav/L5_r30.png",
+   "caption": "BLK_507 L5_r30"
+  },
+  {
+   "path": "model/BLK_507/nav/RF_r30.png",
+   "caption": "BLK_507 RF_r30"
+  },
+  {
+   "path": "model/BLK_508/nav/L1_r30.png",
+   "caption": "BLK_508 L1_r30"
+  },
+  {
+   "path": "model/BLK_508/nav/L5_r30.png",
+   "caption": "BLK_508 L5_r30"
+  },
+  {
+   "path": "model/BLK_508/nav/RF_r30.png",
+   "caption": "BLK_508 RF_r30"
+  },
+  {
+   "path": "model/BLK_509/nav/L1_r30.png",
+   "caption": "BLK_509 L1_r30"
+  },
+  {
+   "path": "model/BLK_509/nav/L5_r30.png",
+   "caption": "BLK_509 L5_r30"
+  },
+  {
+   "path": "model/BLK_509/nav/RF_r30.png",
+   "caption": "BLK_509 RF_r30"
+  },
+  {
+   "path": "model/BLK_510/nav/L1_r30.png",
+   "caption": "BLK_510 L1_r30"
+  },
+  {
+   "path": "model/BLK_510/nav/L5_r30.png",
+   "caption": "BLK_510 L5_r30"
+  },
+  {
+   "path": "model/BLK_510/nav/RF_r30.png",
+   "caption": "BLK_510 RF_r30"
+  },
+  {
+   "path": "model/BLK_511/nav/L1_r30.png",
+   "caption": "BLK_511 L1_r30"
+  },
+  {
+   "path": "model/BLK_511/nav/L5_r30.png",
+   "caption": "BLK_511 L5_r30"
+  },
+  {
+   "path": "model/BLK_511/nav/RF_r30.png",
+   "caption": "BLK_511 RF_r30"
+  },
+  {
+   "path": "model/BLK_512/nav/L1_r30.png",
+   "caption": "BLK_512 L1_r30"
+  },
+  {
+   "path": "model/BLK_512/nav/L5_r30.png",
+   "caption": "BLK_512 L5_r30"
+  },
+  {
+   "path": "model/BLK_512/nav/RF_r30.png",
+   "caption": "BLK_512 RF_r30"
+  },
+  {
+   "path": "model/MSCP_513/nav/L1_r30.png",
+   "caption": "MSCP_513 L1_r30"
+  },
+  {
+   "path": "model/MSCP_513/nav/L5_r30.png",
+   "caption": "MSCP_513 L5_r30"
+  },
+  {
+   "path": "model/MSCP_513/nav/RF_r30.png",
+   "caption": "MSCP_513 RF_r30"
+  },
+  {
+   "path": "model/NC_514/nav/L1_r30.png",
+   "caption": "NC_514 L1_r30"
+  },
+  {
+   "path": "model/NC_514/nav/L2_r30.png",
+   "caption": "NC_514 L2_r30"
+  },
+  {
+   "path": "model/NC_514/nav/RF_r30.png",
+   "caption": "NC_514 RF_r30"
+  }
+ ],
+ "catalogue": [
+  {
+   "template": "2RF38-S",
+   "type": "2RF",
+   "title": "2-room Flexi 38, slab (open LDK, bath on the corridor)",
+   "cases": 24,
+   "layouts": 12,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/2RF38-S_M_C_acledge_5.95_SL-end.png",
+    "caption": "2RF38-S (2RF)"
+   }
+  },
+  {
+   "template": "2RF47-S",
+   "type": "2RF",
+   "title": "2-room Flexi 47, slab (closed kitchen, foyer, bedroom with wardrobe nook)",
+   "cases": 48,
+   "layouts": 24,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/2RF47-S_M_C_acledge_6.4_SL-end.png",
+    "caption": "2RF47-S (2RF)"
+   }
+  },
+  {
+   "template": "3G-C",
+   "type": "3G",
+   "title": "3Gen, L-block corner unit (grandparents' suite at the entrance)",
+   "cases": 12,
+   "layouts": 12,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/3G-C_N_C_acledge_11.5_SL-end.png",
+    "caption": "3G-C (3G)"
+   }
+  },
+  {
+   "template": "3G-C2",
+   "type": "3G",
+   "title": "3Gen, L-block corner unit (grandparents' suite at the rear, kitchen on the gable)",
+   "cases": 12,
+   "layouts": 12,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/3G-C2_N_C_acledge_11.5_SL-end.png",
+    "caption": "3G-C2 (3G)"
+   }
+  },
+  {
+   "template": "3R-PT-A",
+   "type": "3R",
+   "title": "3-room, point block quadrant (central living, baths on the rear facade)",
+   "cases": 12,
+   "layouts": 6,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/3R-PT-A_N_C_acledge_9.35_PT-N.png",
+    "caption": "3R-PT-A (3R)"
+   }
+  },
+  {
+   "template": "3R-S-A",
+   "type": "3R",
+   "title": "3-room, slab (galley kitchen and yard on the party wall, bedrooms off the living)",
+   "cases": 48,
+   "layouts": 24,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/3R-S-A_M_C_acledge_8.1_SL-end.png",
+    "caption": "3R-S-A (3R)"
+   }
+  },
+  {
+   "template": "3R-S-B",
+   "type": "3R",
+   "title": "3-room, slab (wide frontage, bedrooms either side of a through living room)",
+   "cases": 48,
+   "layouts": 24,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/3R-S-B_M_C_acledge_10.1_SL-end.png",
+    "caption": "3R-S-B (3R)"
+   }
+  },
+  {
+   "template": "4R-L",
+   "type": "4R",
+   "title": "4-room, L-block wing (galley kitchen, rear master suite, balcony option)",
+   "cases": 72,
+   "layouts": 36,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/4R-L_M_C_acledge_10.4_SL-end.png",
+    "caption": "4R-L (4R)"
+   }
+  },
+  {
+   "template": "4R-PT-A",
+   "type": "4R",
+   "title": "4-room, point block quadrant (Blk 123 layout)",
+   "cases": 2,
+   "layouts": 1,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/4R-PT-A_N_C_acledge_PT-N.png",
+    "caption": "4R-PT-A (4R)"
+   }
+  },
+  {
+   "template": "4R-PT-B",
+   "type": "4R",
+   "title": "4-room, point block quadrant (corner living, end master suite)",
+   "cases": 24,
+   "layouts": 12,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/4R-PT-B_N_C_acledge_10.1_PT-N.png",
+    "caption": "4R-PT-B (4R)"
+   }
+  },
+  {
+   "template": "4R-PT-C",
+   "type": "4R",
+   "title": "4-room, point block quadrant (front living, rear kitchen)",
+   "cases": 24,
+   "layouts": 12,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/4R-PT-C_N_C_acledge_10.8_PT-N.png",
+    "caption": "4R-PT-C (4R)"
+   }
+  },
+  {
+   "template": "4R-S-A",
+   "type": "4R",
+   "title": "4-room, slab block (corridor bedrooms, rear kitchen)",
+   "cases": 48,
+   "layouts": 24,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/4R-S-A_M_C_acledge_10.4_SL-end.png",
+    "caption": "4R-S-A (4R)"
+   }
+  },
+  {
+   "template": "4R-S-B",
+   "type": "4R",
+   "title": "4-room, slab block (side living, central kitchen with rear yard)",
+   "cases": 24,
+   "layouts": 12,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/4R-S-B_M_C_acledge_10.2_SL-end.png",
+    "caption": "4R-S-B (4R)"
+   }
+  },
+  {
+   "template": "5R-L",
+   "type": "5R",
+   "title": "5-room, L-block wing (side living, central kitchen, balcony option)",
+   "cases": 72,
+   "layouts": 36,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/5R-L_M_C_acledge_10.8_SL-end.png",
+    "caption": "5R-L (5R)"
+   }
+  },
+  {
+   "template": "5R-PT-A",
+   "type": "5R",
+   "title": "5-room, point block quadrant (slot kitchen, end-facade bedroom wing)",
+   "cases": 24,
+   "layouts": 12,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/5R-PT-A_N_C_acledge_10.8_PT-N.png",
+    "caption": "5R-PT-A (5R)"
+   }
+  },
+  {
+   "template": "5R-S-A",
+   "type": "5R",
+   "title": "5-room, corridor slab (central dining, rear kitchen corner)",
+   "cases": 48,
+   "layouts": 24,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/5R-S-A_M_C_acledge_10.2_SL-end.png",
+    "caption": "5R-S-A (5R)"
+   }
+  },
+  {
+   "template": "EA-S-A",
+   "type": "EA",
+   "title": "Executive, corridor slab (study, wide rear living with balcony)",
+   "cases": 72,
+   "layouts": 36,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/EA-S-A_M_C_acledge_11.2_SL-end.png",
+    "caption": "EA-S-A (EA)"
+   }
+  },
+  {
+   "template": "EA-S-B",
+   "type": "EA",
+   "title": "Executive, corridor slab (deep living with bay windows, master wing)",
+   "cases": 48,
+   "layouts": 24,
+   "errors": 0,
+   "gallery": {
+    "path": "reports/flat_gallery/EA-S-B_M_C_acledge_10.3_SL-end.png",
+    "caption": "EA-S-B (EA)"
+   }
+  }
+ ]
+}
