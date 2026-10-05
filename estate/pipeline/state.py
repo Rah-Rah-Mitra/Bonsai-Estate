@@ -78,6 +78,12 @@ def fresh(state: dict, target: str, stage: str, key: str) -> bool:
     return all((env.ROOT / o).exists() for o in rec.get("outputs", []))
 
 
+def code_hash(stage: str) -> str:
+    """The hash of a stage's code and config alone (one part of its key). Recorded with the stage's outputs, so a
+    reader can tell outputs of the current code from outputs an older version wrote (tests/test_leaks.py)."""
+    return tree_hash(*STAGE_DEPS.get(stage, ()))[:16]
+
+
 def record(state: dict, target: str, stage: str, key: str, outputs: list, seconds: float, extra: dict | None = None):
-    state.setdefault(target, {})[stage] = dict(key=key, outputs=[env.rel(o) for o in outputs], seconds=round(seconds, 1),
-                                               **(extra or {}))
+    state.setdefault(target, {})[stage] = dict(key=key, code=code_hash(stage), outputs=[env.rel(o) for o in outputs],
+                                               seconds=round(seconds, 1), **(extra or {}))

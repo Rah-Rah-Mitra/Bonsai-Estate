@@ -6,6 +6,7 @@ ifcopenshell, shapely, networkx, PIL, ifctester. ``bootstrap()`` makes those imp
 from __future__ import annotations
 
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -44,3 +45,32 @@ def rel(path: Path | str) -> str:
         return Path(path).resolve().relative_to(ROOT).as_posix()
     except ValueError:
         return str(path)
+
+
+def _folder(path: Path) -> re.Pattern | None:
+    """A folder as text spells it: either slash, any case on Windows, a whole name at its end (so the project folder
+    does not match the start of "<project>-release"); None for a drive or filesystem root."""
+    parts = [p for p in re.split(r"[\\/]+", str(path)) if p]
+    if len(parts) < 2:
+        return None
+    return re.compile(r"[\\/]+".join(map(re.escape, parts)) + r"(?![^\\/\s\"'),;:\]>])", re.I if os.name == "nt" else 0)
+
+
+SCRUB = [(_folder(p), token) for p, token in sorted(((ROOT, "."), (BLENDER_DIR, "<blender>"), (Path.home(), "~")),
+                                                    key=lambda pt: -len(str(pt[0])))    # the project is in home
+         if _folder(p)]
+
+
+def scrub(doc):
+    """Error text for a published report (a traceback, an exception message, a Blender log tail) with the project
+    folder written ".", Blender's folder "<blender>" and the home folder "~", so it names no folder of the machine
+    that built it. Takes a string, or a parsed JSON document whose keys and strings are all scrubbed."""
+    if isinstance(doc, str):
+        for folder, token in SCRUB:
+            doc = folder.sub(lambda m: token, doc)
+        return doc
+    if isinstance(doc, dict):
+        return {scrub(k): scrub(v) for k, v in doc.items()}
+    if isinstance(doc, list):
+        return [scrub(v) for v in doc]
+    return doc

@@ -193,6 +193,14 @@ def _pool(jobs):
     return ProcessPoolExecutor(max(1, jobs), mp_context=mp.get_context("spawn"))
 
 
+def write_failures(failed: list, path: Path | None = None) -> Path:
+    """reports/build_failures.json: the build's failures, their tracebacks and Blender log tails scrubbed of this
+    machine's folders (env.scrub), since the file is tracked and report.json / report.html copy it."""
+    path = path or env.REPORTS / "build_failures.json"
+    path.write_text(json.dumps(env.scrub(json.loads(json.dumps(failed, default=str))), indent=1), encoding="utf-8")
+    return path
+
+
 def cmd_build(a):
     from estate import config
     from estate.pipeline import runner, state as st
@@ -322,7 +330,7 @@ def cmd_build(a):
                 failed.append(dict(target="MANIFEST", stage="glb", error=f"{type(e).__name__}: {e}"))
     finally:
         print(f"build finished in {time.time() - t0:.0f} s, {len(failed)} failures")
-        (env.REPORTS / "build_failures.json").write_text(json.dumps(failed, indent=1, default=str), encoding="utf-8")
+        write_failures(failed)
         from estate.export import meshcache
         meshcache.prune(keep=1)
         if not a.only:
