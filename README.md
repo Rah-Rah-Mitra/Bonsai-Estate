@@ -73,8 +73,8 @@ renders an eye-level view from a bus stop.
   shift so verticals stay vertical. It is re-rendered whenever ESTATE.blend, the masterplan or the site graph moves
   the camera.
 
-Generated outputs (`model/`, the renders and the gallery) are not tracked in git; each GitHub release carries them as
-zips.
+Generated outputs (`model/`, the renders and the gallery) are not tracked in git. From v1.2 on, each GitHub release
+carries them as zips; the v1.0 and v1.1 zips were withdrawn because they held absolute paths of the build machine.
 
 ## How it is put together (`estate/`)
 
