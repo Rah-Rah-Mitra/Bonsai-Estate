@@ -231,6 +231,19 @@ class TestEstateLinks(unittest.TestCase):
         self.assertLess(is_sky[-1].mean(), 0.05)                           # ... the ground slab at the bottom
         from estate import leaks
         self.assertEqual(leaks.png_text(Path(r["files"][0]).read_bytes()), [])   # no File / Date text, no EXIF text
+        # the camera of every shot, for a viewer that matches the render: <prefix>_views.json beside the images
+        self.assertEqual(Path(r["views"]).name, "ESTATE_views.json")
+        doc = json.loads(Path(r["views"]).read_text(encoding="utf-8"))
+        self.assertEqual((doc["schema"], doc["blend"], sorted(doc["views"])),
+                         ("sample-town-n5/render-views/1", "ESTATE.blend", ["street_T"]))
+        v = doc["views"]["street_T"]
+        self.assertEqual((v["type"], v["lens"], v["sensor_width"], v["sensor_fit"], v["shift_x"], v["shift_y"],
+                          v["res"], v["clip"]), ("PERSP", 24.0, 36.0, "AUTO", 0.0, 0.15, [800, 450], [0.1, 2000.0]))
+        M = np.array(v["matrix_world"])
+        np.testing.assert_allclose(M[:3, 3], cam["eye"], atol=1e-5)
+        look = np.subtract(cam["target"], cam["eye"])
+        np.testing.assert_allclose(-M[:3, 2], look / np.linalg.norm(look), atol=1e-5)     # Blender looks along -Z
+        self.assertEqual(leaks.scan_file(r["views"]), [])
 
 
 MASTERPLAN, SITE_GRAPH = env.MODEL / "masterplan.json", env.MODEL / "SITE_graph.json"

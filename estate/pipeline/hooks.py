@@ -169,7 +169,8 @@ def stage_render(a, cfg, targets, state):
             try:
                 r = fut.result()
                 print(f"  {t.id:<9} render: {len(r['files'])} images")
-                st.record(state, t.id, "render", key, [Path(f) for f in r["files"]], r.get("wall_seconds", 0))
+                st.record(state, t.id, "render", key, [Path(f) for f in r["files"] + [r["views"]]],
+                          r.get("wall_seconds", 0))
                 st.save(state)
             except (BlenderError, KeyError, OSError) as e:
                 print(f"  {t.id:<9} render: FAILED {str(e)[:300]}")
@@ -224,7 +225,8 @@ def stage_estate(a, cfg, targets, state):
             try:
                 r = run_blender("render", {"blend": str(out), "out": str(env.REPORTS / "renders" / "ESTATE"),
                                            "width": 1600, "views": views, "cameras": cameras}, timeout=3600)
-                st.record(state, "ESTATE", "render", rkey, [Path(f) for f in r["files"]], r.get("wall_seconds", 0))
+                st.record(state, "ESTATE", "render", rkey, [Path(f) for f in r["files"] + [r["views"]]],
+                          r.get("wall_seconds", 0))
                 st.save(state)
                 print(f"  ESTATE    render: {len(r['files'])} images")
             except (BlenderError, KeyError, OSError) as e:
