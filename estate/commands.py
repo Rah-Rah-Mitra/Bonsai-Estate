@@ -1,5 +1,5 @@
 """Estate commands registered on the CLI: catalogue, plan, build, report (+ the area CLIs: site, nonres, validate,
-mutate, nav, export, blend, estate-blend, render)."""
+mutate, nav, export, blend, estate-blend, render, release)."""
 from __future__ import annotations
 
 import csv
@@ -15,7 +15,7 @@ from pathlib import Path
 from estate import env
 
 AREA_CLIS = ["estate.site.cli", "estate.site.cli_buildings", "estate.validate.cli", "estate.validate.nav_cli",
-             "estate.export.cli", "estate.blender.cli"]
+             "estate.export.cli", "estate.blender.cli", "estate.web.release"]
 FLAT_TYPES_ORDER = ["2RF", "3R", "4R", "5R", "3G", "EA"]
 
 
