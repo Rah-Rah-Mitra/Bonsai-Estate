@@ -74,7 +74,8 @@ def site_files(folder: Path, stem: str, base: Path, lods=(0, 1, 2), interiors=Tr
     no interior chunks (``interiors`` False). ``glb_int`` lists a building's per-storey interior chunks
     [{storey, elevation, path, sha256, bytes}] bottom up, as its engine JSON names them (``engine``, the parsed
     <stem>_engine.json, read here when not given): the JSON is written with the chunks, so a chunk file left from
-    an older export is never listed. Empty without an engine JSON."""
+    an older export is never listed. Empty without an engine JSON. A building also lists the web stage's walk grid
+    and web JSON (``walk``, ``web``: estate/web); the site has neither."""
     out = {"ifc": _file(folder / f"{stem}.ifc", base), "ifc4": _file(folder / f"{stem}_ifc4.ifc", base),
            "blend": _file(folder / f"{stem}.blend", base)}
     out.update({f"glb_lod{k}": _file(folder / f"{stem}_lod{k}.glb", base) for k in lods})
@@ -84,6 +85,8 @@ def site_files(folder: Path, stem: str, base: Path, lods=(0, 1, 2), interiors=Tr
         chunks = sorted((eng or {}).get("interior_chunks", {}).items(), key=lambda kv: kv[1]["elevation"])
         out["glb_int"] = [dict(storey=s, elevation=c["elevation"], **_file(folder / c["file"], base))
                           for s, c in chunks]
+        out["walk"] = _file(folder / f"{stem}_walk.bin", base)
+        out["web"] = _file(folder / f"{stem}_web.json", base)
     return out
 
 

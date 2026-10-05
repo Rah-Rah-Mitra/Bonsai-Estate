@@ -279,6 +279,13 @@ nav = true
 drawings = ["L2", "typical", "RF"]
 renders = true
 merged_ifc = false
+web = true                     # walk grids, stairs and opened door leaves for a browser viewer (estate/web)
+
+[web]                          # the web stage's walk grids (SN5W, estate/web/walk.py)
+radius = 0.20                  # agent radius (m) of the grid: doorways 0.7 m clear stay open at 0.1 m cells
+cell = 0.10                    # cell (m); 0.2 m is the fallback when a building's file would exceed the cap
+band_pad = 0.25                # storey s owns floors from FFL_s - band_pad to FFL_s+1 - band_pad
+max_walk_gz = 131072           # cap (bytes) of one <ID>_walk.bin gzipped
 
 # ----------------------------------------------------------------------------- unit mix the plan commits to
 [mix]

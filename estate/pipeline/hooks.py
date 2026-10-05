@@ -1,4 +1,5 @@
-"""Build stages that wrap the area modules (validation, navigation, Bonsai .blend, engine export, renders, estate).
+"""Build stages that wrap the area modules (validation, navigation, Bonsai .blend, engine export, renders, estate,
+web export).
 
 Each stage function takes (args, cfg, targets, state) and returns a list of failure dicts. Stages are keyed on
 the target's IFC sha256 plus the stage's code, so they rerun exactly when the model or the tool changes.
@@ -240,5 +241,50 @@ def stage_estate(a, cfg, targets, state):
     return failed
 
 
+# ----------------------------------------------------------------------------- web (walk grids, stairs, door poses)
+def stage_web(a, cfg, targets, state):
+    """<ID>_walk.bin and <ID>_web.json for every building (estate/web/export.py), from its IFC and the engine JSON
+    the glb stage wrote, keyed on both, the web code (with nav3d and the door poses) and [web] / the agent. Runs in
+    the process pool, one building per worker; the site has no walk grid (a viewer samples the ground)."""
+    from estate.pipeline import state as st
+    from estate.web.export import line, web_one
+    wcfg = {"web": dict(cfg.get("web", {})),
+            "agent": {k: v for k, v in cfg.get("agent", {}).items() if k in ("height", "step")}}
+    todo, failed = [], []
+    for t in targets:
+        if t.kind == "site" or not t.ifc.exists():
+            continue
+        eng = t.folder / f"{t.id}_engine.json"
+        if not eng.exists():
+            failed.append(dict(target=t.id, stage="web", error=f"{env.rel(eng)} missing (run the glb stage)"))
+            print(f"  {t.id:<9} web: no engine JSON")
+            continue
+        key = st.stage_key("web", dict({"target": t.id}, **wcfg), [t.ifc, eng])
+        if not getattr(a, "force", False) and st.fresh(state, t.id, "web", key):
+            print(f"  {t.id:<9} web: up to date")
+            continue
+        todo.append((t, key))
+    if not todo:
+        return failed
+    tasks = [(str(t.ifc), str(t.folder / f"{t.id}_engine.json"), str(t.folder), t.id, wcfg) for t, _ in todo]
+    with _spawn_pool(min(6, len(tasks))) as ex:
+        futs = [ex.submit(web_one, task) for task in tasks]
+        results = []
+        for (t, _), fut in zip(todo, futs):
+            try:
+                results.append(fut.result())
+            except Exception as e:  # noqa: BLE001  (a crashed worker fails its target)
+                results.append(dict(stem=t.id, ok=False, error=f"worker crashed: {type(e).__name__}: {e}"))
+    for (t, key), r in zip(todo, results):
+        print(f"  {t.id:<9} web: {line(r)}")
+        if r.get("ok"):
+            st.record(state, t.id, "web", key, [Path(p) for p in r["files"]], r["seconds"],
+                      {"walk_gz_bytes": r["gz_bytes"], "leaf_passthrough": r["walk"]["leaf_passthrough"]})
+            st.save(state)
+        else:
+            failed.append(dict(target=t.id, stage="web", error=r.get("error"), trace=r.get("trace")))
+    return failed
+
+
 STAGES = {"check": stage_check, "nav": stage_nav, "blend": stage_blend, "glb": stage_glb, "render": stage_render,
-          "estate": stage_estate}
+          "estate": stage_estate, "web": stage_web}

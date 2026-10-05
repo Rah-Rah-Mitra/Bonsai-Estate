@@ -44,6 +44,8 @@ STAGE_DEPS = {   # code/config each stage depends on (globs relative to the proj
     "glb": ("estate/export/*.py", "estate/validate/nav_doorpose.py"),
     "drawings": ("estate/draw/*.py",),
     "render": ("estate/blender/*.py",),
+    "web": ("estate/web/*.py", "estate/validate/nav3d.py", "estate/validate/nav_doorpose.py",
+            "estate/export/meshcache.py"),
 }
 
 
