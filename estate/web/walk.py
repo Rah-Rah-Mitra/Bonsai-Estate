@@ -509,53 +509,6 @@ def reachable(w: Walk, blocked: np.ndarray) -> np.ndarray:
     return out
 
 
-FLOOR_DZ = 0.4              # m: a viewer's floorAt takes the closest floor within this of the feet, in their own cell
-SAMPLE = 0.05               # m between the points at which a line is checked against the grid
-
-
-class Floors:
-    """The kept floors of a walk grid by column, block-local: what a viewer reading the exported grid stands on."""
-
-    def __init__(self, w: Walk, keep: np.ndarray, offset):
-        idx = np.nonzero(keep)[0]
-        self.g, self.off = w.g, np.asarray(offset, float)
-        self.ix, self.iy, self.z = w.ix[idx], w.iy[idx], w.fz[idx] - self.off[2]
-        self.cols = ColumnIndex(self.ix, self.iy, w.g.ny)
-
-    def _cells(self, x, y, e=1e-4):
-        """The cells of (x, y) and of the points e off it: a point on a cell edge stands in both cells, so a decoder
-        whose f32 origin rounds the other way finds a floor too."""
-        g, (ox, oy) = self.g, self.off[:2]
-        return {(g.ix(x + ox + dx), g.iy(y + oy + dy)) for dx in (-e, e) for dy in (-e, e)}
-
-    def at(self, x, y, z, dz=FLOOR_DZ) -> bool:
-        """A floor within dz of z in the cell(s) of (x, y)."""
-        for i, j in self._cells(x, y):
-            if not (0 <= i < self.g.nx and 0 <= j < self.g.ny):
-                return False
-            c = self.cols.column(i, j)
-            if not len(c) or not (np.abs(self.z[c] - z) <= dz).any():
-                return False
-        return True
-
-    def misses(self, p, q) -> int:
-        """Points of the line p -> q ([x, y, z], z interpolated), every SAMPLE m and both ends, with no floor."""
-        p, q = np.asarray(p, float), np.asarray(q, float)
-        n = max(2, int(math.ceil(float(np.hypot(*(q[:2] - p[:2]))) / SAMPLE)) + 1)
-        return sum(not self.at(*(p + t * (q - p))) for t in np.linspace(0.0, 1.0, n))
-
-    def cells_in(self, poly, z, dz):
-        """Centres [(x, y)] of the cells inside ``poly`` (block-local) with a floor within dz of z."""
-        g, (ox, oy) = self.g, self.off[:2]
-        x0, y0, x1, y1 = poly.bounds
-        idx = self.cols.box(max(0, g.ix(x0 + ox)), min(g.nx - 1, g.ix(x1 + ox)),
-                            max(0, g.iy(y0 + oy)), min(g.ny - 1, g.iy(y1 + oy)))
-        idx = idx[np.abs(self.z[idx] - z) <= dz]
-        x, y = g.cx(self.ix[idx]) - ox, g.cy(self.iy[idx]) - oy
-        m = shapely.contains_xy(poly, x, y)
-        return list(zip(x[m].tolist(), y[m].tolist()))
-
-
 # ----------------------------------------------------------------------------- layers and the file
 def _mm(v):
     return np.round(np.asarray(v, float) * 1000.0).astype(np.int64)

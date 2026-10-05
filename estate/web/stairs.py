@@ -11,9 +11,10 @@ last one, both on the centre line.
 stair one storey down, else this stair's own floor landing set down a storey: stairs are stacked), straight onto
 each flight (APPROACH before its first riser), up it tread by tread, straight off it, through the centre of the
 landing it arrives on (the mid landing, then the next floor's landing): consecutive points never rise more than
-one riser, and the last one stands on the next floor. Once the walk grid is solved, ``fit_paths`` moves a landing
-point that the grid has no floor under, or whose line to the flight clips a corner, onto the nearest clear cell of
-its landing, so a viewer can walk every path on the grid it is exported with.
+one riser, and the last one stands on the next floor. Once the walk grid is encoded, ``fit_paths`` moves a landing
+point that the decoded grid has no floor under, or whose line to its neighbours crosses a cell without one (even at
+a corner, for a few mm: estate/web/walkcheck.py crossed), onto the nearest cell of its landing from which both lines
+are clear, so a viewer can walk every path on the grid it is exported with.
 """
 from __future__ import annotations
 
@@ -24,8 +25,12 @@ from shapely.geometry.polygon import orient
 
 import ifcopenshell.util.element as uel
 
+from estate.web import walkcheck
+
 R = 3                       # decimals of every coordinate written
 APPROACH = 0.3              # m of landing walked straight before a flight's first riser and after its last
+CLEARANCE = 0.01            # m a moved landing point's lines keep from every cell without a floor where its landing
+                            # allows (else walkcheck.EDGE, the check's own margin): not 3 mm past a blocked corner
 
 
 def _r(v):
@@ -176,16 +181,35 @@ def stairs(f, meshes, transform, storeys: dict, rooms: list) -> list[dict]:
     return sorted(out, key=lambda s: (s["from_ffl"], s["name"]))
 
 
-def fit_paths(stairs: list, floors) -> dict:
-    """Put every stair's path on the walk grid it is exported with (``floors``: estate/web/walk.py Floors over the
-    kept cells), so that a viewer walking it never leaves the grid: every SAMPLE m of it has a floor within FLOOR_DZ
-    in its own cell. Flights stand on their treads; it is a landing point (a landing's centre, or the start landing
-    set down a storey) that can fall where the grid has none (in an opened leaf's sweep, within the radius of a
-    wall or column) or whose straight line to the flight clips a corner. Such a point moves to the cell of its
-    landing nearest the centre from which both of its lines are clear, keeping its height; an inner point with no
-    such cell is dropped when the line past it is clear. Removes each stair's ``_lands``; returns dict(moved,
-    dropped, off): the landing points moved and dropped, and the samples of the fitted paths still with no floor
-    (none on the estate's buildings: tests/test_web.py checks the decoded grid)."""
+def _cells_in(grid, poly, z, dz) -> list:
+    """Centres [(x, y)] of the cells of ``grid`` (walkcheck.Grid) inside ``poly`` (block-local) with a floor within dz
+    of z."""
+    x0, y0, x1, y1 = poly.bounds
+    (i0, j0), (i1, j1) = grid.cell_of(x0, y0), grid.cell_of(x1, y1)
+    pts = []
+    for iy in range(max(0, j0), min(grid.ny - 1, j1) + 1):
+        for ix in range(max(0, i0), min(grid.nx - 1, i1) + 1):
+            f = grid.floor_in_cell(ix, iy, z)
+            if f is not None and abs(f[0] - z) <= dz:
+                pts.append(grid.centre(ix, iy))
+    if not pts:
+        return []
+    xy = np.array(pts, float)
+    return [tuple(p) for p in xy[shapely.contains_xy(poly, xy[:, 0], xy[:, 1])].tolist()]
+
+
+def fit_paths(stairs: list, grid) -> dict:
+    """Put every stair's path on the walk grid it is exported with (``grid``: the encoded file decoded, as a viewer
+    reads it: estate/web/walkcheck.py Grid), so that a viewer walking it never leaves the grid: every cell each of its
+    segments crosses has a floor within a step of it all the way across (Grid.gaps, the stage's own check). Flights
+    stand on their treads; it is a landing point (a landing's centre, or the start landing set down a storey) that
+    can fall where the grid has no floor (in an opened leaf's sweep, within the radius of a wall or column) or whose
+    straight line to the flight crosses a blocked cell, if only at its corner. Only such a point moves: keeping its
+    height, to the cell of its landing nearest the landing's centre from which both of its lines clear every blocked
+    cell by CLEARANCE, else (no such cell) by walkcheck.EDGE, the check's own margin; an inner point with neither is
+    dropped when the line past it is clear. Removes each stair's ``_lands``; returns dict(moved, dropped, off): the
+    landing points moved and dropped, and the cells the fitted paths still cross without a floor (the stage refuses
+    any; none on the estate's buildings)."""
     moved = dropped = off = 0
     for s in stairs:
         lands = s.pop("_lands")
@@ -195,26 +219,27 @@ def fit_paths(stairs: list, floors) -> dict:
             prev = P[i - 1] if i else None
             nxt = P[i + 1] if i + 1 < len(P) else None
 
-            def clear(q, prev=prev, nxt=nxt):
-                return floors.at(*q) and (prev is None or not floors.misses(prev, q)) and \
-                    (nxt is None or not floors.misses(q, nxt))
+            def clear(q, eps=walkcheck.EDGE, prev=prev, nxt=nxt):
+                return not grid.gaps(q, q, eps) and (prev is None or not grid.gaps(prev, q, eps)) and \
+                    (nxt is None or not grid.gaps(q, nxt, eps))
             if lands[i] is None or clear(P[i]):
                 i += 1
                 continue
             x0, y0, z = P[i]
-            cands = sorted({(round(x, R) + 0.0, round(y, R) + 0.0) for x, y in floors.cells_in(lands[i], z, 0.1)},
+            cands = sorted({(round(x, R) + 0.0, round(y, R) + 0.0) for x, y in _cells_in(grid, lands[i], z, 0.1)},
                            key=lambda q: (round(float(np.hypot(q[0] - x0, q[1] - y0)), 6), q))
-            pick = next(([x, y, z] for x, y in cands if clear([x, y, z])), None)
+            pick = next(([x, y, z] for eps in (CLEARANCE, walkcheck.EDGE) for x, y in cands
+                         if clear([x, y, z], eps)), None)
             if pick is not None:
                 P[i] = pick
                 moved += 1
-            elif prev is not None and nxt is not None and not floors.misses(prev, nxt):
+            elif prev is not None and nxt is not None and not grid.gaps(prev, nxt):
                 del P[i], lands[i]
                 dropped += 1
                 continue
             i += 1
         s["path"] = [_r(p) for p in P]
         P = s["path"]
-        off += sum(floors.misses(p, q) for p, q in zip(P[:-1], P[1:])) if len(P) > 1 else \
-            sum(not floors.at(*p) for p in P)
+        off += sum(len(grid.gaps(p, q)) for p, q in zip(P[:-1], P[1:])) if len(P) > 1 else \
+            sum(len(grid.gaps(p, p)) for p in P)
     return dict(moved=moved, dropped=dropped, off=off)

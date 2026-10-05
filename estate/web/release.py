@@ -27,7 +27,8 @@ The release is refused when:
   from), or an interior chunk on disk is not one the manifest lists;
 - a stair path of a web JSON cannot be walked on the walk grid beside it as a viewer decodes it, or a floor of the
   grid lies outside its band (estate/web/walkcheck.py: every point within 0.1 m of a walkable cell of its storey
-  band, a floor under every 0.05 m, the first and last points on the floors of their storeys);
+  band, a floor within a step in every cell each segment crosses, the first and last points on the floors of their
+  storeys);
 - --out lies inside model/ or reports/ (a second release would take in the first one's output);
 - the leak scan (estate/leaks.py) finds a machine path or the username in an entry, an entry's name or a zip
   written, or cannot read an entry.
@@ -214,8 +215,8 @@ def check_current(made_by: dict, state: dict, reports_dir: Path) -> None:
 def check_walks(model_dir: Path, sites) -> None:
     """Every stair path of every building's web JSON can be walked on the walk grid shipped beside it, read as a
     viewer reads it, and every floor of the grid lies in its band (estate/web/walkcheck.py site_errors: each point
-    within 0.1 m of a walkable cell of its storey band, a floor under every 0.05 m of it, first and last points on
-    their storeys' floors)."""
+    within 0.1 m of a walkable cell of its storey band, a floor within a step in every cell each segment crosses,
+    first and last points on their storeys' floors)."""
     from estate.web import walkcheck
     bad = []
     for sid in sites:

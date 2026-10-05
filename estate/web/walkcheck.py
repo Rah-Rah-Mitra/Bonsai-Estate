@@ -11,12 +11,20 @@ from the file's own f32 header values:
 - ``band(z)``: the layer owning height z: FFL_s - band_pad <= z < FFL_s+1 - band_pad, in whole millimetres, as
   estate/web/walk.py files the floors.
 
+- ``crossed(p, q)``: every cell the plan segment p -> q crosses, an exact supercover (the cells an Amanatides-Woo
+  traversal walks, plus the ones it only touches at a corner), each cell's square grown by EDGE (0.1 mm) on every
+  side: a segment running along a cell edge, or through a corner, crosses the cells on both sides, whichever way
+  float rounding puts it. ``gaps(p, q)``: those of its cells without a floor for feet at the segment's height over
+  the whole stretch of it inside the cell (``holds``).
+
 ``stair_errors(grid, stairs)`` holds the web JSON's stair paths to that reading (an empty list when they keep it):
 
 1. every point of a path snaps to a walkable cell within SNAP (0.1 m) on the grid of its own storey band: a floor
    of layer band(z) within +-step of z, in a cell whose centre is within SNAP of the point (or the point's own cell);
-2. every SAMPLE (0.05 m) along every segment, both ends included, has a floor under it (floor_at), so a viewer
-   walking or auto-climbing the path never leaves the grid, not even past a corner or an opened leaf;
+2. every cell every segment crosses (``crossed``, both ends included) has a floor within +-step of the path's height
+   all the way across it, so a viewer walking or auto-climbing the path never leaves the grid wherever it samples
+   it, not even where the line clips the corner of a blocked cell by a few cm (samples every 0.05 m missed NC_514's
+   two shop-block stairs, whose last segment crossed 35.7 mm of a cell an obstruction on the landing blocks);
 3. the first point stands on its storey's layer and the last on the ``to`` storey's layer, each within END_DZ of
    that storey's FFL, on a floor of their own cell;
 4. heights never fall and never rise more than a step between consecutive points.
@@ -35,11 +43,47 @@ import numpy as np
 from estate.web import sn5w
 
 SNAP = 0.10                 # m: how far a path point may sit from the centre of a walkable cell of its band
-SAMPLE = 0.05               # m between the points of a segment checked for a floor
+EDGE = 1e-4                 # m: a segment this close to a cell (an edge or a corner of it) crosses it; paths are in mm
 END_DZ = 0.05               # m: the first and last points' floors against the FFLs of their storeys
 EPS = 1e-9                  # the viewer's tolerance on floor distances (lib/estate/walk.ts)
 PRUNE_SLACK = 0.001         # m: the viewer's slack when it skips the layers a feet height cannot reach
 BAND_PAD = 0.25             # m below an FFL where a storey's band starts (web.json walk.band_pad; the viewer's too)
+
+
+def _clip(lo: float, hi: float, a: float, d: float):
+    """The stretch (t0, t1) of [0, 1] where lo <= a + t d <= hi, or None."""
+    if d == 0.0:
+        return (0.0, 1.0) if lo <= a <= hi else None
+    t0, t1 = (lo - a) / d, (hi - a) / d
+    if t0 > t1:
+        t0, t1 = t1, t0
+    t0, t1 = max(t0, 0.0), min(t1, 1.0)
+    return (t0, t1) if t0 <= t1 else None
+
+
+def crossed(origin, cell: float, p, q, eps: float = EDGE) -> list[tuple[int, int, float, float]]:
+    """Every cell of a grid (``origin``: the corner of cell (0, 0); square cells of side ``cell``) that the plan
+    segment p -> q crosses: [(ix, iy, t0, t1)], t0 <= t1 the stretch of the segment (t = 0 at p, 1 at q) inside the
+    cell's square grown by ``eps`` (m) on every side, in order along the segment (then iy, ix). Exact, nothing is
+    sampled: column by column the segment is clipped to the column's (grown) strip, then to each cell of the column
+    whose grown square that piece meets. A cell the segment only touches at a corner is crossed (t0 == t1), and so is
+    every cell within ``eps`` of it: both cells of an edge it runs along, all four round a corner it passes through.
+    A point (p == q) crosses the cell(s) it stands in."""
+    ox, oy = float(origin[0]), float(origin[1])
+    ax, ay = (float(p[0]) - ox) / cell, (float(p[1]) - oy) / cell
+    bx, by = (float(q[0]) - ox) / cell, (float(q[1]) - oy) / cell
+    dx, dy, e = bx - ax, by - ay, eps / cell
+    out = []
+    for ix in range(math.floor(min(ax, bx) - e) - 1, math.floor(max(ax, bx) + e) + 2):
+        tx = _clip(ix - e, ix + 1 + e, ax, dx)
+        if tx is None:
+            continue
+        y0, y1 = sorted((ay + dy * tx[0], ay + dy * tx[1]))
+        for iy in range(math.floor(y0 - e) - 1, math.floor(y1 + e) + 2):
+            ty = _clip(iy - e, iy + 1 + e, ay, dy)
+            if ty is not None and max(tx[0], ty[0]) <= min(tx[1], ty[1]):
+                out.append((ix, iy, max(tx[0], ty[0]), min(tx[1], ty[1])))
+    return sorted(out, key=lambda c: (c[2], c[3], c[1], c[0]))
 
 
 class Grid:
@@ -140,6 +184,40 @@ class Grid:
                     best = (d2, px, py, f[0], f[1])
         return None if best is None else best[1:]
 
+    def holds(self, ix: int, iy: int, z0: float, z1: float) -> bool:
+        """Cell (ix, iy) has a floor within +-step of every feet height between z0 and z1, so floorAt finds one there
+        wherever the feet are on that stretch. Only floors inside their own layer's band count: floorAt can never
+        prune those (a layer whose band holds a floor within a step of the feet meets their reach)."""
+        lo, hi = min(z0, z1), max(z0, z1)
+        if not (math.isfinite(lo) and math.isfinite(hi)):
+            return False
+        reach = self.step + EPS
+        for f in sorted(f for f, i in self.floors(ix, iy) if self.band(f) == i):
+            if f + reach < lo:
+                continue                    # wholly below what is still to be covered
+            if f - reach > lo:
+                return False                # lo is out of every floor's reach
+            lo = f + reach
+            if lo >= hi:
+                return True
+        return False
+
+    def crossed(self, p, q, eps: float = EDGE) -> list[tuple[int, int, float, float]]:
+        """crossed() on this grid's own (f32) origin and cell, the cells a viewer computes."""
+        return crossed((self.ox, self.oy), self.cell, p, q, eps)
+
+    def gaps(self, p, q, eps: float = EDGE) -> list[tuple[int, int, float, float, float]]:
+        """The cells the segment p -> q ([x, y, z], z interpolated) crosses (``crossed`` with ``eps``) that do not
+        hold it (``holds``, from the height where it enters the cell to the one where it leaves): [(ix, iy, x, y, z)]
+        with the point where it enters each, in order along the segment. p == q checks a point."""
+        p, q = [float(v) for v in p], [float(v) for v in q]
+        out = []
+        for ix, iy, t0, t1 in self.crossed(p, q, eps):
+            z0, z1 = p[2] + t0 * (q[2] - p[2]), p[2] + t1 * (q[2] - p[2])
+            if not self.holds(ix, iy, z0, z1):
+                out.append((ix, iy, p[0] + t0 * (q[0] - p[0]), p[1] + t0 * (q[1] - p[1]), z0))
+        return out
+
     def band(self, z: float) -> int:
         """The layer owning height z (whole mm; the lowest takes everything below, the top everything above)."""
         mm = int(round(z * 1000))
@@ -186,13 +264,6 @@ def _fmt(p) -> str:
     return "(" + ", ".join(f"{float(v):.3f}" for v in p) + ")"
 
 
-def samples(p, q, step: float = SAMPLE):
-    """Points of the segment p -> q ([x, y, z], z interpolated) no more than ``step`` apart in plan, both ends."""
-    p, q = np.asarray(p, float), np.asarray(q, float)
-    n = max(1, int(math.ceil(float(np.hypot(*(q[:2] - p[:2]))) / step)))
-    return [p + (j / n) * (q - p) for j in range(n + 1)]
-
-
 def stair_errors(grid: Grid, stairs: list, limit: int = 0) -> list[str]:
     """What breaks the rules of this module's docstring in the web JSON's ``stairs`` on ``grid``, one line per
     stair and rule (``limit``: stop after that many lines, 0 for all)."""
@@ -212,10 +283,11 @@ def stair_errors(grid: Grid, stairs: list, limit: int = 0) -> list[str]:
             i, p = far[0]
             out.append(f"{name}: {len(far)} point(s) with no walkable cell of their band within {SNAP} m, first "
                        f"path[{i}] {_fmt(p)} ({grid.tags[grid.band(p[2])]})")
-        off = [x for a, b in zip(P, P[1:]) for x in samples(a, b) if grid.floor_at(*x) is None]
+        off = [(k, gap) for k, (a, b) in enumerate(zip(P, P[1:])) for gap in grid.gaps(a, b)]
         if off:
-            out.append(f"{name}: {len(off)} sample(s) every {SAMPLE} m along the path with no floor under them, "
-                       f"first {_fmt(off[0])}")
+            k, (ix, iy, *at) = off[0]
+            out.append(f"{name}: {len(off)} cell(s) crossed by the path with no floor within {grid.step:.2f} m of it "
+                       f"all the way across, first ({ix}, {iy}) by path[{k}] -> path[{k + 1}], entered at {_fmt(at)}")
         for which, p, tag, ffl in (("first", P[0], s.get("storey"), s.get("from_ffl")),
                                    ("last", P[-1], s.get("to"), s.get("to_ffl"))):
             hit = grid.floor_at(*p)

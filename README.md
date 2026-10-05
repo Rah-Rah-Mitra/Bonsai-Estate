@@ -149,14 +149,18 @@ riser and going from the IFC, its landings, and a walking `path` from the floor 
 floor, never rising more than a riser between points) and `doors` (per leaf of every passable door; lift landing
 doors stay closed and are absent): `leaf_node`, `storey`, `motion`, `angle` (swing leaves), `open`, `blocked` and
 `grid` (`blocked`, `passthrough` or `overhead` for a rolled-up shutter).
-- `path` stands on the walk grid all the way: every 0.05 m of it has a floor within 0.4 m in its own cell. Where a
-  landing's centre has none (in an opened leaf's sweep, beside a column) or the line to it clips a corner, the
-  point moves to the nearest cell of that landing from which both lines are clear (`walk.stair_points_moved`;
-  `stair_off_grid` counts what is still off, 0 on every building). Before writing, the stage decodes the grid and
-  holds every path to `estate/web/walkcheck.py`, which reads it as a viewer's floorAt and nearestWalkable do: every
-  point within 0.1 m of a walkable cell of its own storey band, a floor under every 0.05 m (stepping no more than
-  0.4 m), the first point on its storey's floor and the last on the next storey's, within 5 cm of their FFLs; and
-  every floor inside its band. A building that fails is not written, and the release checks the files again.
+- `path` stands on the walk grid all the way: every cell each of its segments crosses has a floor within 0.4 m of
+  it. Where a landing's centre has none (in an opened leaf's sweep, beside a column) or the line to it crosses a
+  cell without one, if only at a corner, the point moves to the nearest cell of that landing from which both lines
+  are clear, by 1 cm where the landing allows (`walk.stair_points_moved`; `stair_off_grid` counts the cells still
+  crossed without a floor, 0 on every building). Before writing, the stage decodes the grid, fits the paths to it
+  and holds every path to `estate/web/walkcheck.py`, which reads it as a viewer's floorAt and nearestWalkable do:
+  every point within 0.1 m of a walkable cell of its own storey band; every cell a segment crosses (an exact
+  supercover, corner touches and cells within 0.1 mm included, not samples: samples every 0.05 m missed a 36 mm
+  corner clip on NC_514) with a floor within 0.4 m of the path all the way across it; no rise of more than 0.4 m
+  between points; the first point on its storey's floor and the last on the next storey's, within 5 cm of their
+  FFLs; and every floor inside its band. A building that fails is not written, and the release checks the files
+  again.
 - `open` is the row-major 3 x 4 matrix (`validate/nav_doorpose.py`) that takes the closed leaf to its opened pose
   in block-local, Z-up coordinates: it premultiplies the leaf's block-local world transform. In a glb (Y up, with
   C: (x, y, z) -> (x, z, -y)) apply C O C^-1 to the leaf node's world matrix, then the inverse of its parent's world

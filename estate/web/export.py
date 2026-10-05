@@ -17,11 +17,11 @@ the row-major 3 x 4 matrix (block-local, Z up) that takes the closed leaf to its
 off part of a room: estate/web/walk.py block_leaves), ``blocked`` the plan of the opened leaf (undilated, a closed
 ring; empty for a leaf that opens above head height), ``grid`` what the walk grid does with it: "blocked",
 "passthrough" (left unblocked because blocking it would cut its doorway or a room off) or "overhead". Rings repeat
-their first point, as the engine JSON's rooms do. A stair's ``path`` stands on the walk grid written beside it
-(stairs.fit_paths: ``stair_points_moved``, ``stair_points_dropped``; ``stair_off_grid`` counts the 0.05 m samples of
-the paths still without a floor). The grid is decoded and held to estate/web/walkcheck.py before anything is
-written: a stair path a viewer cannot walk on it, or a floor outside its band, fails the building (the release
-checks the files again).
+their first point, as the engine JSON's rooms do. A stair's ``path`` stands on the walk grid written beside it: the
+encoded grid is decoded as a viewer reads it, the paths are fitted to that (stairs.fit_paths:
+``stair_points_moved``, ``stair_points_dropped``; ``stair_off_grid`` counts the cells the paths still cross without a
+floor) and held to estate/web/walkcheck.py before anything is written: a stair path a viewer cannot walk on it, or a
+floor outside its band, fails the building (the release checks the files again).
 Coordinates are rounded to the millimetre, the matrices to 1e-6; nothing depends on a clock.
 """
 from __future__ import annotations
@@ -90,12 +90,12 @@ def build(ifc, engine_json, out_dir, stem, cfg=None, log=None) -> dict:
         lf["door"] = door_index.get(lf["guid"], -1)
     blocked = walk.block_leaves(w, M.doors, leaves, wc)
     keep = walk.reachable(w, blocked)
-    fit = stairs_mod.fit_paths(stairs, walk.Floors(w, keep, offset))
-    if fit["off"]:
-        say(f"  {stem}: {fit['off']} points of the stair paths have no floor on the walk grid")
     nx, ny, origin, lays = walk.layers(w, keep, storeys, offset, wc.band_pad)
     data, ref, coarse = walk.encode(nx, ny, origin, lays, wc)
-    grid = walkcheck.Grid(data, wc.band_pad)  # the grid as a viewer decodes it: nothing is written unless it holds
+    grid = walkcheck.Grid(data, wc.band_pad)  # the grid as a viewer decodes it: the paths are fitted to it, and
+    fit = stairs_mod.fit_paths(stairs, grid)  # nothing is written unless they hold on it
+    if fit["off"]:
+        say(f"  {stem}: the stair paths cross {fit['off']} cells with no floor on the walk grid")
     bad = walkcheck.band_errors(grid) + walkcheck.stair_errors(grid, stairs, limit=8)
     if bad:
         raise ValueError(f"{stem}: the exported walk grid fails estate/web/walkcheck.py: " + "; ".join(bad[:8]))

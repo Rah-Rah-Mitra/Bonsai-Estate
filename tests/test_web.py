@@ -32,6 +32,7 @@ from estate import config, env, leaks  # noqa: E402
 from estate.validate import nav3d  # noqa: E402
 from estate.validate import nav_doorpose as doorpose  # noqa: E402
 from estate.web import sn5w, walk, walkcheck  # noqa: E402
+from estate.web import stairs as stairs_mod  # noqa: E402
 
 OUT = env.BUILD / "web_tests" / "unittest"
 PT4 = env.BUILD / "t_pt4.ifc"
@@ -261,6 +262,19 @@ def ramp_stair(**kw) -> dict:
     return dict(dict(name="S", storey="L1", to="L2", from_ffl=0.0, to_ffl=1.0, path=path), **kw)
 
 
+LAND_FROM = (0.325, 0.13, 0.0)      # landing(): where a flight's head (plus APPROACH) meets the landing
+LAND_CENTRE = (1.15, 0.54, 0.0)     # landing(): the landing's centre
+
+
+def landing() -> bytes:
+    """A flat landing (L1, FFL 0.0) on 18 x 9 cells of 0.1 m, corner of cell (0, 0) at block-local (0, 0), drawn
+    after NC_514's L2 shop-block landings (cell (1240, 252) there is (0, 0) here): an obstruction blocks ix 5..8 from
+    iy 2 up and the stairwell ix 8.. of iy 0, so from LAND_FROM the way onto the landing is row iy 1."""
+    blocked = {(ix, iy) for ix in range(5, 9) for iy in range(2, 9)} | {(ix, 0) for ix in range(8, 18)}
+    raster = [B if (ix, iy) in blocked else 0 for iy in range(9) for ix in range(18)]
+    return sn5w.encode(18, 9, 0.1, 0.2, 0.4, (0.0, 0.0), [dict(tag="L1", ffl=0.0, raster=raster)], 0)
+
+
 class WalkCheck(unittest.TestCase):
     """estate/web/walkcheck.py: the viewer's floor search and snap on the golden file, and each rule a stair path
     is held to, one by one, on a ramp."""
@@ -312,12 +326,13 @@ class WalkCheck(unittest.TestCase):
         self.assertEqual(walkcheck.stair_errors(g, [ramp_stair()]), [])
         errs = walkcheck.stair_errors(walkcheck.Grid(ramp(blocked={(0, 1)})), [ramp_stair()])
         self.assertEqual(len(errs), 2, errs)
-        self.assertIn("sample(s) every 0.05 m along the path with no floor under them, first (0.050, 0.150, 0.000)",
-                      errs[0])
+        self.assertEqual("S: 1 cell(s) crossed by the path with no floor within 0.40 m of it all the way across, "
+                         "first (0, 1) by path[0] -> path[1], entered at (0.050, 0.150, 0.000)", errs[0])
         self.assertIn("the first point (0.050, 0.150, 0.000) stands on no floor, not L1 at 0.000", errs[1])
         errs = walkcheck.stair_errors(walkcheck.Grid(ramp(blocked={(5, 1)})), [ramp_stair()])
-        self.assertEqual(len(errs), 1, errs)
-        self.assertIn("with no floor under them", errs[0])
+        self.assertEqual(len(errs), 1, errs)            # crossed by the segments into and out of its centre
+        self.assertIn("2 cell(s) crossed by the path with no floor within 0.40 m of it all the way across, first "
+                      "(5, 1) by path[4] -> path[5], entered at (0.500, 0.150, 0.350)", errs[0])
         stair = ramp_stair()
         stair["path"][5] = [0.55, 0.6, 0.4]
         errs = walkcheck.stair_errors(g, [stair])
@@ -340,6 +355,101 @@ class WalkCheck(unittest.TestCase):
         self.assertEqual(walkcheck.band_errors(walkcheck.Grid(ramp(out_of_band=True))),
                          ["layer L1: 3 floor(s) outside its band [-inf, 750) mm, e.g. 800 mm"])
         self.assertEqual(walkcheck.site_errors(ramp(), {"stairs": [ramp_stair()]}), [])
+
+    def test_crossed(self):
+        """crossed() is the exact supercover of a segment: the cells it passes through, the ones it only touches at a
+        corner, and (within EDGE) both cells of an edge it runs along; a point stands in its cell, or in all four at
+        a corner. On random segments it finds exactly the cells whose square grown by EDGE the line meets (shapely),
+        in order along the segment, their stretches covering it end to end, the same cells either way round."""
+        def cells(p, q, eps=walkcheck.EDGE):
+            return sorted((ix, iy) for ix, iy, _, _ in walkcheck.crossed((0.0, 0.0), 0.1, p, q, eps))
+        along = walkcheck.crossed((0.0, 0.0), 0.1, (0.05, 0.15), (0.35, 0.15))
+        self.assertEqual([c[:2] for c in along], [(0, 1), (1, 1), (2, 1), (3, 1)])
+        self.assertEqual((along[0][2], along[-1][3]), (0.0, 1.0))
+        self.assertEqual(cells((0.05, 0.05), (0.25, 0.25)),          # through the corners (0.1, 0.1) and (0.2, 0.2)
+                         [(0, 0), (0, 1), (1, 0), (1, 1), (1, 2), (2, 1), (2, 2)])
+        both = [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)]
+        self.assertEqual(cells((0.05, 0.1), (0.25, 0.1)), both)      # along the edge y = 0.1: both rows
+        self.assertEqual(cells((0.05, 0.10005), (0.25, 0.10005)), both)   # 0.05 mm off it: still both
+        self.assertEqual(cells((0.05, 0.1005), (0.25, 0.1005)), [(0, 1), (1, 1), (2, 1)])  # 0.5 mm: its own row
+        self.assertEqual(cells((0.05, 0.15), (0.05, 0.15)), [(0, 1)])
+        self.assertEqual(cells((0.1, 0.2), (0.1, 0.2)), [(0, 1), (0, 2), (1, 1), (1, 2)])
+        self.assertEqual(cells((0.1, 0.2), (0.1, 0.2), 0.0), [(0, 1), (0, 2), (1, 1), (1, 2)])
+        rng = np.random.default_rng(20261006)
+        o, c, e = (-1.25, 2.5), 0.1, walkcheck.EDGE
+        for k in range(400):
+            p, q = rng.uniform((-1.25, 2.5), (-0.25, 3.5), (2, 2))
+            if k % 5 == 1:
+                q[1] = p[1]                                          # some along a row or a column
+            elif k % 5 == 2:
+                q[0] = p[0]
+            got = walkcheck.crossed(o, c, p, q)
+            line = shapely.LineString([p, q])
+            i0, i1 = int(np.floor((min(p[0], q[0]) - o[0]) / c)) - 2, int(np.floor((max(p[0], q[0]) - o[0]) / c)) + 2
+            j0, j1 = int(np.floor((min(p[1], q[1]) - o[1]) / c)) - 2, int(np.floor((max(p[1], q[1]) - o[1]) / c)) + 2
+            want = sorted((ix, iy) for ix in range(i0, i1 + 1) for iy in range(j0, j1 + 1)
+                          if line.intersects(shapely.box(o[0] + ix * c - e, o[1] + iy * c - e,
+                                                         o[0] + (ix + 1) * c + e, o[1] + (iy + 1) * c + e)))
+            self.assertEqual(sorted(x[:2] for x in got), want, (p, q))
+            self.assertEqual(sorted(x[:2] for x in walkcheck.crossed(o, c, q, p)), want)
+            self.assertEqual([x[2] for x in got], sorted(x[2] for x in got))
+            reach = 0.0
+            for ix, iy, t0, t1 in got:
+                self.assertLessEqual(t0, reach + 1e-12)              # no stretch of the segment left out
+                reach = max(reach, t1)
+                for t in (t0, (t0 + t1) / 2, t1):
+                    x, y = p + t * (q - p)
+                    self.assertTrue(o[0] + ix * c - e - 1e-12 <= x <= o[0] + (ix + 1) * c + e + 1e-12)
+                    self.assertTrue(o[1] + iy * c - e - 1e-12 <= y <= o[1] + (iy + 1) * c + e + 1e-12)
+            self.assertEqual(reach, 1.0)
+
+    def test_holds(self):
+        """holds: a cell's floors keep feet heights within the step all along a stretch, several floors joining up
+        (either order of the ends); a cell with none, off the grid, or whose floor is filed outside its layer's band
+        (a viewer may prune that layer) does not."""
+        g = walkcheck.Grid(GOLDEN.read_bytes())          # cell (1, 0): L1 0.01; L2 3.25, 3.5 and 5.9; RF 9.0
+        self.assertTrue(g.holds(1, 0, 0.0, 0.41))
+        self.assertFalse(g.holds(1, 0, 0.3, 0.5))        # 0.01 reaches 0.41 and 3.25 only down to 2.85
+        self.assertTrue(g.holds(1, 0, 2.9, 3.85))        # 3.25, then 3.5
+        self.assertFalse(g.holds(1, 0, 3.0, 4.0))        # 3.5 reaches 3.9, 5.9 down to 5.5
+        self.assertTrue(g.holds(1, 0, 6.2, 5.6))
+        self.assertFalse(g.holds(1, 1, 0.0, 0.0))        # no L1 floor there (L2's 3.5 only)
+        self.assertFalse(g.holds(4, 0, 0.0, 0.0))        # off the grid
+        self.assertTrue(walkcheck.Grid(ramp()).holds(9, 1, 0.8, 0.8))
+        bad = walkcheck.Grid(ramp(out_of_band=True))     # ix 9 filed in L1 at +800, outside L1's band
+        self.assertIsNotNone(bad.floor_at(0.95, 0.15, 0.8))
+        self.assertFalse(bad.holds(9, 1, 0.8, 0.8))
+
+    def test_corner_clip(self):
+        """NC_514's two shop-block stairs on the v1.2 candidate: the last segment, from the flight's head onto the
+        landing, crossed 35.7 mm of the corner of a blocked cell. Every 0.05 m sample along it finds a floor (how the
+        stage's old check passed it; the portfolio's 0.1 m samples hit the cell); the cells it crosses do not, so the
+        check names that cell. fit_paths moves the landing point to the nearest cell whose lines clear every blocked
+        cell by CLEARANCE: straight back from the landing's centre to row iy 1, as it now does on NC_514 ((59.1,
+        -1.2), was (59.2, -1.1)); the nearer cell clear only by the check's own EDGE passes within 3 mm of the
+        corner."""
+        g = walkcheck.Grid(landing())
+        a, b = list(LAND_FROM), [1.25, 0.25, 0.0]        # b: cell (12, 2), as (59.2, -1.1) is cell (1252, 254)
+        p, q = np.array(a), np.array(b)
+        n = int(np.ceil(np.hypot(*(q[:2] - p[:2])) / 0.05))
+        self.assertTrue(all(g.floor_at(*(p + j / n * (q - p))) is not None for j in range(n + 1)))
+        (_, _, t0, t1), = [x for x in walkcheck.crossed((0.0, 0.0), 0.1, a, b, 0.0) if x[:2] == (8, 2)]
+        np.testing.assert_allclose([*(p + t0 * (q - p))[:2], *(p + t1 * (q - p))[:2]],
+                                   [0.864583, 0.2, 0.9, 0.204595], atol=1e-6)
+        self.assertAlmostEqual((t1 - t0) * float(np.hypot(*(q[:2] - p[:2]))), 0.0357, places=4)
+        self.assertEqual([x[:2] for x in g.gaps(a, b)], [(8, 2)])
+        stair = dict(name="S", storey="L1", to="L1", from_ffl=0.0, to_ffl=0.0, path=[a, b])
+        self.assertEqual(walkcheck.stair_errors(g, [stair]),
+                         ["S: 1 cell(s) crossed by the path with no floor within 0.40 m of it all the way across, "
+                          "first (8, 2) by path[0] -> path[1], entered at (0.864, 0.200, 0.000)"])
+        s = dict(stair, path=[a, list(LAND_CENTRE)], _lands=[None, shapely.box(0.0, 0.1, 1.8, 0.9)])
+        self.assertEqual(stairs_mod.fit_paths([s], g), dict(moved=1, dropped=0, off=0))
+        self.assertEqual(s["path"], [a, [1.15, 0.15, 0.0]])
+        self.assertNotIn("_lands", s)
+        self.assertEqual(walkcheck.stair_errors(g, [s]), [])
+        near = [1.35, 0.25, 0.0]                         # 0.35 m from the centre (1.15, 0.15 is 0.39 m)
+        self.assertEqual(g.gaps(a, near), [])
+        self.assertNotEqual(g.gaps(a, near, stairs_mod.CLEARANCE), [])
 
 
 # ----------------------------------------------------------------------------- synthetic scenes
@@ -746,8 +856,8 @@ class PointBlockWeb(unittest.TestCase):
     def test_stairs(self):
         """Every IfcStair: its flights in order, risers and riser heights as the IFC says (and their sum is the
         stair's NumberOfRiser), a path rising no more than 0.40 m between points, from the stair's floor to within
-        0.1 m of the next one, standing on the walk grid all the way: every 0.05 m of it has a floor within 0.4 m (a
-        viewer's floorAt) in its own cell."""
+        0.1 m of the next one, standing on the walk grid all the way: every cell each segment crosses
+        (walkcheck.crossed) has a floor within 0.4 m (a viewer's floorAt) of it where it enters and where it leaves."""
         import ifcopenshell
         import ifcopenshell.util.element as uel
         f = ifcopenshell.open(str(PT4))
@@ -776,12 +886,14 @@ class PointBlockWeb(unittest.TestCase):
             self.assertTrue(s["room"] and "STAIR" in s["room"], s)
             self.assertEqual([round(lg["z"], 3) for lg in s["landings"]][-1], s["to_ffl"])
             for p, q in zip(path[:-1], path[1:]):
-                for u in np.linspace(0.0, 1.0, max(2, int(np.ceil(np.hypot(*(q[:2] - p[:2])) / 0.05)) + 1)):
-                    x, y, z = p + u * (q - p)
+                for ix, iy, t0, t1 in walkcheck.crossed((ox, oy), c, p, q):
                     total += 1
-                    here = cols.get((int(np.floor((x - ox) / c)), int(np.floor((y - oy) / c))), ())
-                    if not any(abs(h - z) <= 0.4 for h in here):
-                        off_grid.append((s["name"], round(float(x), 3), round(float(y), 3), round(float(z), 3)))
+                    here = cols.get((ix, iy), ())
+                    for u in (t0, t1):
+                        x, y, z = p + u * (q - p)
+                        if not any(abs(h - z) <= 0.4 for h in here):
+                            off_grid.append((s["name"], ix, iy, round(float(x), 3), round(float(y), 3),
+                                             round(float(z), 3)))
         self.assertGreater(total, 1000)
         self.assertEqual(off_grid, [])
         self.assertEqual(self.doc["walk"]["stair_off_grid"], 0)
