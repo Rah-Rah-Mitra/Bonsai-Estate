@@ -12,10 +12,11 @@ height), the same spans and the same fine door-band test. Then, for the viewer:
 2. Opened leaves blocked. A viewer bakes every passable leaf open (nav_doorpose.open_matrix, the engine JSON's
    leaves); the cells whose centre lies within the radius of an opened leaf's plan (nav_doorpose.opened_footprint)
    at its door's level are blocked, so a camera cannot walk through it. A leaf whose blocking would cut its door's
-   two sides apart within DOOR_REACH of the opening is left unblocked (``leaf_passthrough``), and so is a leaf
-   that, with the others, cuts off an area of POCKET_M2 or more the street reached before (a shelter door in the
-   sweep of the flat's main door: the leaf whose release reconnects it). A leaf that opens above head height (a
-   rolled-up shutter) blocks nothing (``leaf_overhead``).
+   two sides apart within DOOR_REACH of the opening is left unblocked (``leaf_passthrough``). A leaf whose full
+   swing, alone or with another, cuts off an area of POCKET_M2 or more that the street reached before (a shelter
+   door in the sweep of the flat's main door, a yard cut in two) opens less instead (NARROW, ``leaf_narrowed``;
+   the web JSON carries its angle and matrix), or goes through when no smaller opening reconnects it. A leaf that
+   opens above head height (a rolled-up shutter) blocks nothing (``leaf_overhead``).
 3. Only cells reachable from the street are kept: components of the grid (neighbours whose floors differ by at
    most a step) that hold a start cell on the grid's margin at ground level. Table tops, sills, rail tops and
    closed shafts drop out.
@@ -47,6 +48,7 @@ from estate.web import sn5w
 DOOR_REACH = 1.5            # m around a door's opening within which its two sides must stay connected
 LEAF_LEVEL = 0.35           # m: cells whose floor is this close to the door's sill are the ones a leaf can block
 DOOR_LEVEL = 1.0            # m: the vertical window of a door's local connectivity check
+DETOUR = 1.5                # m beyond DOOR_REACH that a way round an opened leaf may take
 POCKET_M2 = 0.25            # m2: a cut-off area this large is a place to walk (a cupboard-sized shelter), not a corner
                             # behind an opened leaf: no leaf may cut it off
 NARROW = (75.0, 60.0, 45.0)  # degrees a swing leaf may open instead of its 90 when that keeps an area reachable
@@ -273,22 +275,39 @@ def _leaf_cells(w: Walk, cols: ColumnIndex, lf: dict, angle, wc: WalkConfig) -> 
     return idx[shapely.contains_xy(poly, w.cx(idx), w.cy(idx))]
 
 
+def door_reach(w: Walk, region, a, b, held=None) -> np.ndarray:
+    """The spans of ``region`` (with the door's side cells a and b) that are joined to a or b through spans of the
+    region that ``held`` does not block (no blocking when None)."""
+    region = np.union1d(region, np.concatenate([a, b]))
+    alive = region if held is None else region[~held[region]]
+    if not len(alive):
+        return alive
+    ea, eb = grid_edges(w.ix[alive], w.iy[alive], w.k[alive], w.g, w.St)
+    lab = nav3d.components(len(alive), ea, eb)
+    seeds = np.isin(alive, np.concatenate([a, b]))
+    return alive[np.isin(lab, np.unique(lab[seeds]))]
+
+
 def block_leaves(w: Walk, doors: list, leaves: list, wc: WalkConfig) -> np.ndarray:
     """Blocked spans: the opened leaves (``leaves``: leaf_records with ``door``, the index of their nav3d door or
     -1), each dilated by the radius.
 
     1. A leaf whose blocking cuts its door's sides apart within DOOR_REACH goes through (``passthrough``); then any
        leaf blocking near a door that is still cut.
-    2. Two leaves can close a room off together while each door still connects on its own (a household shelter door
-       in the sweep of the flat's main door), and a leaf swung across a shallow room cuts off the part behind it:
-       every area of POCKET_M2 or more the street reached without the leaves must still be reached. A swing leaf
-       touching it opens less (NARROW, largest first) if that joins it again and keeps the leaf's own door
-       connected; else a touching leaf whose release alone joins it goes through, else every touching leaf does.
+    2. Around every door (DOOR_REACH), the leaves may cut off no more than a corner (POCKET_M2) of what the door
+       joined without them: a leaf swung across a stair landing must not cut the flights off, a main door swung over
+       the household shelter door must not shut the shelter, a yard door must not cut the yard in two. A swing leaf
+       there (the door's own first, then any leaf blocking near it) opens less instead (NARROW, largest angle
+       first) if that is enough and keeps its own door whole; else a leaf whose release alone is enough goes
+       through; else all of them do.
+    3. Whatever the street reached without the leaves (POCKET_M2 or more) it must still reach; a leaf on the edge
+       of a cut-off area is fixed as in 2 (_repair).
 
     Sets each leaf's ``grid`` ('blocked', 'passthrough', 'overhead') and ``angle`` (None, or the narrowed swing in
     degrees) and w.stats."""
     cols = ColumnIndex(w.ix, w.iy, w.g.ny)
     n = len(w.ix)
+    pocket = max(1, int(round(POCKET_M2 / w.g.P ** 2)))
     for lf in leaves:
         lf["grid"], lf["angle"] = ("blocked" if lf["obstructs"] else "overhead"), None
     cells_of = [_leaf_cells(w, cols, lf, None, wc) for lf in leaves]
@@ -300,24 +319,36 @@ def block_leaves(w: Walk, doors: list, leaves: list, wc: WalkConfig) -> np.ndarr
             np.add.at(c, cells_of[i], 1)
         return c
 
-    by_door = {}
-    for i, lf in enumerate(leaves):
-        by_door.setdefault(lf["door"], []).append(i)
-    regions, base_ok = {}, {}
-    none = np.zeros(n, bool)
-    for di, s in enumerate(w.sides):
-        if s is None:
-            continue
-        d = doors[di]
-        c = d["M"] @ np.array([d["w"] / 2, d["yc"], 0.0, 1.0])
-        regions[di] = _local(w, cols, c[0], c[1], d["z"], DOOR_REACH, DOOR_LEVEL)
-        base_ok[di] = connected(w, regions[di], s[0], s[1], none)
-
     def release(ids):
         for i in ids:
             active[i] = False
             leaves[i]["grid"] = "passthrough"
 
+    by_door = {}
+    for i, lf in enumerate(leaves):
+        by_door.setdefault(lf["door"], []).append(i)
+    regions, base_ok, joined = {}, {}, {}
+    for di, s in enumerate(w.sides):
+        if s is None:
+            continue
+        d = doors[di]
+        c = d["M"] @ np.array([d["w"] / 2, d["yc"], 0.0, 1.0])
+        # connectivity is judged over DETOUR more than the area that counts, so a way round a leaf's end is seen
+        regions[di] = _local(w, cols, c[0], c[1], d["z"], DOOR_REACH + DETOUR, DOOR_LEVEL)
+        near = _local(w, cols, c[0], c[1], d["z"], DOOR_REACH, DOOR_LEVEL)
+        joined[di] = np.intersect1d(door_reach(w, regions[di], *s), near)
+        base_ok[di] = connected(w, regions[di], s[0], s[1], np.zeros(n, bool))
+
+    def whole(di, held) -> bool:
+        """Door di still joins its sides, and cuts off no more than a corner of what it joined without leaves."""
+        if di not in regions or not base_ok[di]:
+            return True
+        if not connected(w, regions[di], *w.sides[di], held):
+            return False
+        lost = np.setdiff1d(joined[di][~held[joined[di]]], door_reach(w, regions[di], *w.sides[di], held))
+        return len(lost) < pocket
+
+    # 1. doors cut apart by leaves
     blocked = cover() > 0
     for widen in (False, True):               # first a door's own leaves, then any leaf blocking near it
         changed = True
@@ -335,9 +366,52 @@ def block_leaves(w: Walk, doors: list, leaves: list, wc: WalkConfig) -> np.ndarr
                 if culprits:
                     changed = True
                     blocked = cover() > 0
-    before = reachable(w, none)
-    pocket = max(1, int(round(POCKET_M2 / w.g.P ** 2)))
-    for _ in range(64):
+
+    def fix(candidates, ok, count, fallback=True):
+        """Narrow the first swing candidate (largest angle first) or release the first candidate for which ok(held)
+        holds and whose own door stays whole; else (``fallback``) release them all. True when something changed."""
+        for i in candidates:
+            lf = leaves[i]
+            if lf["rec"]["motion"] != "swing":
+                continue
+            current = lf["angle"] or lf["rec"].get("max_angle_deg", doorpose.OPEN_DEG)
+            for angle in (a for a in NARROW if a < current - 1e-9):
+                cells = _leaf_cells(w, cols, lf, angle, wc)
+                held = count > 0
+                held[cells_of[i]] = count[cells_of[i]] > 1
+                held[cells] = True
+                if ok(held) and whole(lf["door"], held):
+                    lf["angle"], cells_of[i] = angle, cells
+                    return True
+        for i in candidates:
+            held = count > 0
+            held[cells_of[i]] = count[cells_of[i]] > 1
+            if ok(held):
+                release([i])
+                return True
+        if fallback:
+            release(candidates)
+        return fallback and bool(candidates)
+
+    # 2. doors that cut off more than a corner of what they joined
+    for _ in range(8):
+        changed = False
+        count = cover()
+        for di in sorted(regions):
+            if whole(di, count > 0):
+                continue
+            near = set(regions[di].tolist())
+            others = sorted((i for i in np.nonzero(active)[0] if i not in by_door.get(di, [])
+                             and near.intersection(cells_of[i].tolist())), key=lambda i: (len(cells_of[i]), i))
+            own = sorted((i for i in by_door.get(di, []) if active[i]), key=lambda i: (len(cells_of[i]), i))
+            if fix(own + others, lambda held, di=di: whole(di, held), count):
+                changed = True
+                count = cover()
+        if not changed:
+            break
+    # 3. areas the street no longer reaches
+    before = reachable(w, np.zeros(n, bool))
+    for _ in range(256):
         count = cover()
         blocked = count > 0
         after = reachable(w, blocked)
@@ -347,15 +421,11 @@ def block_leaves(w: Walk, doors: list, leaves: list, wc: WalkConfig) -> np.ndarr
         ea, eb = grid_edges(w.ix[lost], w.iy[lost], w.k[lost], w.g, w.St)
         lab = nav3d.components(len(lost), ea, eb)
         sizes = np.bincount(lab, minlength=len(lost))
-        fixes = [_repair(w, cols, lost[lab == root], after, count, leaves, cells_of, active, regions, wc)
-                 for root in np.unique(lab[sizes[lab] >= pocket])]
-        if not any(ids for _, ids, _, _ in fixes):
+        changed = False
+        for root in np.unique(lab[sizes[lab] >= pocket]):
+            changed |= _repair(w, cols, lost[lab == root], after, count, leaves, cells_of, active, fix)
+        if not changed:
             break
-        for kind, ids, angle, cells in fixes:
-            if kind == "narrow" and active[ids[0]]:
-                leaves[ids[0]]["angle"], cells_of[ids[0]] = angle, cells
-            else:
-                release([i for i in ids if active[i]])
     blocked = cover() > 0
     w.stats.update(leaves=len(leaves), leaf_blocked=int(active.sum()),
                    leaf_narrowed=sum(1 for i, lf in enumerate(leaves) if active[i] and lf["angle"] is not None),
@@ -368,64 +438,52 @@ def block_leaves(w: Walk, doors: list, leaves: list, wc: WalkConfig) -> np.ndarr
     return blocked
 
 
-def _repair(w: Walk, cols: ColumnIndex, comp, after, count, leaves, cells_of, active, regions, wc):
-    """How to join the cut-off spans ``comp`` to the reached ones again: ("narrow", [leaf], angle, its cells) for the
-    first touching swing leaf (fewest blocked cells, then list order) that a smaller opening (NARROW) lets through
-    while its own door stays connected; else ("release", [leaf], ...) for the first touching leaf whose release alone
-    does; else ("release", every touching leaf)."""
+def _touches(w: Walk, cols: ColumnIndex, cells, mask) -> bool:
+    """Is a span of ``mask`` beside (or under) one of ``cells``, within a step?"""
+    if not len(cells):
+        return False
     g = w.g
-    i0, i1 = int(w.ix[comp].min()), int(w.ix[comp].max())
-    j0, j1 = int(w.iy[comp].min()), int(w.iy[comp].max())
-    pad = int(math.ceil(DOOR_REACH / g.P))
-    region = cols.box(max(0, i0 - pad), min(g.nx - 1, i1 + pad), max(0, j0 - pad), min(g.ny - 1, j1 + pad))
-    region = region[np.abs(w.fz[region] - float(np.median(w.fz[comp]))) <= DOOR_LEVEL]
-    inner = np.isin(region, comp)
-    near = {}
-    for c in comp.tolist():
-        near.setdefault((int(w.ix[c]), int(w.iy[c])), []).append(float(w.fz[c]))
-    touching = []
-    for i in np.nonzero(active)[0]:
-        c = cells_of[i]
-        if not len(c) or w.ix[c].max() < i0 - 1 or w.ix[c].min() > i1 + 1 or w.iy[c].max() < j0 - 1 \
-                or w.iy[c].min() > j1 + 1:
-            continue
-        for x, y, f in zip(w.ix[c].tolist(), w.iy[c].tolist(), w.fz[c].tolist()):
-            if any(abs(f - f2) <= w.St * g.P + 1e-6 for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1))
-                   for f2 in near.get((x + dx, y + dy), ())):
-                touching.append(int(i))
-                break
-    touching.sort(key=lambda i: (len(cells_of[i]), i))
+    box = cols.box(max(0, int(w.ix[cells].min()) - 1), min(g.nx - 1, int(w.ix[cells].max()) + 1),
+                   max(0, int(w.iy[cells].min()) - 1), min(g.ny - 1, int(w.iy[cells].max()) + 1))
+    box = box[mask[box]]
+    if not len(box):
+        return False
+    have = {}
+    for c in box.tolist():
+        have.setdefault((int(w.ix[c]), int(w.iy[c])), []).append(float(w.fz[c]))
+    step = w.St * g.P + 1e-6
+    for x, y, f in zip(w.ix[cells].tolist(), w.iy[cells].tolist(), w.fz[cells].tolist()):
+        for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+            if any(abs(f - f2) <= step for f2 in have.get((x + dx, y + dy), ())):
+                return True
+    return False
 
-    def joins(i, cells):
-        """Does ``comp`` reach a reached span within the region once leaf i blocks ``cells`` instead?"""
-        held = count[region] - np.isin(region, cells_of[i]) + np.isin(region, cells) > 0
-        alive = region[~held]
-        ea, eb = grid_edges(w.ix[alive], w.iy[alive], w.k[alive], g, w.St)
-        lab = nav3d.components(len(alive), ea, eb)
-        inn = inner[~held]
-        return bool(np.intersect1d(lab[inn], lab[after[alive] & ~inn]).size)
 
-    for i in touching:
-        lf = leaves[i]
-        if lf["rec"]["motion"] != "swing":
-            continue
-        current = lf["angle"] or lf["rec"].get("max_angle_deg", doorpose.OPEN_DEG)
-        for angle in (a for a in NARROW if a < current - 1e-9):
-            cells = _leaf_cells(w, cols, lf, angle, wc)
-            if not joins(i, cells):
-                continue
-            di = lf["door"]
-            if di in regions:                 # the narrowed leaf must not cut its own door
-                held = count > 0
-                held[cells_of[i]] = count[cells_of[i]] > 1
-                held[cells] = True
-                if not connected(w, regions[di], *w.sides[di], held):
-                    continue
-            return ("narrow", [i], angle, cells)
-    for i in touching:
-        if joins(i, np.zeros(0, np.int64)):
-            return ("release", [i], None, None)
-    return ("release", touching, None, None)
+def _repair(w: Walk, cols: ColumnIndex, comp, after, count, leaves, cells_of, active, fix) -> bool:
+    """Join the cut-off spans ``comp`` to the reached ones again through one of the leaves on the frontier (beside
+    both): narrowed, or released (``fix``), judged within DOOR_REACH of that leaf."""
+    g = w.g
+    in_comp = np.zeros(len(w.ix), bool)
+    in_comp[comp] = True
+    frontier = sorted((int(i) for i in np.nonzero(active)[0]
+                       if _touches(w, cols, cells_of[i], in_comp) and _touches(w, cols, cells_of[i], after)),
+                      key=lambda i: (len(cells_of[i]), i))
+    for i in frontier:
+        lf, c = leaves[i], cells_of[i]
+        pad = int(math.ceil(DOOR_REACH / g.P))
+        region = cols.box(max(0, int(w.ix[c].min()) - pad), min(g.nx - 1, int(w.ix[c].max()) + pad),
+                          max(0, int(w.iy[c].min()) - pad), min(g.ny - 1, int(w.iy[c].max()) + pad))
+        region = region[np.abs(w.fz[region] - lf["z"]) <= DOOR_LEVEL]
+
+        def joins(held, region=region):
+            alive = region[~held[region]]
+            ea, eb = grid_edges(w.ix[alive], w.iy[alive], w.k[alive], g, w.St)
+            lab = nav3d.components(len(alive), ea, eb)
+            inn = in_comp[alive]
+            return bool(np.intersect1d(lab[inn], lab[after[alive] & ~inn]).size)
+        if fix([i], joins, count, fallback=False):
+            return True
+    return fix(frontier, lambda held: False, count)
 
 
 def reachable(w: Walk, blocked: np.ndarray) -> np.ndarray:
