@@ -1,8 +1,10 @@
-"""Web export (estate/web, the web stage): the SN5W walk-grid format against its golden file, storey bands, synthetic
-scenes (an unreachable platform, a stamped doorway, an opened leaf blocked or let through), and the PT4 test block
-built through the stage's own code: rooms, doors, spawns and lift landings on the exported grid, stairs against the
-IFC, opened leaves against the LOD0 leaves, no side effect on nav3d, determinism, the manifest and export_info.json,
-and the leak scan of the walk grid.
+"""Web export (estate/web, the web stage): the SN5W walk-grid format against its golden file, storey bands, the grid
+as a viewer reads it and the rules stair paths keep on it (walkcheck), synthetic scenes (an unreachable platform, a
+stamped doorway, an opened leaf blocked or let through), and the PT4 test block built through the stage's own code:
+rooms, doors, spawns and lift landings on the exported grid, stairs against the IFC and on the grid, opened leaves
+against the LOD0 leaves, no side effect on nav3d, determinism, the manifest and export_info.json, and the leak scan
+of the walk grid. Then the estate's own buildings, where the web stage's outputs under model/ are current: stair
+paths walkable, stair feet joined to their doors, doors joined across.
 
 Run: "<blender python>" -I -B tests/test_web.py -v      (SN5W_REGEN=1 rewrites tests/fixtures/web/sn5w_sample.bin)
 """
@@ -29,7 +31,7 @@ import shapely  # noqa: E402
 from estate import config, env, leaks  # noqa: E402
 from estate.validate import nav3d  # noqa: E402
 from estate.validate import nav_doorpose as doorpose  # noqa: E402
-from estate.web import sn5w, walk  # noqa: E402
+from estate.web import sn5w, walk, walkcheck  # noqa: E402
 
 OUT = env.BUILD / "web_tests" / "unittest"
 PT4 = env.BUILD / "t_pt4.ifc"
@@ -233,6 +235,113 @@ class Bands(unittest.TestCase):
             self.assertEqual(got, {-250}, z)
 
 
+# ----------------------------------------------------------------------------- the grid as a viewer reads it
+def ramp(blocked=(), out_of_band=False) -> bytes:
+    """A one-flight stair on 12 x 3 cells of 0.1 m, corner of cell (0, 0) at block-local (0, 0): every row rises
+    from 0.0 (ix 0, 1) by 0.1 m a cell to 1.0 (ix 11). L1 at FFL 0.0, L2 at 1.0, so the band edge is 0.75: ix 0..8
+    are L1 floors (0 .. 700 mm), ix 9..11 L2 floors (-200 .. 0 mm). ``blocked``: cells (ix, iy) with no floor;
+    ``out_of_band``: ix 9 is filed in L1 at +800 instead."""
+    h = [max(0, ix - 1) * 100 for ix in range(12)]
+    l1, l2 = [B] * 36, [B] * 36
+    for iy in range(3):
+        for ix in range(12):
+            if (ix, iy) in blocked:
+                continue
+            if h[ix] < 750 or (out_of_band and ix == 9):
+                l1[iy * 12 + ix] = h[ix]
+            else:
+                l2[iy * 12 + ix] = h[ix] - 1000
+    return sn5w.encode(12, 3, 0.1, 0.2, 0.4, (0.0, 0.0), [dict(tag="L1", ffl=0.0, raster=l1),
+                                                         dict(tag="L2", ffl=1.0, raster=l2)], 0)
+
+
+def ramp_stair(**kw) -> dict:
+    """The stair of ramp(): up the middle row, one point per cell centre."""
+    path = [[ix * 0.1 + 0.05, 0.15, max(0, ix - 1) * 0.1] for ix in range(12)]
+    return dict(dict(name="S", storey="L1", to="L2", from_ffl=0.0, to_ffl=1.0, path=path), **kw)
+
+
+class WalkCheck(unittest.TestCase):
+    """estate/web/walkcheck.py: the viewer's floor search and snap on the golden file, and each rule a stair path
+    is held to, one by one, on a ramp."""
+
+    def test_grid_matches_decode(self):
+        """Grid (numpy) holds exactly the floors sn5w.decode (stdlib) finds, cell by cell."""
+        t = sn5w.decode(GOLDEN.read_bytes())
+        g = walkcheck.Grid(GOLDEN.read_bytes())
+        for iy in range(t["ny"]):
+            for ix in range(t["nx"]):
+                want = []
+                for li, lay in enumerate(t["layers"]):
+                    v = lay["raster"][iy * t["nx"] + ix]
+                    want += [(round(lay["ffl"] + v / 1000.0, 6), li)] if v != B else []
+                    want += [(round(lay["ffl"] + mm / 1000.0, 6), li) for x, y, mm in lay["overflow"]
+                             if (x, y) == (ix, iy)]
+                self.assertEqual(sorted((round(f, 6), li) for f, li in g.floors(ix, iy)), sorted(want), (ix, iy))
+        s = g.spans()
+        self.assertEqual(len(s["ix"]), sum(1 for lay in t["layers"] for v in lay["raster"] if v != B)
+                         + sum(len(lay["overflow"]) for lay in t["layers"]))
+
+    def test_floor_at_and_nearest(self):
+        """floorAt: the floor closest to the feet within the step, ties to the higher, none beyond the step; the cell
+        is floor((x - origin) / cell). nearestWalkable: the point itself on a floor, else the nearest cell centre with
+        one (ties to the lower iy), none beyond the reach."""
+        g = walkcheck.Grid(GOLDEN.read_bytes())          # cell (1, 0): L1 0.01; L2 3.5, 3.25 and 5.9; RF 9.0
+        x, y = -0.95, 2.6
+        self.assertEqual(g.cell_of(x, y), (1, 0))
+        self.assertEqual(g.cell_of(-1.25 + 0.2 - 1e-9, 2.5), (0, 0))
+        self.assertEqual(g.floor_at(x, y, 0.3), (0.01, 0))
+        f, layer = g.floor_at(x, y, 3.4)
+        self.assertEqual((round(f, 6), layer), (3.5, 1))
+        f, layer = g.floor_at(x, y, 3.375)                # 3.25 and 3.5 equally far: the higher
+        self.assertEqual((round(f, 6), layer), (3.5, 1))
+        self.assertIsNone(g.floor_at(x, y, 1.0))
+        self.assertIsNone(g.floor_at(-2.0, y, 0.0))      # off the grid
+        self.assertEqual(g.nearest(x, y, 0.0, 0.25)[:2], (x, y))
+        nx_, ny_, f, layer = g.nearest(-0.95, 2.78, 0.0, 0.25)  # cell (1, 1) has no L1 floor; (1, 0) is nearest
+        self.assertEqual((round(nx_, 6), round(ny_, 6), round(f, 6), layer), (-0.95, 2.6, 0.01, 0))
+        self.assertIsNone(g.nearest(-0.95, 2.78, 0.0, 0.15))
+        self.assertEqual([g.band(z) for z in (-1.0, 3.249, 3.25, 3.2499996, 5.999, 6.0, 8.75, 20.0)],
+                         [0, 0, 1, 1, 1, 2, 3, 3])
+
+    def test_stair_rules(self):
+        """A ramp walked cell by cell passes; each rule fails on its own: a first point on a blocked cell (which
+        still snaps within 0.1 m: the snap alone would not see it), a blocked cell under the line, a point far off
+        the grid, a last point short of the next storey, a rise of more than a step, a storey the grid lacks."""
+        g = walkcheck.Grid(ramp())
+        self.assertEqual(walkcheck.stair_errors(g, [ramp_stair()]), [])
+        errs = walkcheck.stair_errors(walkcheck.Grid(ramp(blocked={(0, 1)})), [ramp_stair()])
+        self.assertEqual(len(errs), 2, errs)
+        self.assertIn("sample(s) every 0.05 m along the path with no floor under them, first (0.050, 0.150, 0.000)",
+                      errs[0])
+        self.assertIn("the first point (0.050, 0.150, 0.000) stands on no floor, not L1 at 0.000", errs[1])
+        errs = walkcheck.stair_errors(walkcheck.Grid(ramp(blocked={(5, 1)})), [ramp_stair()])
+        self.assertEqual(len(errs), 1, errs)
+        self.assertIn("with no floor under them", errs[0])
+        stair = ramp_stair()
+        stair["path"][5] = [0.55, 0.6, 0.4]
+        errs = walkcheck.stair_errors(g, [stair])
+        self.assertTrue(any("no walkable cell of their band within 0.1 m, first path[5] (0.550, 0.600, 0.400) (L1)"
+                            in e for e in errs), errs)
+        errs = walkcheck.stair_errors(g, [ramp_stair(path=ramp_stair()["path"][:9])])
+        self.assertEqual(errs, ["S: the last point (0.850, 0.150, 0.700) stands on 0.700 on L1, not L2 at 1.000"])
+        stair = ramp_stair()
+        stair["path"] = stair["path"][:2] + stair["path"][7:]
+        self.assertTrue(any("rises more than a step" in e for e in walkcheck.stair_errors(g, [stair])))
+        self.assertTrue(any("'L9' is not a layer" in e for e in walkcheck.stair_errors(g, [ramp_stair(to="L9")])))
+        self.assertEqual(walkcheck.stair_errors(g, [ramp_stair(path=[[0.05, 0.15, 0.0]])]),
+                         ["S: a path of 1 point(s)"])
+
+    def test_bands(self):
+        """A floor filed in a layer outside that layer's band is reported (a viewer prunes layers by band); the
+        golden file and the ramp keep the rule."""
+        self.assertEqual(walkcheck.band_errors(walkcheck.Grid(GOLDEN.read_bytes())), [])
+        self.assertEqual(walkcheck.band_errors(walkcheck.Grid(ramp())), [])
+        self.assertEqual(walkcheck.band_errors(walkcheck.Grid(ramp(out_of_band=True))),
+                         ["layer L1: 3 floor(s) outside its band [-inf, 750) mm, e.g. 800 mm"])
+        self.assertEqual(walkcheck.site_errors(ramp(), {"stairs": [ramp_stair()]}), [])
+
+
 # ----------------------------------------------------------------------------- synthetic scenes
 def _box(x0, y0, z0, x1, y1, z1):
     return nav3d._box_tris((x0, y0, z0), (x1, y1, z1))
@@ -394,6 +503,112 @@ class DoorPose(unittest.TestCase):
         self.assertAlmostEqual(shapely.Polygon(ring).area, 0.8 * 0.04, places=9)
 
 
+# ----------------------------------------------------------------------------- floors of an exported grid
+def grid_floors(data: bytes) -> dict:
+    """Every floor of an SN5W file (walkcheck.Grid.spans, raster and overflow): arrays ix, iy, x, y (cell centres,
+    block-local), z (absolute) and layer; ``order``/``xs`` index them by x for disc()."""
+    g = walkcheck.Grid(data)
+    s = g.spans()
+    x = g.ox + (s["ix"] + 0.5) * g.cell
+    order = np.argsort(x, kind="stable")
+    return dict(ix=s["ix"], iy=s["iy"], x=x, y=g.oy + (s["iy"] + 0.5) * g.cell,
+                z=np.asarray(g.ffl)[s["layer"]] + s["mm"] / 1000.0, layer=s["layer"], order=order, xs=x[order])
+
+
+def disc(f, x, y, r):
+    """The floors whose cell centre lies within r (plan) of (x, y), in index order."""
+    a, b = np.searchsorted(f["xs"], [x - r - 1e-9, x + r + 1e-9])
+    idx = np.sort(f["order"][a:b])
+    return idx[np.hypot(f["x"][idx] - x, f["y"][idx] - y) <= r]
+
+
+def components(f, idx, step=0.4):
+    """Component labels of the floors ``idx``: 4-adjacent cells (main or overflow) whose floors differ by at most a
+    step."""
+    n = len(idx)
+    ix, iy, z = f["ix"][idx].astype(np.int64), f["iy"][idx].astype(np.int64), f["z"][idx]
+    ny = int(iy.max()) + 2 if n else 1
+    key = ix * ny + iy                                    # (ix + 1, iy) is key + ny, (ix, iy + 1) is key + 1
+    order = np.argsort(key, kind="stable")
+    skey = key[order]
+    ea, eb = [np.zeros(0, np.int64)], [np.zeros(0, np.int64)]
+    for d in (ny, 1):
+        lo, hi = np.searchsorted(skey, key + d, "left"), np.searchsorted(skey, key + d, "right")
+        for j in range(int((hi - lo).max()) if n else 0):
+            sel = np.nonzero(hi - lo > j)[0]
+            other = order[lo[sel] + j]
+            ok = np.abs(z[sel] - z[other]) <= step + 1e-6
+            ea.append(sel[ok])
+            eb.append(other[ok])
+    return nav3d.components(n, np.concatenate(ea), np.concatenate(eb))
+
+
+def door_front(doors, p, f, idx, reach=(0.1, 0.8)):
+    """(along, across, the floors of idx in front of portal p's opening on each side): within its clear width
+    (``doors``: the engine JSON's doors by node), ``reach`` m off its threshold, at its floor. A door's sides are
+    probed here, not at the portal's ``link`` points: those sit at the middle of the rooms' edges, which a counter can
+    fill (NC_514's stall shutters)."""
+    (t0x, t0y, _), (t1x, t1y, _) = p["threshold"]
+    along = np.array([t1x - t0x, t1y - t0y])
+    wl = float(np.linalg.norm(along))
+    along /= wl
+    mid = np.array([(t0x + t1x) / 2, (t0y + t1y) / 2])
+    rel = np.stack([f["x"][idx] - mid[0], f["y"][idx] - mid[1]], 1)
+    u, v = rel @ along, rel @ np.array([-along[1], along[0]])
+    ok = (np.abs(u) <= (doors[p["node"]].get("clear_width") or wl) / 2) & (np.abs(f["z"][idx] - p["floor_z"]) <= 0.3)
+    return u, v, (np.nonzero(ok & (v < -reach[0]) & (v >= -reach[1]))[0],
+                  np.nonzero(ok & (v > reach[0]) & (v <= reach[1]))[0])
+
+
+def door_cuts(eng, f) -> tuple[int, list]:
+    """(passable doors, those whose two sides do not join within 1.5 m of the opening on the grid ``f``): the floors
+    in front of the opening (door_front) on one side and the other fall in one component of the floors within 1.5 m
+    (plan) and 1 m (height) of it, with the opened leaves blocked as exported."""
+    doors = {d["node"]: d for d in eng["doors"]}
+    bad, n = [], 0
+    for p in eng["portals"]:
+        if not p["passable"]:
+            continue
+        n += 1
+        (t0x, t0y, _), (t1x, t1y, _) = p["threshold"]
+        idx = disc(f, (t0x + t1x) / 2, (t0y + t1y) / 2, 1.5)
+        idx = idx[np.abs(f["z"][idx] - p["floor_z"]) <= 1.0]
+        lab = components(f, idx)
+        _, _, (sa, sb) = door_front(doors, p, f, idx)
+        if not (len(sa) and len(sb) and set(lab[sa].tolist()) & set(lab[sb].tolist())):
+            bad.append(p["node"])
+    return n, bad
+
+
+def stair_door_cuts(doc, eng, f) -> tuple[int, list]:
+    """(stair doors, cuts): for every stair of the web JSON ``doc`` and every passable door into its room on its
+    storey, the start of its path (the landing point and the foot of the first flight) must be joined to the stair
+    side of the door's opening within 4 m on the grid ``f``: an opened leaf never cuts a flight off from its own
+    door (the void-deck fire doors of BLK_507..512 did, at 75 degrees)."""
+    doors = {d["node"]: d for d in eng["doors"]}
+    bad, n = [], 0
+    for s in doc["stairs"]:
+        for p in eng["portals"]:
+            if not (p["passable"] and p["storey"] == s["storey"] and s["room"] in p["space_names"]):
+                continue
+            n += 1
+            (t0x, t0y, _), (t1x, t1y, _) = p["threshold"]
+            mx, my = (t0x + t1x) / 2, (t0y + t1y) / 2
+            idx = disc(f, mx, my, 4.0)
+            idx = idx[(f["z"][idx] > p["floor_z"] - 1.0) & (f["z"][idx] < p["floor_z"] + 2.0)]
+            lab = components(f, idx)
+            u, _, sides = door_front(doors, p, f, idx)
+            lx, ly, _ = p["link"][p["space_names"].index(s["room"])]
+            side = sides[int(np.dot([lx - mx, ly - my], [-(t1y - t0y), t1x - t0x]) > 0)]
+            doorway = set(lab[side[np.argsort(np.abs(u[side]), kind="stable")[:3]]].tolist())
+            for q in s["path"][:2]:
+                near = np.nonzero((np.hypot(f["x"][idx] - q[0], f["y"][idx] - q[1]) <= 0.3)
+                                  & (np.abs(f["z"][idx] - q[2]) <= 0.25))[0]
+                if not (len(side) and len(near) and doorway & set(lab[near].tolist())):
+                    bad.append((s["name"], p["node"], q))
+    return n, bad
+
+
 # ----------------------------------------------------------------------------- the PT4 test block
 def _export_pt4(out):
     from estate.export.engine import export_building
@@ -417,11 +632,12 @@ class PointBlockWeb(unittest.TestCase):
         cls.bin = (OUT / "a" / "t_pt4_walk.bin").read_bytes()
         cls.doc = json.loads((OUT / "a" / "t_pt4_web.json").read_text(encoding="utf-8"))
         cls.grid = sn5w.decode(cls.bin)
-        cls.floors = cls._floors(cls.grid)
+        cls.floors = grid_floors(cls.bin)
 
     @staticmethod
     def _floors(t):
-        """Every floor of the decoded grid: arrays x, y (cell centres, block-local), z (absolute), layer index."""
+        """Every floor of a grid sn5w.decode read (the stdlib reader): arrays x, y (cell centres, block-local), z
+        (absolute), layer index; what grid_floors (numpy) must agree with."""
         xs, ys, zs, ls = [], [], [], []
         c, (ox, oy), nx = t["cell"], t["origin"], t["nx"]
         for li, lay in enumerate(t["layers"]):
@@ -466,90 +682,46 @@ class PointBlockWeb(unittest.TestCase):
         self.assertGreater(n, 500)
         self.assertEqual(missing, [])
 
-    def labels(self, idx):
-        """Components of the floors ``idx``: 4-adjacent cells (main or overflow) whose floors differ by at most a
-        step."""
-        t, f = self.grid, self.floors
-        c = t["cell"]
-        ii = np.round((f["x"][idx] - t["origin"][0]) / c - 0.5).astype(int)
-        jj = np.round((f["y"][idx] - t["origin"][1]) / c - 0.5).astype(int)
-        pos = {}
-        for k, (i, j) in enumerate(zip(ii, jj)):
-            pos.setdefault((int(i), int(j)), []).append(k)
-        ea, eb = [], []
-        for (i, j), ks in pos.items():
-            for di, dj in ((1, 0), (0, 1)):
-                for k in ks:
-                    for k2 in pos.get((i + di, j + dj), ()):
-                        if abs(f["z"][idx[k]] - f["z"][idx[k2]]) <= 0.4 + 1e-6:
-                            ea.append(k)
-                            eb.append(k2)
-        return nav3d.components(len(idx), np.array(ea, np.int64), np.array(eb, np.int64))
-
-    def front(self, p, idx, reach=(0.1, 0.8)):
-        """(along, across, the floors of idx in front of portal p's opening on each side): within its clear width,
-        ``reach`` m off its threshold, at its floor. A door's sides are probed here, not at the portal's ``link``
-        points: those sit at the middle of the rooms' edges, which a counter can fill (NC_514's stall shutters)."""
-        f = self.floors
+    def test_grid_floors_match_decode(self):
+        """The numpy reader the checks below and estate/web/walkcheck.py use (grid_floors, walkcheck.Grid) finds
+        exactly the floors the stdlib reader does (sn5w.decode), delta and same layers included; and the components
+        of the floors around a door are the same, built by vector or by loop."""
+        ref, f = self._floors(self.grid), self.floors
+        key = lambda d: sorted(zip(np.round(d["x"], 4).tolist(), np.round(d["y"], 4).tolist(),  # noqa: E731
+                                   np.round(d["z"], 4).tolist(), d["layer"].tolist()))
+        self.assertEqual(key(ref), key(f))
+        p = next(p for p in self.eng["portals"] if p["passable"])
         (t0x, t0y, _), (t1x, t1y, _) = p["threshold"]
-        along = np.array([t1x - t0x, t1y - t0y])
-        wl = float(np.linalg.norm(along))
-        along /= wl
-        mid = np.array([(t0x + t1x) / 2, (t0y + t1y) / 2])
-        rel = np.stack([f["x"][idx] - mid[0], f["y"][idx] - mid[1]], 1)
-        u, v = rel @ along, rel @ np.array([-along[1], along[0]])
-        door = next(d for d in self.eng["doors"] if d["node"] == p["node"])
-        ok = (np.abs(u) <= (door.get("clear_width") or wl) / 2) & (np.abs(f["z"][idx] - p["floor_z"]) <= 0.3)
-        return u, v, (np.nonzero(ok & (v < -reach[0]) & (v >= -reach[1]))[0],
-                      np.nonzero(ok & (v > reach[0]) & (v <= reach[1]))[0])
+        idx = disc(f, (t0x + t1x) / 2, (t0y + t1y) / 2, 1.5)
+        lab, pos = components(f, idx), {}
+        for k, c in enumerate(zip(f["ix"][idx].tolist(), f["iy"][idx].tolist())):
+            pos.setdefault(c, []).append(k)
+        for (i, j), ks in pos.items():                    # every step between neighbours stays in one component
+            for k in ks:
+                for k2 in pos.get((i + 1, j), []) + pos.get((i, j + 1), []):
+                    if abs(f["z"][idx[k]] - f["z"][idx[k2]]) <= 0.4:
+                        self.assertEqual(lab[k], lab[k2])
+        self.assertGreater(len(set(lab.tolist())), 1)       # and floors a storey apart do not join
 
     def test_doors_connect_with_leaves_blocked(self):
         """Every passable door joins its two sides within 1.5 m of its opening on the exported grid, with the opened
-        leaves blocked: the cells in front of its opening (self.front) on one side and the other fall in one
-        component of the floors within 1.5 m (plan) and 1 m (height) of it."""
-        f = self.floors
-        bad, n = [], 0
-        for p in self.eng["portals"]:
-            if not p["passable"]:
-                continue
-            n += 1
-            (t0x, t0y, _), (t1x, t1y, _) = p["threshold"]
-            mx, my = (t0x + t1x) / 2, (t0y + t1y) / 2
-            idx = np.nonzero((np.hypot(f["x"] - mx, f["y"] - my) <= 1.5) & (np.abs(f["z"] - p["floor_z"]) <= 1.0))[0]
-            lab = self.labels(idx)
-            _, _, (sa, sb) = self.front(p, idx)
-            if not (len(sa) and len(sb) and set(lab[sa].tolist()) & set(lab[sb].tolist())):
-                bad.append(p["node"])
+        leaves blocked (door_cuts)."""
+        n, bad = door_cuts(self.eng, self.floors)
         self.assertGreater(n, 400)
         self.assertEqual(bad, [])
 
     def test_stair_paths_meet_their_doors(self):
-        """For every stair and every passable door into its room on its storey, the start of its path (the landing
-        point and the foot of the first flight) is joined to the stair side of the door's opening within 4 m: an
-        opened leaf never cuts a flight off from its own door."""
-        f = self.floors
-        bad, n = [], 0
-        for s in self.doc["stairs"]:
-            for p in self.eng["portals"]:
-                if not (p["passable"] and p["storey"] == s["storey"] and s["room"] in p["space_names"]):
-                    continue
-                n += 1
-                (t0x, t0y, _), (t1x, t1y, _) = p["threshold"]
-                mx, my = (t0x + t1x) / 2, (t0y + t1y) / 2
-                idx = np.nonzero((np.hypot(f["x"] - mx, f["y"] - my) <= 4.0) & (f["z"] > p["floor_z"] - 1.0)
-                                 & (f["z"] < p["floor_z"] + 2.0))[0]
-                lab = self.labels(idx)
-                u, _, sides = self.front(p, idx)
-                lx, ly, _ = p["link"][p["space_names"].index(s["room"])]
-                side = sides[int(np.dot([lx - mx, ly - my], [-(t1y - t0y), t1x - t0x]) > 0)]
-                doorway = set(lab[side[np.argsort(np.abs(u[side]), kind="stable")[:3]]].tolist())
-                for q in s["path"][:2]:
-                    near = np.nonzero((np.hypot(f["x"][idx] - q[0], f["y"][idx] - q[1]) <= 0.3)
-                                      & (np.abs(f["z"][idx] - q[2]) <= 0.25))[0]
-                    if not (len(side) and len(near) and doorway & set(lab[near].tolist())):
-                        bad.append((s["name"], p["node"], q))
+        """For every stair and every passable door into its room on its storey, the start of its path is joined to
+        the stair side of the door's opening within 4 m (stair_door_cuts)."""
+        n, bad = stair_door_cuts(self.doc, self.eng, self.floors)
         self.assertGreater(n, 10)
         self.assertEqual(bad, [])
+
+    def test_walkcheck(self):
+        """The written files keep what the stage checked before writing them (estate/web/walkcheck.py, as the release
+        checks them again): every stair path walkable on the grid as a viewer decodes it, every floor in its band."""
+        self.assertEqual(walkcheck.site_errors(self.bin, self.doc), [])
+        self.assertGreater(len(self.doc["stairs"]), 20)
 
     def test_bands(self):
         """Every floor of the exported grid keeps the band rule, in whole mm."""
@@ -736,6 +908,87 @@ class PointBlockWeb(unittest.TestCase):
         self.assertEqual(sorted(info["tools"]), ["blender", "bonsai", "ifcopenshell", "python"])
 
 
+# ----------------------------------------------------------------------------- the estate's own buildings
+def current_buildings() -> list:
+    """[(id, folder)] of the buildings under model/ whose walk grid and web JSON are current: their web stage
+    record in model/.state.json carries the key the stage would compute now (its code, [web], the agent, and the
+    IFC and engine JSON on disk), and the files are there."""
+    from estate.pipeline import hooks, runner
+    from estate.pipeline import state as st
+    cfg = config.load()
+    state = st.load()
+    out = []
+    for t in runner.targets(cfg, None, include_site=False):
+        eng = t.folder / f"{t.id}_engine.json"
+        if t.kind == "site" or not (t.ifc.exists() and eng.exists()):
+            continue
+        if st.fresh(state, t.id, "web", hooks.web_key(cfg, t.id, t.ifc, eng)):
+            out.append((t.id, t.folder))
+    return out
+
+
+class EstateBuildings(unittest.TestCase):
+    """The walk grids and web JSONs the web stage wrote under model/ for the estate's own buildings, those still
+    current (current_buildings; skipped when there are none: ./estate.sh build --stages nav,glb,web): the slab,
+    L-block and EA void-deck stairs, the car park's ramps and the hawker centre's shop-block stairs that the test block
+    does not have. Every stair path walkable on the grid as a viewer decodes it and every floor in its band
+    (walkcheck, as the release checks them); every stair's foot joined to each door into its room (an opened fire
+    door never cuts a flight off); every passable door joined across."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.sites = current_buildings()
+        cls.cache = {}
+
+    def setUp(self):
+        if not self.sites:
+            self.skipTest("no current walk grid under model/ (./estate.sh build --stages nav,glb,web)")
+
+    def load(self, sid, folder):
+        if sid not in self.cache:
+            data = (folder / f"{sid}_walk.bin").read_bytes()
+            doc = json.loads((folder / f"{sid}_web.json").read_text(encoding="utf-8"))
+            eng = json.loads((folder / f"{sid}_engine.json").read_text(encoding="utf-8"))
+            self.cache[sid] = (data, doc, eng, grid_floors(data))
+        return self.cache[sid]
+
+    def test_stair_paths_walkable(self):
+        bad, stairs = {}, 0
+        for sid, folder in self.sites:
+            data, doc, _, _ = self.load(sid, folder)
+            stairs += len(doc["stairs"])
+            errs = walkcheck.site_errors(data, doc)
+            if errs or doc["walk"]["stair_off_grid"]:
+                bad[sid] = errs or [f"stair_off_grid {doc['walk']['stair_off_grid']}"]
+        self.assertGreater(stairs, 0)
+        self.assertEqual(bad, {})
+
+    def test_stair_feet_meet_their_doors(self):
+        bad, n = {}, 0
+        for sid, folder in self.sites:
+            _, doc, eng, f = self.load(sid, folder)
+            k, cut = stair_door_cuts(doc, eng, f)
+            n += k
+            if cut:
+                bad[sid] = cut[:6]
+        self.assertGreater(n, 0)
+        self.assertEqual(bad, {})
+
+    def test_doors_connect(self):
+        bad, n = {}, 0
+        for sid, folder in self.sites:
+            _, doc, eng, f = self.load(sid, folder)
+            k, cut = door_cuts(eng, f)
+            n += k
+            if cut:
+                bad[sid] = cut[:6]
+            w = doc["walk"]
+            self.assertLessEqual(w["leaf_passthrough"], 0.01 * w["leaves"], sid)
+            self.assertEqual((w["doors_impassable"], w["doors_unlinked"], w["doors_cut"]), (0, 0, 0), sid)
+        self.assertGreater(n, 0)
+        self.assertEqual(bad, {})
+
+
 class StageWiring(unittest.TestCase):
     def test_stage_registered(self):
         """web runs after estate, is switched by [outputs] web, is keyed on its code (not export_info's or the
@@ -750,8 +1003,8 @@ class StageWiring(unittest.TestCase):
         self.assertIn("web", hooks.STAGES)
         self.assertEqual(state.STAGE_DEPS["web"], ("estate/web/__init__.py", "estate/web/export.py",
                                                    "estate/web/walk.py", "estate/web/sn5w.py", "estate/web/stairs.py",
-                                                   "estate/validate/nav3d.py", "estate/validate/nav_doorpose.py",
-                                                   "estate/export/meshcache.py"))
+                                                   "estate/web/walkcheck.py", "estate/validate/nav3d.py",
+                                                   "estate/validate/nav_doorpose.py", "estate/export/meshcache.py"))
         web = {p.name for g in state.STAGE_DEPS["web"] for p in env.ROOT.glob(g)}
         self.assertEqual(web & {"info.py", "release.py"}, set())
         self.assertEqual({p.name for p in (env.ROOT / "estate" / "web").glob("*.py")} - web, {"info.py", "release.py"})

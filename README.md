@@ -152,7 +152,11 @@ doors stay closed and are absent): `leaf_node`, `storey`, `motion`, `angle` (swi
 - `path` stands on the walk grid all the way: every 0.05 m of it has a floor within 0.4 m in its own cell. Where a
   landing's centre has none (in an opened leaf's sweep, beside a column) or the line to it clips a corner, the
   point moves to the nearest cell of that landing from which both lines are clear (`walk.stair_points_moved`;
-  `stair_off_grid` counts what is still off, 0 on every building).
+  `stair_off_grid` counts what is still off, 0 on every building). Before writing, the stage decodes the grid and
+  holds every path to `estate/web/walkcheck.py`, which reads it as a viewer's floorAt and nearestWalkable do: every
+  point within 0.1 m of a walkable cell of its own storey band, a floor under every 0.05 m (stepping no more than
+  0.4 m), the first point on its storey's floor and the last on the next storey's, within 5 cm of their FFLs; and
+  every floor inside its band. A building that fails is not written, and the release checks the files again.
 - `open` is the row-major 3 x 4 matrix (`validate/nav_doorpose.py`) that takes the closed leaf to its opened pose
   in block-local, Z-up coordinates: it premultiplies the leaf's block-local world transform. In a glb (Y up, with
   C: (x, y, z) -> (x, z, -y)) apply C O C^-1 to the leaf node's world matrix, then the inverse of its parent's world
@@ -201,6 +205,8 @@ release is refused when:
 - a released file's stage record in `model/.state.json` is missing or was written by other code than the checkout's
   (a partial build on older code), or the last build had failures (`reports/build_failures.json`);
 - a required file is missing, or an interior chunk on disk is not one the manifest lists;
+- a stair path cannot be walked on the walk grid shipped beside it, or a floor lies outside its band
+  (`estate/web/walkcheck.py`, as above);
 - `--out` lies inside `model/` or `reports/`;
 - the leak scan (`estate/leaks.py`, every entry, entry name and zip written: JSON strings, PNG text chunks, GLB JSON,
   IFC text, walk-grid tags) finds a machine path or the username, or cannot read an entry.

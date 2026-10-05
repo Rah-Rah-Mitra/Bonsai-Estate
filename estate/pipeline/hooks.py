@@ -244,6 +244,15 @@ def stage_estate(a, cfg, targets, state):
 
 
 # ----------------------------------------------------------------------------- web (walk grids, stairs, door poses)
+def web_key(cfg, target: str, ifc, engine_json) -> str:
+    """The web stage's key for one building: its IFC and engine JSON, the web code, [web] and the agent's height and
+    step (tests/test_web.py uses it to find the walk grids under model/ that are current)."""
+    from estate.pipeline import state as st
+    wcfg = {"web": dict(cfg.get("web", {})),
+            "agent": {k: v for k, v in cfg.get("agent", {}).items() if k in ("height", "step")}}
+    return st.stage_key("web", dict({"target": target}, **wcfg), [ifc, engine_json])
+
+
 def stage_web(a, cfg, targets, state):
     """<ID>_walk.bin and <ID>_web.json for every building (estate/web/export.py), from its IFC and the engine JSON
     the glb stage wrote, keyed on both, the web code (with nav3d and the door poses) and [web] / the agent. Runs in
@@ -261,7 +270,7 @@ def stage_web(a, cfg, targets, state):
             failed.append(dict(target=t.id, stage="web", error=f"{env.rel(eng)} missing (run the glb stage)"))
             print(f"  {t.id:<9} web: no engine JSON")
             continue
-        key = st.stage_key("web", dict({"target": t.id}, **wcfg), [t.ifc, eng])
+        key = web_key(cfg, t.id, t.ifc, eng)
         if not getattr(a, "force", False) and st.fresh(state, t.id, "web", key):
             print(f"  {t.id:<9} web: up to date")
             continue

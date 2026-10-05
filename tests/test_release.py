@@ -1,9 +1,10 @@
 """Release zips (estate/web/release.py) on a small stand-in build: allowlisted entries only, byte-identical zips from
 two runs (sorted entries, fixed time and mode, deflate 9), release_manifest.json, and every refusal: a leak in any
 entry or entry name (a PNG text chunk naming a Users folder), a dirty generator, a commit that is not HEAD or an
-ancestor of it with the same generator, an export changed after export_info.json or the manifest hashed it, a file
-older code wrote, a failed build, a required file missing, an interior chunk the manifest does not list, and an
-output folder inside model/ or reports/.
+ancestor of it with the same generator (mocked, and against a real repository), an export changed after
+export_info.json or the manifest hashed it, a file older code wrote, a failed build, a required file missing, an
+interior chunk the manifest does not list, a stair path a viewer cannot walk on the walk grid shipped beside it, and
+an output folder inside model/ or reports/.
 
 Run: "<blender python>" -I -B tests/test_release.py -v
 """
@@ -117,6 +118,54 @@ def stand_in(root: Path, commit=None, dirty=False) -> tuple[Path, Path]:
     return m, r
 
 
+def rewrite(m: Path, rel: str, data: bytes) -> None:
+    """Replace a walk grid or web JSON and record its new hash in export_info.json, as a build would."""
+    (m / rel).write_bytes(data)
+    info = json.loads((m / "export_info.json").read_text(encoding="utf-8"))
+    info["files"][rel] = {"sha256": _sha(m / rel), "bytes": (m / rel).stat().st_size}
+    (m / "export_info.json").write_text(json.dumps(info), encoding="utf-8")
+
+
+def ramp(blocked=()) -> bytes:
+    """A one-flight stair on 12 x 3 cells of 0.1 m: every row rises from 0.0 (ix 0, 1) by 0.1 m a cell to 1.0
+    (ix 11); L1 at 0.0, L2 at 1.0 (ix 9..11 are L2's, from its band edge at 0.75). ``blocked``: cells with none."""
+    from estate.web import sn5w
+    B = sn5w.BLOCKED
+    l1, l2 = [B] * 36, [B] * 36
+    for iy in range(3):
+        for ix in range(12):
+            h = max(0, ix - 1) * 100
+            if (ix, iy) not in blocked:
+                (l1 if h < 750 else l2)[iy * 12 + ix] = h if h < 750 else h - 1000
+    return sn5w.encode(12, 3, 0.1, 0.2, 0.4, (0.0, 0.0), [dict(tag="L1", ffl=0.0, raster=l1),
+                                                         dict(tag="L2", ffl=1.0, raster=l2)], 0)
+
+
+def stair_web() -> bytes:
+    path = [[ix * 0.1 + 0.05, 0.15, max(0, ix - 1) * 0.1] for ix in range(12)]
+    stair = dict(name="L1 stair 1", storey="L1", to="L2", from_ffl=0.0, to_ffl=1.0, path=path)
+    return json.dumps({"schema": "sample-town-n5/web/1", "walk": {"band_pad": 0.25}, "stairs": [stair]}).encode()
+
+
+def git_repo(root: Path) -> tuple:
+    """A real git repository with a generator file (estate/x.py), a config and a report: (run, commit M).
+    ``run(*args)`` runs git there and returns its stripped output."""
+    import subprocess
+
+    def run(*args):
+        return subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.invalid",
+                               "-c", "commit.gpgsign=false", *args], cwd=root, check=True, capture_output=True,
+                              text=True).stdout.strip()
+    root.mkdir(parents=True)
+    run("init", "-q", "-b", "main")
+    for rel, text in (("estate/x.py", "A = 1\n"), ("config/estate.toml", "[estate]\n"), ("reports/r.json", "{}\n")):
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        (root / rel).write_text(text, encoding="utf-8")
+    run("add", "-A")
+    run("commit", "-q", "-m", "M")
+    return run, run("rev-parse", "HEAD")
+
+
 @unittest.skipIf(git("rev-parse", "HEAD") is None, "not a git checkout")
 class Release(unittest.TestCase):
     def setUp(self):
@@ -226,6 +275,49 @@ class Release(unittest.TestCase):
         m, r = stand_in(self.tmp / "b", commit="c" * 40)
         with mock.patch("estate.web.info.git", fake("")):
             self.refused(m, r, "ancestor")
+
+    def test_release_order_with_real_git(self):
+        """The same rules against a real repository (no mock of git): built on M, released on R (M plus a commit of
+        the reports only), naming both; refused for a commit HEAD does not descend from (another branch), and once a
+        later commit changes the generator (estate/)."""
+        repo = self.tmp / "repo"
+        run, built = git_repo(repo)
+        (repo / "reports" / "r.json").write_text('{"seconds": 2}\n', encoding="utf-8")
+        run("commit", "-q", "-am", "R")
+        head = run("rev-parse", "HEAD")
+        m, r = stand_in(self.tmp / "a", commit=built)
+        man = release.release("v1.2-rc", self.tmp / "out", m, r, root=repo, log=lambda *a: None)
+        self.assertEqual((man["commit"], man["head"]), (built, head))
+        run("checkout", "-q", "-b", "side", built)
+        (repo / "config" / "estate.toml").write_text("[estate]\nseed = 2\n", encoding="utf-8")
+        run("commit", "-q", "-am", "side")
+        side = run("rev-parse", "HEAD")
+        run("checkout", "-q", "main")
+        m2, _ = stand_in(self.tmp / "b", commit=side)
+        with self.assertRaises(release.Refused) as cm:
+            release.check_export(m2, root=repo)
+        self.assertIn("not HEAD", str(cm.exception))
+        (repo / "estate" / "x.py").write_text("A = 2\n", encoding="utf-8")
+        run("commit", "-q", "-am", "generator")
+        with self.assertRaises(release.Refused) as cm:
+            release.check_export(m, root=repo)
+        self.assertIn("generator changed", str(cm.exception))
+        self.assertIn("estate/x.py", str(cm.exception))
+
+    def test_stair_paths_checked(self):
+        """A stair path a viewer can walk on the shipped walk grid is released; one whose first point (and the line
+        from it) has no floor, as the void-deck stairs had beside their opened fire doors, refuses the release; so
+        does a web JSON that does not parse."""
+        m, r = stand_in(self.tmp / "a")
+        rewrite(m, "BLK_1/BLK_1_walk.bin", ramp())
+        rewrite(m, "BLK_1/BLK_1_web.json", stair_web())
+        self.run_release(m, r)
+        rewrite(m, "BLK_1/BLK_1_walk.bin", ramp(blocked={(0, 1)}))
+        msg = self.refused(m, r, "stair paths a viewer cannot walk", "out2")
+        self.assertIn("BLK_1 L1 stair 1: the first point (0.050, 0.150, 0.000) stands on no floor", msg)
+        rewrite(m, "BLK_1/BLK_1_walk.bin", ramp())
+        rewrite(m, "BLK_1/BLK_1_web.json", b"{")
+        self.refused(m, r, "web JSON unreadable", "out3")
 
     def test_stale_export_refused(self):
         """A walk grid / web JSON changed after export_info.json, or a file changed after the manifest hashed it, or

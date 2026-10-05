@@ -1,0 +1,236 @@
+"""The exported walk grid as a viewer reads it, and what every building's stair paths must hold on it.
+
+``Grid`` reads an SN5W file (estate/web/sn5w.py) the way the portfolio viewer does (plan 8.4, lib/estate/walk.ts),
+from the file's own f32 header values:
+
+- ``floor_at(x, y, z)``: floorAt. In the cell floor((x - origin_x) / cell), floor((y - origin_y) / cell), the floor
+  closest to the feet height z within +-step (0.40 m), raster and overflow records alike, from the layers whose band
+  meets [z - step, z + step]; at equal distance the higher floor. None for a blocked or off-grid cell.
+- ``nearest(x, y, z, reach)``: nearestWalkable. The point's own cell if it has a floor, else the cell centre nearest
+  the point (ties to the lower iy, then ix) that has one, no further than ``reach``.
+- ``band(z)``: the layer owning height z: FFL_s - band_pad <= z < FFL_s+1 - band_pad, in whole millimetres, as
+  estate/web/walk.py files the floors.
+
+``stair_errors(grid, stairs)`` holds the web JSON's stair paths to that reading (an empty list when they keep it):
+
+1. every point of a path snaps to a walkable cell within SNAP (0.1 m) on the grid of its own storey band: a floor
+   of layer band(z) within +-step of z, in a cell whose centre is within SNAP of the point (or the point's own cell);
+2. every SAMPLE (0.05 m) along every segment, both ends included, has a floor under it (floor_at), so a viewer
+   walking or auto-climbing the path never leaves the grid, not even past a corner or an opened leaf;
+3. the first point stands on its storey's layer and the last on the ``to`` storey's layer, each within END_DZ of
+   that storey's FFL, on a floor of their own cell;
+4. heights never fall and never rise more than a step between consecutive points.
+
+``band_errors(grid)`` reports floors filed outside their layer's band (a viewer skips layers by band, so it could
+miss one), and ``site_errors`` is both for one building. The web stage runs stair_errors on the bytes it is about to
+write (estate/web/export.py), the release site_errors on the files it ships (estate/web/release.py), and
+tests/test_web.py both on the test block and on every current building under model/.
+"""
+from __future__ import annotations
+
+import math
+
+import numpy as np
+
+from estate.web import sn5w
+
+SNAP = 0.10                 # m: how far a path point may sit from the centre of a walkable cell of its band
+SAMPLE = 0.05               # m between the points of a segment checked for a floor
+END_DZ = 0.05               # m: the first and last points' floors against the FFLs of their storeys
+EPS = 1e-9                  # the viewer's tolerance on floor distances (lib/estate/walk.ts)
+PRUNE_SLACK = 0.001         # m: the viewer's slack when it skips the layers a feet height cannot reach
+BAND_PAD = 0.25             # m below an FFL where a storey's band starts (web.json walk.band_pad; the viewer's too)
+
+
+class Grid:
+    """An SN5W file decoded for floor lookups (numpy): rasters resolved to absolute mm, overflow records by cell."""
+
+    def __init__(self, data: bytes, band_pad: float = BAND_PAD):
+        t = sn5w.read_table(data)
+        data = bytes(data)
+        self.nx, self.ny, self.cell, self.step = t["nx"], t["ny"], float(t["cell"]), float(t["step"])
+        self.ox, self.oy = (float(v) for v in t["origin"])
+        lays = t["layers"]
+        self.tags = [lay["tag"] for lay in lays]
+        self.ffl = [float(lay["ffl"]) for lay in lays]
+        n = self.nx * self.ny
+        stored = {i: np.frombuffer(data, "<i2", n, lay["raster_off"]).astype(np.int32)
+                  for i, lay in enumerate(lays) if lay["mode"] != "same"}
+        base = stored[t["ref"]]
+        self.rasters = []
+        for i, lay in enumerate(lays):
+            r = base if lay["mode"] == "same" else stored[i]
+            if lay["mode"] == "delta":
+                r = (r + base + 32768) % 65536 - 32768
+            self.rasters.append(r.astype(np.int16))
+        self.overflow = []
+        for lay in lays:
+            recs = {}
+            o = lay["overflow_off"]
+            for ix, iy, mm, _ in sn5w._OVERFLOW.iter_unpack(data[o:o + 8 * lay["overflow_count"]]):
+                recs.setdefault(iy * self.nx + ix, []).append(mm)
+            self.overflow.append(recs)
+        pad = float(band_pad)
+        self.band_lo = [-math.inf] + [f - pad for f in self.ffl[1:]]
+        self.band_hi = [f - pad for f in self.ffl[1:]] + [math.inf]
+        self._edges_mm = [int(round(f * 1000)) - int(round(pad * 1000)) for f in self.ffl]
+
+    # ------------------------------------------------------------------ cells
+    def cell_of(self, x: float, y: float) -> tuple[int, int]:
+        """The cell of block-local (x, y), computed as the viewer does (times the reciprocal of the cell, floored)."""
+        inv = 1.0 / self.cell
+        return math.floor((x - self.ox) * inv), math.floor((y - self.oy) * inv)
+
+    def centre(self, ix: int, iy: int) -> tuple[float, float]:
+        return self.ox + (ix + 0.5) * self.cell, self.oy + (iy + 0.5) * self.cell
+
+    def floors(self, ix: int, iy: int, layers=None) -> list[tuple[float, int]]:
+        """Every floor of cell (ix, iy): [(height m, layer)], of ``layers`` only when given."""
+        if not (0 <= ix < self.nx and 0 <= iy < self.ny):
+            return []
+        key = iy * self.nx + ix
+        out = []
+        for i in (range(len(self.ffl)) if layers is None else layers):
+            v = int(self.rasters[i][key])
+            if v != sn5w.BLOCKED:
+                out.append((self.ffl[i] + v / 1000.0, i))
+            out += [(self.ffl[i] + mm / 1000.0, i) for mm in self.overflow[i].get(key, ())]
+        return out
+
+    def floor_in_cell(self, ix: int, iy: int, z: float, layers=None):
+        """(floor, layer) of cell (ix, iy) closest to z within +-step, from the layers whose band meets that reach
+        (and among ``layers`` when given); None when there is none."""
+        if not (0 <= ix < self.nx and 0 <= iy < self.ny) or not math.isfinite(z):
+            return None
+        lo, hi = z - self.step - EPS, z + self.step + EPS
+        cand = [i for i in range(len(self.ffl)) if not (self.band_lo[i] > hi + PRUNE_SLACK
+                                                         or self.band_hi[i] < lo - PRUNE_SLACK)]
+        if layers is not None:
+            cand = [i for i in cand if i in layers]
+        best = None
+        for f, i in self.floors(ix, iy, cand):
+            if lo <= f <= hi and (best is None or abs(f - z) < abs(best[0] - z) - EPS
+                                  or (abs(f - z) <= abs(best[0] - z) + EPS and f > best[0])):
+                best = (f, i)
+        return best
+
+    def floor_at(self, x: float, y: float, z: float, layers=None):
+        """floorAt: (floor, layer) under block-local (x, y) for feet at z, or None."""
+        return self.floor_in_cell(*self.cell_of(x, y), z, layers)
+
+    def nearest(self, x: float, y: float, z: float, reach: float, layers=None):
+        """nearestWalkable: (x, y, floor, layer) of the point itself if its cell has a floor for feet at z, else of
+        the nearest cell centre within ``reach`` that has one (ties to the lower iy, then ix); None."""
+        cx, cy = self.cell_of(x, y)
+        own = self.floor_in_cell(cx, cy, z, layers)
+        if own is not None:
+            return x, y, own[0], own[1]
+        if not reach > 0:
+            return None
+        k = math.ceil(reach / self.cell) + 1
+        limit, best = reach * reach + EPS, None
+        for iy in range(max(0, cy - k), min(self.ny - 1, cy + k) + 1):
+            for ix in range(max(0, cx - k), min(self.nx - 1, cx + k) + 1):
+                px, py = self.centre(ix, iy)
+                d2 = (px - x) ** 2 + (py - y) ** 2
+                if d2 > limit or (best is not None and d2 >= best[0]):
+                    continue
+                f = self.floor_in_cell(ix, iy, z, layers)
+                if f is not None:
+                    best = (d2, px, py, f[0], f[1])
+        return None if best is None else best[1:]
+
+    def band(self, z: float) -> int:
+        """The layer owning height z (whole mm; the lowest takes everything below, the top everything above)."""
+        mm = int(round(z * 1000))
+        i = 0
+        while i + 1 < len(self._edges_mm) and mm >= self._edges_mm[i + 1]:
+            i += 1
+        return i
+
+    def spans(self) -> dict:
+        """Every floor of the grid, raster and overflow: numpy arrays ix, iy, mm (above its layer's FFL), layer."""
+        cols = {k: [] for k in ("ix", "iy", "mm", "layer")}
+        for i, r in enumerate(self.rasters):
+            idx = np.nonzero(r != sn5w.BLOCKED)[0]
+            keys = np.array(sorted(self.overflow[i]), np.int64)
+            reps = np.array([len(self.overflow[i][k]) for k in keys.tolist()], np.int64)
+            okey = np.repeat(keys, reps)
+            omm = np.array([mm for k in keys.tolist() for mm in self.overflow[i][k]], np.int64)
+            key = np.concatenate([idx, okey])
+            cols["ix"].append(key % self.nx)
+            cols["iy"].append(key // self.nx)
+            cols["mm"].append(np.concatenate([r[idx].astype(np.int64), omm]))
+            cols["layer"].append(np.full(len(key), i, np.int64))
+        return {k: np.concatenate(v) if v else np.zeros(0, np.int64) for k, v in cols.items()}
+
+
+def band_errors(grid: Grid) -> list[str]:
+    """Floors stored outside their layer's band (FFL_s - band_pad <= FFL_s + mm < FFL_s+1 - band_pad, whole mm; no
+    lower edge for the lowest layer, no upper one for the top): a viewer prunes layers by band, so such a floor can
+    go unseen. One line per layer that has any."""
+    s, out = grid.spans(), []
+    ffl = [int(round(f * 1000)) for f in grid.ffl]
+    for i, tag in enumerate(grid.tags):
+        a = ffl[i] + s["mm"][s["layer"] == i]
+        lo = grid._edges_mm[i] if i else -(1 << 40)
+        hi = grid._edges_mm[i + 1] if i + 1 < len(ffl) else 1 << 40
+        bad = a[(a < lo) | (a >= hi)]
+        if len(bad):
+            out.append(f"layer {tag}: {len(bad)} floor(s) outside its band [{lo if i else '-inf'}, "
+                       f"{hi if i + 1 < len(ffl) else 'inf'}) mm, e.g. {int(bad[0])} mm")
+    return out
+
+
+def _fmt(p) -> str:
+    return "(" + ", ".join(f"{float(v):.3f}" for v in p) + ")"
+
+
+def samples(p, q, step: float = SAMPLE):
+    """Points of the segment p -> q ([x, y, z], z interpolated) no more than ``step`` apart in plan, both ends."""
+    p, q = np.asarray(p, float), np.asarray(q, float)
+    n = max(1, int(math.ceil(float(np.hypot(*(q[:2] - p[:2]))) / step)))
+    return [p + (j / n) * (q - p) for j in range(n + 1)]
+
+
+def stair_errors(grid: Grid, stairs: list, limit: int = 0) -> list[str]:
+    """What breaks the rules of this module's docstring in the web JSON's ``stairs`` on ``grid``, one line per
+    stair and rule (``limit``: stop after that many lines, 0 for all)."""
+    index = {tag: i for i, tag in enumerate(grid.tags)}
+    out = []
+    for s in stairs:
+        name, P = s.get("name") or "?", [list(map(float, p)) for p in s.get("path") or ()]
+        if len(P) < 2:
+            out.append(f"{name}: a path of {len(P)} point(s)")
+            continue
+        dz = [b[2] - a[2] for a, b in zip(P, P[1:])]
+        if min(dz) < -1e-6 or max(dz) > grid.step + 1e-6:
+            out.append(f"{name}: the path falls or rises more than a step between points ({min(dz):.3f} .. "
+                       f"{max(dz):.3f} m)")
+        far = [(i, p) for i, p in enumerate(P) if grid.nearest(*p, SNAP, layers=(grid.band(p[2]),)) is None]
+        if far:
+            i, p = far[0]
+            out.append(f"{name}: {len(far)} point(s) with no walkable cell of their band within {SNAP} m, first "
+                       f"path[{i}] {_fmt(p)} ({grid.tags[grid.band(p[2])]})")
+        off = [x for a, b in zip(P, P[1:]) for x in samples(a, b) if grid.floor_at(*x) is None]
+        if off:
+            out.append(f"{name}: {len(off)} sample(s) every {SAMPLE} m along the path with no floor under them, "
+                       f"first {_fmt(off[0])}")
+        for which, p, tag, ffl in (("first", P[0], s.get("storey"), s.get("from_ffl")),
+                                   ("last", P[-1], s.get("to"), s.get("to_ffl"))):
+            hit = grid.floor_at(*p)
+            if tag not in index or ffl is None:
+                out.append(f"{name}: the {which} point's storey {tag!r} is not a layer of the grid")
+            elif hit is None or hit[1] != index[tag] or abs(hit[0] - float(ffl)) > END_DZ:
+                got = "no floor" if hit is None else f"{hit[0]:.3f} on {grid.tags[hit[1]]}"
+                out.append(f"{name}: the {which} point {_fmt(p)} stands on {got}, not {tag} at {float(ffl):.3f}")
+        if limit and len(out) >= limit:
+            return out[:limit]
+    return out
+
+
+def site_errors(walk_bytes: bytes, web: dict, limit: int = 0) -> list[str]:
+    """band_errors and stair_errors of one building's walk grid and web JSON (its walk.band_pad when recorded)."""
+    grid = Grid(walk_bytes, (web.get("walk") or {}).get("band_pad", BAND_PAD))
+    out = band_errors(grid) + stair_errors(grid, web.get("stairs") or [], limit)
+    return out[:limit] if limit else out

@@ -19,7 +19,9 @@ ring; empty for a leaf that opens above head height), ``grid`` what the walk gri
 "passthrough" (left unblocked because blocking it would cut its doorway or a room off) or "overhead". Rings repeat
 their first point, as the engine JSON's rooms do. A stair's ``path`` stands on the walk grid written beside it
 (stairs.fit_paths: ``stair_points_moved``, ``stair_points_dropped``; ``stair_off_grid`` counts the 0.05 m samples of
-the paths still without a floor, which tests/test_web.py holds at 0).
+the paths still without a floor). The grid is decoded and held to estate/web/walkcheck.py before anything is
+written: a stair path a viewer cannot walk on it, or a floor outside its band, fails the building (the release
+checks the files again).
 Coordinates are rounded to the millimetre, the matrices to 1e-6; nothing depends on a clock.
 """
 from __future__ import annotations
@@ -54,7 +56,7 @@ def build(ifc, engine_json, out_dir, stem, cfg=None, log=None) -> dict:
     from estate.validate import nav3d
     from estate.validate import nav_doorpose as doorpose
     from estate.web import stairs as stairs_mod
-    from estate.web import walk
+    from estate.web import walk, walkcheck
     say = log or (lambda *_: None)
     t0 = time.time()
     wc = walk.WalkConfig.of(cfg)
@@ -93,6 +95,10 @@ def build(ifc, engine_json, out_dir, stem, cfg=None, log=None) -> dict:
         say(f"  {stem}: {fit['off']} points of the stair paths have no floor on the walk grid")
     nx, ny, origin, lays = walk.layers(w, keep, storeys, offset, wc.band_pad)
     data, ref, coarse = walk.encode(nx, ny, origin, lays, wc)
+    grid = walkcheck.Grid(data, wc.band_pad)  # the grid as a viewer decodes it: nothing is written unless it holds
+    bad = walkcheck.band_errors(grid) + walkcheck.stair_errors(grid, stairs, limit=8)
+    if bad:
+        raise ValueError(f"{stem}: the exported walk grid fails estate/web/walkcheck.py: " + "; ".join(bad[:8]))
     walk_path, web_path = out_dir / f"{stem}_walk.bin", out_dir / f"{stem}_web.json"
     st = w.stats
     info = dict(file=walk_path.name, cell=round(wc.cell * (2 if coarse else 1), 3), radius=wc.radius, step=wc.step,

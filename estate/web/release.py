@@ -25,6 +25,9 @@ The release is refused when:
 - a required file is missing (the IFC, LOD glbs, engine JSON, walk grid and web JSON of every site the manifest
   lists, the site files, and REQUIRED_REPORTS: the estate's camera views and the aerial a viewer's poster is made
   from), or an interior chunk on disk is not one the manifest lists;
+- a stair path of a web JSON cannot be walked on the walk grid beside it as a viewer decodes it, or a floor of the
+  grid lies outside its band (estate/web/walkcheck.py: every point within 0.1 m of a walkable cell of its storey
+  band, a floor under every 0.05 m, the first and last points on the floors of their storeys);
 - --out lies inside model/ or reports/ (a second release would take in the first one's output);
 - the leak scan (estate/leaks.py) finds a machine path or the username in an entry, an entry's name or a zip
   written, or cannot read an entry.
@@ -208,6 +211,26 @@ def check_current(made_by: dict, state: dict, reports_dir: Path) -> None:
                       + " -- rebuild (./estate.sh build --force)")
 
 
+def check_walks(model_dir: Path, sites) -> None:
+    """Every stair path of every building's web JSON can be walked on the walk grid shipped beside it, read as a
+    viewer reads it, and every floor of the grid lies in its band (estate/web/walkcheck.py site_errors: each point
+    within 0.1 m of a walkable cell of its storey band, a floor under every 0.05 m of it, first and last points on
+    their storeys' floors)."""
+    from estate.web import walkcheck
+    bad = []
+    for sid in sites:
+        folder = model_dir / sid
+        try:
+            web = json.loads((folder / f"{sid}_web.json").read_text(encoding="utf-8"))
+            errs = walkcheck.site_errors((folder / f"{sid}_walk.bin").read_bytes(), web, limit=3)
+        except (OSError, ValueError, KeyError, TypeError) as e:
+            errs = [f"walk grid / web JSON unreadable ({type(e).__name__}: {e})"]
+        bad += [f"{sid} {e}" for e in errs]
+    if bad:
+        raise Refused(f"stair paths a viewer cannot walk on the shipped walk grids: {'; '.join(bad[:8])}"
+                      f"{' ...' if len(bad) > 8 else ''} -- rebuild the web stage")
+
+
 def manifest_hashes(model_dir: Path) -> dict:
     """{zip path: sha256} of every file the estate manifest lists with a hash."""
     man = _manifest(model_dir)
@@ -279,6 +302,7 @@ def release(tag: str, out, model_dir=None, reports_dir=None, root=None, log=prin
         for f in findings[:40]:
             log(f"  leak: {f}")
         raise Refused(f"leak scan: {len(findings)} finding(s) in the release entries")
+    check_walks(model_dir, targets[:-2])
     out.mkdir(parents=True, exist_ok=True)
     manifest = {"tag": tag, "commit": info["commit"], "head": info["head"], "zips": {},
                 "entries": dict(sorted(entries.items()))}
