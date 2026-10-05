@@ -116,7 +116,7 @@ def cmd_site(a):
         bad += 1
     rep = (out.parent if a.out else env.REPORTS) / "site_build.json"
     rep.parent.mkdir(parents=True, exist_ok=True)
-    rep.write_text(json.dumps(builder.site_report(info), indent=1, default=str), encoding="utf-8")
+    builder.write_site_report(info, rep)
     print(f"done in {time.time() - t0:.1f} s -> {env.rel(out)}, {env.rel(graph)}"
           f"{', ' + env.rel(png) if png else ''}{', ' + env.rel(svg) if svg else ''}, {env.rel(rep)}")
     return 1 if bad else 0

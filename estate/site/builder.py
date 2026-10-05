@@ -1775,6 +1775,14 @@ def site_report(info: dict) -> dict:
     return {k: env.rel(v) if k in REPORT_PATHS and v else v for k, v in info.items()}
 
 
+def write_site_report(info: dict, path) -> dict:
+    """Write site_report(info) to ``path`` (reports/site_build.json in the build and in `estate site`); the one
+    writer of that file, so the relative paths cannot be skipped by either caller. Returns what it wrote."""
+    rep = site_report(info)
+    Path(path).write_text(json.dumps(rep, indent=1, default=str), encoding="utf-8")
+    return rep
+
+
 def build_site(mp: dict, out_path, schema="IFC4X3", graph_path=None, plan_png=None, layout=None, log=None,
                model_dir=None, check=True, plan_svg=None):
     """Plan (unless a layout is given) and write the site model; optionally the pedestrian graph and the site plan
