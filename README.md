@@ -18,8 +18,9 @@ Everything runs on Blender 5.2's bundled Python (`estate.cmd` on Windows, `./est
 ./estate.sh doctor          # versions, paths, Bonsai, process pool
 ./estate.sh catalogue       # check all flat templates + render reports/flat_gallery/
 ./estate.sh plan            # masterplan, unit mix, layout variety, siting, plan-level checks (no IFC)
-./estate.sh build           # all stages: ifc, drawings, check, nav, glb, blend, render, estate (incremental)
+./estate.sh build           # all stages: ifc, drawings, check, nav, glb, blend, render, estate, web (incremental)
 ./estate.sh report          # reports/report.html, report.json and issues.bcf (also written at the end of every full build)
+./estate.sh release --tag v1.2 --out DIR   # the release zips of the current build (see "Web export"); uploads nothing
 ./estate.sh test            # unit tests
 ./estate.sh clean           # prune caches and temp files (--all-caches, --link-caches)
 ```
@@ -56,6 +57,7 @@ renders an eye-level view from a bus stop.
 | `plans/<id>_{ground,typical,roof}.png` | Plans of the generator's floor plates. |
 | `plans/<id>_<storey>_ifc.png`, `plans/<id>_stair_<n>.png` | L1, typical and roof plans cut from the IFC at FFL + 1.2 m, and one section per stair enclosure. These are also drawn for frozen (hand-edited) blocks, the MSCP and the NC. |
 | `masterplan.json`, `SITE_graph.json` | Resolved footprints and entrances, and the pedestrian network. |
+| `*_walk.bin`, `*_web.json`, `export_info.json` | The web export for a browser viewer: per-storey walk grids (SN5W), stairs with walking paths, and the opened pose of every passable door leaf, per building; and the provenance of the whole export. See "Web export". |
 
 `reports/` holds:
 - `report.html` and its JSON twin `report.json` (every section's data in page order, plus a `files` list of the
@@ -97,12 +99,77 @@ carries them as zips; the v1.0 and v1.1 zips were withdrawn because they held ab
 - `export/`: tessellation cache, a glTF writer (no trimesh), engine JSON with LOD0-2 and per-storey interior chunks, and the manifest.
 - `blender/`: headless Bonsai scripts (`make_blend`, `make_estate`, `verify_blend`, `render`) driven by `run.py`. `render` also takes placed perspective cameras (`cameras: {view: {eye, target, lens, clip, shift, res, sky}}`).
 - `report/`: `html.py` reads every section's data from the artefacts (`collect()`, fixed key order, no clock) and renders `report.html`; the same dict is written as `report.json`. `bcf_out.py` turns the validation items into `issues.bcf` with the bcf library's v2 API; GUIDs come from `estate.guids.from_text`, and dates and zip entry times are fixed, so two writes are byte-identical. `street.py` (no bpy) places the bus-stop camera from `masterplan.json` and `SITE_graph.json`. It sits outside every stage's code hash, so tuning it re-renders only ESTATE (the camera is in that render key).
+- `web/`: the `web` stage (walk grids, stairs, door poses: `walk.py`, `sn5w.py`, `stairs.py`, `export.py`),
+  `export_info.json` (`info.py`) and the `release` command (`release.py`). The door-leaf pose formula has one home,
+  `validate/nav_doorpose.py`, which the engine export imports too.
 - `pipeline/`: targets, incremental state (`model/.state.json`) and the build stages.
 
 Builds are deterministic and IDs are stable. Every named element takes its GlobalId from a stable key (building + class
 + name, or a wall's storey, type and endpoints), so an element keeps its GUID when unrelated parts of the config change.
 Wall joins take theirs from the relating wall's GlobalId and end, and each wall's material usage from its wall.
 The GUID is also the same in the IFC4 copy. Set iteration is made stable, so the same config produces byte-identical IFC.
+
+## Web export
+
+The `web` stage runs after `estate` (`[outputs] web = true`, settings in `[web]` of `config/estate.toml`) and writes
+two files per building from its IFC and engine JSON; the site has none (a viewer samples its ground).
+
+**`<ID>_walk.bin`: SN5W walk grids.** nav3d's walk test (`estate/validate/nav3d.py`, unchanged) run again for a
+0.20 m agent on 0.10 m cells: the same voxeliser and solid, the same walkability test and fine door test. Then:
+doorways the door test passes but the 0.1 m grid misses are stamped walkable; every passable leaf is blocked in its
+opened pose, dilated by the radius (a leaf that would cut its doorway goes through, `leaf_passthrough`; one whose
+full swing would cut off part of a room opens less, `leaf_narrowed`, e.g. a main door swinging over a household
+shelter door); only cells reachable from the street are kept. Storey s owns the floors from FFL_s - 0.25 m to
+FFL_s+1 - 0.25 m (RF everything above); in each cell the floor closest to FFL_s is the layer's raster value and
+any other floor in that band an overflow record. Coordinates are block-local, heights int16 mm above the storey's
+FFL. The format (little-endian, `estate/web/sn5w.py` has the full description, `tests/fixtures/web/sn5w_sample.bin`
+is a 240-byte example decoded field by field in `tests/test_web.py`):
+
+```
+0  "SN5W"  4 u16 version 1  6 u16 flags (bit 0 delta layers, bit 1 coarse 0.2 m fallback)
+8  f32 cell  12 f32 radius  16 f32 step  20 f32 origin_x  24 f32 origin_y (block-local corner of cell 0,0)
+28 u16 nx  30 u16 ny  32 u16 n_layers  34 u16 ref_layer  36..63 reserved 0
+64 n_layers x 32 B: char[4] tag ("L1\0\0", "RF\0\0") f32 ffl u8 mode (0 raw, 1 delta, 2 same) u8 0 u16 0
+                    u32 raster_off u32 raster_len u32 overflow_count u32 overflow_off u32 0
+raster int16[nx*ny] (iy*nx+ix; 0x7FFF = no floor; delta = value - reference, wrapping); overflow {u16 ix, u16 iy,
+i16 mm, u16 0} sorted by (iy, ix, mm); the sections follow the table in layer order with no gaps
+```
+
+The reference layer is the typical storey with the most walkable cells; a layer equal to it is stored as `same`
+(no raster). A file over `max_walk_gz` (128 KB gzipped) falls back to 0.2 m cells, walkable where all four 0.1 m
+cells are.
+
+**`<ID>_web.json`** (`sample-town-n5/web/1`, block-local, Z up, metres): `walk` (the grid's figures), `stairs`
+(per IfcStair: name, room, storey and the storey it reaches, both FFLs, its flights with start, end, width, risers,
+riser and going from the IFC, its landings, and a walking `path` from the floor landing tread by tread to the next
+floor, never rising more than a riser between points) and `doors` (per leaf of every passable door; lift landing
+doors stay closed and are absent): `leaf_node`, `storey`, `motion`, `angle` (swing leaves), `open` (the row-major
+3 x 4 matrix that takes the closed leaf to its opened pose; `validate/nav_doorpose.py`), `blocked` (the opened
+leaf's plan) and `grid` (`blocked`, `passthrough` or `overhead` for a rolled-up shutter).
+
+**`model/export_info.json`** (`sample-town-n5/export-info/1`), written by `build` right after the manifest: the
+commit (`git rev-parse HEAD`), whether the generator was dirty (`git status --porcelain -- estate config estate.py
+estate.sh estate.cmd`), the seed, the tool versions, the walk figures summed over the buildings, the sha256 of
+`estate_manifest.json`, and sha256 and size of every walk grid and web JSON. It holds no date or time, so two
+builds of one commit give the same bytes. The manifest lists each building's `files.walk` and `files.web`.
+Renders also write `<prefix>_views.json` beside the images (each shot's camera: matrix, lens, sensor, shift,
+resolution), e.g. `reports/renders/ESTATE/ESTATE_views.json`.
+
+**`./estate.sh release --tag vX.Y --out DIR`** writes `SampleTownN5_<tag>_model.zip`,
+`SampleTownN5_<tag>_reports.zip` and `release_manifest.json` (`{tag, commit, zips: {name: {sha256, bytes}},
+entries: {path: sha256}}`) and uploads nothing. The zips hold only:
+- `model/`: `estate_manifest.json`, `export_info.json`, `masterplan.json`, `SITE.ifc`, `SITE_ifc4.ifc`,
+  `SITE_lod0.glb`, `SITE_lod1.glb`, `SITE_engine.json`, `SITE_graph.json`, and per building `<ID>.ifc`,
+  `<ID>_ifc4.ifc`, `<ID>_lod{0,1,2}.glb`, `<ID>_int_*.glb`, `<ID>_engine.json`, `<ID>_flats.json`, `<ID>_nav.json`,
+  `<ID>_validation.json`, `<ID>_walk.bin`, `<ID>_web.json`;
+- `reports/`: `renders/**/*.png`, `renders/**/*_views.json` and `reports/*.json`.
+
+Never a `.blend`, a Bonsai link cache (`*.ifc.cache.*`), `.state.json`, `nav/` or `plans/`. Entries are sorted and
+have a fixed time and mode and deflate level 9, so two runs give identical zips. The release is refused when
+`export_info.json` says the generator was dirty or names another commit than HEAD, when a file no longer has the
+hash the manifest or `export_info.json` recorded, when a required file is missing, or when the leak scan
+(`estate/leaks.py`, every entry: JSON strings, PNG text chunks, GLB JSON, IFC text, walk-grid tags) finds a machine
+path or the username, or cannot read an entry.
 
 ## Editing in Bonsai
 
