@@ -99,8 +99,9 @@ carries them as zips; the v1.0 and v1.1 zips were withdrawn because they held ab
 - `export/`: tessellation cache, a glTF writer (no trimesh), engine JSON with LOD0-2 and per-storey interior chunks, and the manifest.
 - `blender/`: headless Bonsai scripts (`make_blend`, `make_estate`, `verify_blend`, `render`) driven by `run.py`. `render` also takes placed perspective cameras (`cameras: {view: {eye, target, lens, clip, shift, res, sky}}`).
 - `report/`: `html.py` reads every section's data from the artefacts (`collect()`, fixed key order, no clock) and renders `report.html`; the same dict is written as `report.json`. `bcf_out.py` turns the validation items into `issues.bcf` with the bcf library's v2 API; GUIDs come from `estate.guids.from_text`, and dates and zip entry times are fixed, so two writes are byte-identical. `street.py` (no bpy) places the bus-stop camera from `masterplan.json` and `SITE_graph.json`. It sits outside every stage's code hash, so tuning it re-renders only ESTATE (the camera is in that render key).
-- `web/`: the `web` stage (walk grids, stairs, door poses: `walk.py`, `sn5w.py`, `stairs.py`, `export.py`),
-  `export_info.json` (`info.py`) and the `release` command (`release.py`). The door-leaf pose formula has one home,
+- `web/`: the `web` stage (walk grids, stairs, door poses: `walk.py`, `sn5w.py`, `stairs.py`, `export.py`, which
+  with nav3d, the door poses and the mesh cache are its code key), `export_info.json` (`info.py`) and the `release`
+  command (`release.py`), which rerun nothing when edited. The door-leaf pose formula has one home,
   `validate/nav_doorpose.py`, which the engine export imports too.
 - `pipeline/`: targets, incremental state (`model/.state.json`) and the build stages.
 
@@ -118,58 +119,94 @@ two files per building from its IFC and engine JSON; the site has none (a viewer
 0.20 m agent on 0.10 m cells: the same voxeliser and solid, the same walkability test and fine door test. Then:
 doorways the door test passes but the 0.1 m grid misses are stamped walkable; every passable leaf is blocked in its
 opened pose, dilated by the radius (a leaf that would cut its doorway goes through, `leaf_passthrough`; one whose
-full swing would cut off part of a room opens less, `leaf_narrowed`, e.g. a main door swinging over a household
-shelter door); only cells reachable from the street are kept. Storey s owns the floors from FFL_s - 0.25 m to
-FFL_s+1 - 0.25 m (RF everything above); in each cell the floor closest to FFL_s is the layer's raster value and
-any other floor in that band an overflow record. Coordinates are block-local, heights int16 mm above the storey's
-FFL. The format (little-endian, `estate/web/sn5w.py` has the full description, `tests/fixtures/web/sn5w_sample.bin`
-is a 240-byte example decoded field by field in `tests/test_web.py`):
+full swing would cut off part of a room, as judged from the way through its opening, opens less, `leaf_narrowed`,
+e.g. a main door swinging over a household shelter door, or a void-deck stair door over the foot of the flight);
+only cells reachable from the street are kept. Storey s owns the floors from FFL_s - 0.25 m to FFL_s+1 - 0.25 m
+(RF everything above), decided in whole millimetres; in each cell the floor closest to FFL_s is the layer's raster
+value and any other floor in that band an overflow record. Coordinates are block-local, heights int16 mm above the
+storey's FFL. The format (little-endian, `estate/web/sn5w.py` has the full description,
+`tests/fixtures/web/sn5w_sample.bin` is a 304-byte example decoded field by field in `tests/test_web.py`: raw, delta
+and same layers, an all-blocked layer, a layer with no overflow records, a three-character tag, a floor on a band
+edge and the coarse flag):
 
 ```
 0  "SN5W"  4 u16 version 1  6 u16 flags (bit 0 delta layers, bit 1 coarse 0.2 m fallback)
 8  f32 cell  12 f32 radius  16 f32 step  20 f32 origin_x  24 f32 origin_y (block-local corner of cell 0,0)
 28 u16 nx  30 u16 ny  32 u16 n_layers  34 u16 ref_layer  36..63 reserved 0
-64 n_layers x 32 B: char[4] tag ("L1\0\0", "RF\0\0") f32 ffl u8 mode (0 raw, 1 delta, 2 same) u8 0 u16 0
-                    u32 raster_off u32 raster_len u32 overflow_count u32 overflow_off u32 0
+64 n_layers x 32 B: char[4] tag ("L1\0\0", "L12\0", "RF\0\0") f32 ffl u8 mode (0 raw, 1 delta, 2 same) u8 0 u16 0
+                    u32 raster_off u32 raster_len u32 overflow_count u32 overflow_off (0 with no records) u32 0
 raster int16[nx*ny] (iy*nx+ix; 0x7FFF = no floor; delta = value - reference, wrapping); overflow {u16 ix, u16 iy,
 i16 mm, u16 0} sorted by (iy, ix, mm); the sections follow the table in layer order with no gaps
 ```
 
 The reference layer is the typical storey with the most walkable cells; a layer equal to it is stored as `same`
 (no raster). A file over `max_walk_gz` (128 KB gzipped) falls back to 0.2 m cells, walkable where all four 0.1 m
-cells are.
+cells are. Read the cell size from the header.
 
 **`<ID>_web.json`** (`sample-town-n5/web/1`, block-local, Z up, metres): `walk` (the grid's figures), `stairs`
 (per IfcStair: name, room, storey and the storey it reaches, both FFLs, its flights with start, end, width, risers,
 riser and going from the IFC, its landings, and a walking `path` from the floor landing tread by tread to the next
 floor, never rising more than a riser between points) and `doors` (per leaf of every passable door; lift landing
-doors stay closed and are absent): `leaf_node`, `storey`, `motion`, `angle` (swing leaves), `open` (the row-major
-3 x 4 matrix that takes the closed leaf to its opened pose; `validate/nav_doorpose.py`), `blocked` (the opened
-leaf's plan) and `grid` (`blocked`, `passthrough` or `overhead` for a rolled-up shutter).
+doors stay closed and are absent): `leaf_node`, `storey`, `motion`, `angle` (swing leaves), `open`, `blocked` and
+`grid` (`blocked`, `passthrough` or `overhead` for a rolled-up shutter).
+- `path` stands on the walk grid all the way: every 0.05 m of it has a floor within 0.4 m in its own cell. Where a
+  landing's centre has none (in an opened leaf's sweep, beside a column) or the line to it clips a corner, the
+  point moves to the nearest cell of that landing from which both lines are clear (`walk.stair_points_moved`;
+  `stair_off_grid` counts what is still off, 0 on every building).
+- `open` is the row-major 3 x 4 matrix (`validate/nav_doorpose.py`) that takes the closed leaf to its opened pose
+  in block-local, Z-up coordinates: it premultiplies the leaf's block-local world transform. In a glb (Y up, with
+  C: (x, y, z) -> (x, z, -y)) apply C O C^-1 to the leaf node's world matrix, then the inverse of its parent's world
+  matrix (the `DOOR_` node, which carries the door's placement) for its local matrix; applied to the local matrix
+  directly it is wrong.
+- `blocked` is the plan of the opened leaf's box, without its lever handles (they stand about 4 cm proud).
+- A door's two sides are best probed in front of its opening (within its clear width, 0.1 to 0.8 m off the
+  threshold, at its floor), not at the engine JSON portal's `link` points, which sit mid-edge of each room and can
+  fall on furniture: a hawker stall's counter fills the middle of its shutter opening (NC_514).
 
 **`model/export_info.json`** (`sample-town-n5/export-info/1`), written by `build` right after the manifest: the
 commit (`git rev-parse HEAD`), whether the generator was dirty (`git status --porcelain -- estate config estate.py
 estate.sh estate.cmd`), the seed, the tool versions, the walk figures summed over the buildings, the sha256 of
-`estate_manifest.json`, and sha256 and size of every walk grid and web JSON. It holds no date or time, so two
-builds of one commit give the same bytes. The manifest lists each building's `files.walk` and `files.web`.
-Renders also write `<prefix>_views.json` beside the images (each shot's camera: matrix, lens, sensor, shift,
-resolution), e.g. `reports/renders/ESTATE/ESTATE_views.json`.
+`estate_manifest.json`, and sha256 and size of every walk grid and web JSON (`files`, keyed by path relative to
+`model/`, as the manifest's paths are; inside the model zip every entry carries the `model/` prefix). It holds no
+date or time, and the manifest lists each `.blend` by path alone (Blender saves one scene as different bytes each
+time), so two builds of one commit give the same bytes. The manifest lists each building's `files.walk` and
+`files.web`.
+
+Renders also write `<prefix>_views.json` beside the images, e.g. `reports/renders/ESTATE/ESTATE_views.json`: per
+shot the camera's `matrix_world` (row-major 4 x 4, estate frame, Z up; the camera looks along its local -Z with +Y
+up), `lens` and `sensor_width` (mm), `sensor_fit` (AUTO: the sensor width spans the larger image side, so the
+vertical field of view of a landscape shot is 2 atan(sensor_width h / (2 lens w))), `shift_x`/`shift_y` (in units of
+the larger image side), `res` [w, h], `clip`, and `ortho_scale` for orthographic shots.
 
 **`./estate.sh release --tag vX.Y --out DIR`** writes `SampleTownN5_<tag>_model.zip`,
-`SampleTownN5_<tag>_reports.zip` and `release_manifest.json` (`{tag, commit, zips: {name: {sha256, bytes}},
-entries: {path: sha256}}`) and uploads nothing. The zips hold only:
+`SampleTownN5_<tag>_reports.zip` and `release_manifest.json` (`{tag, commit, head, zips: {name: {sha256, bytes}},
+entries: {path: sha256}}`: `commit` is the commit the export was built on, `head` the one released from) and
+uploads nothing. The zips hold only:
 - `model/`: `estate_manifest.json`, `export_info.json`, `masterplan.json`, `SITE.ifc`, `SITE_ifc4.ifc`,
   `SITE_lod0.glb`, `SITE_lod1.glb`, `SITE_engine.json`, `SITE_graph.json`, and per building `<ID>.ifc`,
-  `<ID>_ifc4.ifc`, `<ID>_lod{0,1,2}.glb`, `<ID>_int_*.glb`, `<ID>_engine.json`, `<ID>_flats.json`, `<ID>_nav.json`,
-  `<ID>_validation.json`, `<ID>_walk.bin`, `<ID>_web.json`;
-- `reports/`: `renders/**/*.png`, `renders/**/*_views.json` and `reports/*.json`.
+  `<ID>_ifc4.ifc`, `<ID>_lod{0,1,2}.glb`, the `<ID>_int_*.glb` its manifest entry lists, `<ID>_engine.json`,
+  `<ID>_flats.json`, `<ID>_nav.json`, `<ID>_validation.json`, `<ID>_walk.bin`, `<ID>_web.json`;
+- `reports/`: `reports/*.json`, and the renders (`*.png`) and camera views (`*_views.json`) under `renders/` that
+  `model/.state.json` records the current render code wrote; `renders/ESTATE/ESTATE_views.json` and
+  `ESTATE_aerial_NE.png` are required.
 
 Never a `.blend`, a Bonsai link cache (`*.ifc.cache.*`), `.state.json`, `nav/` or `plans/`. Entries are sorted and
-have a fixed time and mode and deflate level 9, so two runs give identical zips. The release is refused when
-`export_info.json` says the generator was dirty or names another commit than HEAD, when a file no longer has the
-hash the manifest or `export_info.json` recorded, when a required file is missing, or when the leak scan
-(`estate/leaks.py`, every entry: JSON strings, PNG text chunks, GLB JSON, IFC text, walk-grid tags) finds a machine
-path or the username, or cannot read an entry.
+have a fixed time and mode and deflate level 9, so two releases of one build give identical zips. Two builds of
+one commit do not: `*_nav.json`, `*_validation.json` and `reports/*.json` record how long their work took. The
+release is refused when:
+- `export_info.json` says the generator was dirty, or names a commit that is neither HEAD nor an ancestor of HEAD
+  with the same generator (no change under `estate config estate.py estate.sh estate.cmd` in between: build on M,
+  commit the reports the build rewrote as R, release on R);
+- a file no longer has the hash the manifest or `export_info.json` recorded;
+- a released file's stage record in `model/.state.json` is missing or was written by other code than the checkout's
+  (a partial build on older code), or the last build had failures (`reports/build_failures.json`);
+- a required file is missing, or an interior chunk on disk is not one the manifest lists;
+- `--out` lies inside `model/` or `reports/`;
+- the leak scan (`estate/leaks.py`, every entry, entry name and zip written: JSON strings, PNG text chunks, GLB JSON,
+  IFC text, walk-grid tags) finds a machine path or the username, or cannot read an entry.
+
+Release from a full build (`./estate.sh build --force`): a stage a partial build reran on unchanged code but older
+inputs is not detected.
 
 ## Editing in Bonsai
 
