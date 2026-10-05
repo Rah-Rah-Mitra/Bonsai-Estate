@@ -333,10 +333,11 @@ def block_leaves(w: Walk, doors: list, leaves: list, wc: WalkConfig) -> np.ndarr
             continue
         d = doors[di]
         c = d["M"] @ np.array([d["w"] / 2, d["yc"], 0.0, 1.0])
-        # connectivity is judged over DETOUR more than the area that counts, so a way round a leaf's end is seen
+        # what the door joins: the spans it reaches without leaving DOOR_REACH (not a room beyond a wall that a
+        # detour through other doors reaches); whether they stay joined is judged over DETOUR more, so that a way
+        # round a leaf's free end is seen
         regions[di] = _local(w, cols, c[0], c[1], d["z"], DOOR_REACH + DETOUR, DOOR_LEVEL)
-        near = _local(w, cols, c[0], c[1], d["z"], DOOR_REACH, DOOR_LEVEL)
-        joined[di] = np.intersect1d(door_reach(w, regions[di], *s), near)
+        joined[di] = door_reach(w, _local(w, cols, c[0], c[1], d["z"], DOOR_REACH, DOOR_LEVEL), *s)
         base_ok[di] = connected(w, regions[di], s[0], s[1], np.zeros(n, bool))
 
     def whole(di, held) -> bool:
