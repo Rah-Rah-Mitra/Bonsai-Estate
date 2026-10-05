@@ -229,6 +229,8 @@ class TestEstateLinks(unittest.TestCase):
         self.assertTrue(0.05 < is_sky.mean() < 0.8, is_sky.mean())        # the model fills most of a sky frame
         self.assertGreater(is_sky[0].mean(), 0.3)                          # level and upright: sky on top ...
         self.assertLess(is_sky[-1].mean(), 0.05)                           # ... the ground slab at the bottom
+        from estate import leaks
+        self.assertEqual(leaks.png_text(Path(r["files"][0]).read_bytes()), [])   # no File / Date / RenderTime text
 
 
 MASTERPLAN, SITE_GRAPH = env.MODEL / "masterplan.json", env.MODEL / "SITE_graph.json"

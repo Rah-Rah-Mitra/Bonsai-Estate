@@ -15,6 +15,10 @@ from estate.blender._boot import NON_RENDER_CLASSES
 from estate.report.street import SKY  # noqa: F401  (default eye-level background; bpy-free, so tests read it too)
 
 BACKGROUND = (0.93, 0.94, 0.96)
+# Render metadata Blender writes into every PNG as text chunks (File, Date, RenderTime, ...): all switched off, so a
+# published render carries neither the .blend's absolute path nor a clock. Names this Blender lacks are skipped.
+STAMP_FIELDS = ("date", "time", "render_time", "frame", "frame_range", "memory", "hostname", "camera", "lens", "scene",
+                "marker", "filename", "sequencer_strip", "note")
 
 
 def ifc_class(ob) -> str:
@@ -70,9 +74,14 @@ def world_bbox(depsgraph=None, filter_fn=None):
 
 
 def setup_workbench(scene=None, outline=True) -> None:
-    """Workbench, material colours (Bonsai's IfcSurfaceStyle diffuse), cavity and shadows, true colours."""
+    """Workbench, material colours (Bonsai's IfcSurfaceStyle diffuse), cavity and shadows, true colours; no stamp
+    and no render metadata."""
     scene = scene or bpy.context.scene
     scene.render.engine = "BLENDER_WORKBENCH"
+    scene.render.use_stamp = False
+    for field in STAMP_FIELDS:
+        if hasattr(scene.render, f"use_stamp_{field}"):
+            setattr(scene.render, f"use_stamp_{field}", False)
     sh = scene.display.shading
     sh.light = "STUDIO"
     sh.color_type = "MATERIAL"
