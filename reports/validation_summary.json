@@ -8,7 +8,7 @@
     "error_items": 0,
     "warning_items": 40
    },
-   "runtime_s": 19.16,
+   "runtime_s": 37.76,
    "failing": [
     {
      "family": "geometry",
@@ -26,7 +26,7 @@
     "error_items": 0,
     "warning_items": 40
    },
-   "runtime_s": 19.56,
+   "runtime_s": 37.51,
    "failing": [
     {
      "family": "geometry",
@@ -44,7 +44,7 @@
     "error_items": 0,
     "warning_items": 23
    },
-   "runtime_s": 20.79,
+   "runtime_s": 39.98,
    "failing": [
     {
      "family": "geometry",
@@ -62,7 +62,7 @@
     "error_items": 0,
     "warning_items": 23
    },
-   "runtime_s": 21.78,
+   "runtime_s": 39.17,
    "failing": [
     {
      "family": "geometry",
@@ -80,7 +80,7 @@
     "error_items": 0,
     "warning_items": 2
    },
-   "runtime_s": 24.72,
+   "runtime_s": 47.73,
    "failing": [
     {
      "family": "geometry",
@@ -98,7 +98,7 @@
     "error_items": 0,
     "warning_items": 98
    },
-   "runtime_s": 25.18,
+   "runtime_s": 49.78,
    "failing": [
     {
      "family": "geometry",
@@ -116,7 +116,7 @@
     "error_items": 0,
     "warning_items": 4
    },
-   "runtime_s": 21.94,
+   "runtime_s": 41.04,
    "failing": [
     {
      "family": "geometry",
@@ -134,7 +134,7 @@
     "error_items": 0,
     "warning_items": 4
    },
-   "runtime_s": 22.05,
+   "runtime_s": 41.52,
    "failing": [
     {
      "family": "geometry",
@@ -152,7 +152,7 @@
     "error_items": 0,
     "warning_items": 35
    },
-   "runtime_s": 28.4,
+   "runtime_s": 67.44,
    "failing": [
     {
      "family": "geometry",
@@ -170,7 +170,7 @@
     "error_items": 0,
     "warning_items": 304
    },
-   "runtime_s": 27.37,
+   "runtime_s": 63.4,
    "failing": [
     {
      "family": "geometry",
@@ -188,7 +188,7 @@
     "error_items": 0,
     "warning_items": 94
    },
-   "runtime_s": 26.71,
+   "runtime_s": 64.61,
    "failing": [
     {
      "family": "geometry",
@@ -206,7 +206,7 @@
     "error_items": 0,
     "warning_items": 146
    },
-   "runtime_s": 14.09,
+   "runtime_s": 34.0,
    "failing": [
     {
      "family": "geometry",
@@ -224,7 +224,7 @@
     "error_items": 0,
     "warning_items": 0
    },
-   "runtime_s": 7.03,
+   "runtime_s": 16.03,
    "failing": []
   },
   "NC_514": {
@@ -235,7 +235,7 @@
     "error_items": 0,
     "warning_items": 0
    },
-   "runtime_s": 2.29,
+   "runtime_s": 5.11,
    "failing": []
   },
   "SITE": {
@@ -246,7 +246,7 @@
     "error_items": 0,
     "warning_items": 0
    },
-   "runtime_s": 2.86,
+   "runtime_s": 7.03,
    "failing": []
   }
  },
@@ -268,7 +268,7 @@
    "model/NC_514/NC_514.ifc",
    "model/SITE.ifc"
   ],
-  "runtime_s": 5.52,
+  "runtime_s": 12.01,
   "summary": {
    "checks": 4,
    "failed_errors": 0,

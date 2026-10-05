@@ -14,7 +14,7 @@
   "IfcSlab": 231
  },
  "linked_models": 14,
- "seconds": 4.7,
+ "seconds": 5.6,
  "graph": "model/SITE_graph.json",
  "site_plan": "reports/site_plan.png",
  "site_plan_svg": "reports/site_plan.svg",
@@ -61,15 +61,15 @@
   "NC_514 entrance 3: moved 0.6 m along the facade, clear of the ground floor"
  ],
  "timings": {
-  "grounds": 0.71,
-  "roads+greens": 0.56,
-  "driveways": 0.76,
-  "linkways": 1.22,
-  "footpaths": 0.59,
-  "surfaces": 0.86,
-  "landscape": 0.21,
-  "graph": 3.21,
-  "total_plan": 8.15
+  "grounds": 1.95,
+  "roads+greens": 1.18,
+  "driveways": 1.11,
+  "linkways": 1.8,
+  "footpaths": 0.74,
+  "surfaces": 1.08,
+  "landscape": 0.26,
+  "graph": 4.32,
+  "total_plan": 12.46
  },
  "trees": 778,
  "crossings": 10,
