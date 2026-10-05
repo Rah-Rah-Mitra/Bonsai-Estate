@@ -6,7 +6,7 @@ the doors' leaves). <ID>_web.json, block-local, Z up, metres:
     {"schema": "sample-town-n5/web/1", "site": "BLK_509", "frame": "block-local, Z up, m",
      "walk": {file, cell, radius, step, band_pad, coarse, layers, ref, cells, overflow, stamped, leaves,
               leaf_blocked, leaf_narrowed, leaf_passthrough, leaf_overhead, doors_impassable, doors_unlinked,
-              doors_cut},
+              doors_cut, stair_points_moved, stair_points_dropped, stair_off_grid},
      "stairs": [{name, room, storey, to, from_ffl, to_ffl,
                  flights: [{start, end, width, risers, riser, going}], landings: [{z, polygon}], path: [[x, y, z]]}],
      "doors": [{leaf_node, storey, motion, open, blocked, grid, angle (swing leaves)}]}
@@ -17,7 +17,9 @@ the row-major 3 x 4 matrix (block-local, Z up) that takes the closed leaf to its
 off part of a room: estate/web/walk.py block_leaves), ``blocked`` the plan of the opened leaf (undilated, a closed
 ring; empty for a leaf that opens above head height), ``grid`` what the walk grid does with it: "blocked",
 "passthrough" (left unblocked because blocking it would cut its doorway or a room off) or "overhead". Rings repeat
-their first point, as the engine JSON's rooms do.
+their first point, as the engine JSON's rooms do. A stair's ``path`` stands on the walk grid written beside it
+(stairs.fit_paths: ``stair_points_moved``, ``stair_points_dropped``; ``stair_off_grid`` counts the 0.05 m samples of
+the paths still without a floor, which tests/test_web.py holds at 0).
 Coordinates are rounded to the millimetre, the matrices to 1e-6; nothing depends on a clock.
 """
 from __future__ import annotations
@@ -86,6 +88,9 @@ def build(ifc, engine_json, out_dir, stem, cfg=None, log=None) -> dict:
         lf["door"] = door_index.get(lf["guid"], -1)
     blocked = walk.block_leaves(w, M.doors, leaves, wc)
     keep = walk.reachable(w, blocked)
+    fit = stairs_mod.fit_paths(stairs, walk.Floors(w, keep, offset))
+    if fit["off"]:
+        say(f"  {stem}: {fit['off']} points of the stair paths have no floor on the walk grid")
     nx, ny, origin, lays = walk.layers(w, keep, storeys, offset, wc.band_pad)
     data, ref, coarse = walk.encode(nx, ny, origin, lays, wc)
     walk_path, web_path = out_dir / f"{stem}_walk.bin", out_dir / f"{stem}_web.json"
@@ -94,7 +99,8 @@ def build(ifc, engine_json, out_dir, stem, cfg=None, log=None) -> dict:
                 band_pad=wc.band_pad, coarse=coarse, layers=len(lays), ref=lays[ref]["tag"], cells=int(keep.sum()),
                 overflow=sum(len(lay["overflow"]) for lay in lays), stamped=int(w.stamped[keep].sum()),
                 **{k: int(st[k]) for k in ("leaves", "leaf_blocked", "leaf_narrowed", "leaf_passthrough",
-                                           "leaf_overhead", "doors_impassable", "doors_unlinked", "doors_cut")})
+                                           "leaf_overhead", "doors_impassable", "doors_unlinked", "doors_cut")},
+                stair_points_moved=fit["moved"], stair_points_dropped=fit["dropped"], stair_off_grid=fit["off"])
     doors = []
     for lf in leaves:
         rec = lf["rec"]
@@ -131,6 +137,7 @@ def line(r) -> str:
         return f"FAILED {r.get('error')}"
     w = r["walk"]
     return (f"{w['layers']} layers (ref {w['ref']}), {w['cells']:,} cells, {w['overflow']} overflow, {w['stamped']} "
-            f"stamped, leaves {w['leaf_blocked']} blocked / {w['leaf_passthrough']} passthrough / "
-            f"{w['leaf_overhead']} overhead, {r['stairs']} stairs, {r['gz_bytes'] / 1024:.0f} KB gzipped"
-            f"{' (coarse)' if w['coarse'] else ''}, {r['seconds']} s")
+            f"stamped, leaves {w['leaf_blocked']} blocked ({w['leaf_narrowed']} narrowed) / {w['leaf_passthrough']} "
+            f"passthrough / {w['leaf_overhead']} overhead, {r['stairs']} stairs ({w['stair_points_moved']} landing "
+            f"points moved, {w['stair_points_dropped']} dropped, {w['stair_off_grid']} off the grid), "
+            f"{r['gz_bytes'] / 1024:.0f} KB gzipped{' (coarse)' if w['coarse'] else ''}, {r['seconds']} s")

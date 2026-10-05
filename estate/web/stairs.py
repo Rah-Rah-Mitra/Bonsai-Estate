@@ -11,7 +11,9 @@ last one, both on the centre line.
 stair one storey down, else this stair's own floor landing set down a storey: stairs are stacked), straight onto
 each flight (APPROACH before its first riser), up it tread by tread, straight off it, through the centre of the
 landing it arrives on (the mid landing, then the next floor's landing): consecutive points never rise more than
-one riser, and the last one stands on the next floor.
+one riser, and the last one stands on the next floor. Once the walk grid is solved, ``fit_paths`` moves a landing
+point that the grid has no floor under, or whose line to the flight clips a corner, onto the nearest clear cell of
+its landing, so a viewer can walk every path on the grid it is exported with.
 """
 from __future__ import annotations
 
@@ -152,13 +154,16 @@ def stairs(f, meshes, transform, storeys: dict, rooms: list) -> list[dict]:
         top = [lg for lg in own if abs(lg[0] - z_hi) < 0.05]
         start_poly = below[0] if below else (top[0][1] if top else None)
         path = [] if start_poly is None else [[*_centre(start_poly), z_lo]]
+        lands = [] if start_poly is None else [start_poly]        # each path point's landing (None: on a flight)
         for x in fl:                          # each flight met head on: APPROACH before its foot and after its head
             a = np.array(x["start"][:2]) - APPROACH * x["dir"]
             e = np.array(x["end"][:2]) + APPROACH * x["dir"]
             path += [[float(a[0]), float(a[1]), x["start"][2]], *x["points"], [float(e[0]), float(e[1]), x["end"][2]]]
+            lands += [None] * (len(x["points"]) + 2)
             land = [poly for z, poly in own if abs(z - x["end"][2]) < 0.05]
             if land:
                 path.append([*_centre(land[0]), x["end"][2]])
+                lands.append(land[0])
         half = np.array(fl[0]["points"][len(fl[0]["points"]) // 2][:2])
         room = next((name for sto, name, poly in room_polys if sto == storey and poly.contains(Point(half))), None)
         out.append(dict(name=st.Name or "", room=room, storey=storey, to=to, from_ffl=round(ffl[storey], R),
@@ -167,5 +172,49 @@ def stairs(f, meshes, transform, storeys: dict, rooms: list) -> list[dict]:
                                       risers=x["risers"], riser=round(x["riser"], 4), going=round(x["going"], 4))
                                  for x in fl],
                         landings=[dict(z=round(z, R), polygon=_ring(poly)) for z, poly in own],
-                        path=[_r(p) for p in path]))
+                        path=[_r(p) for p in path], _lands=lands))
     return sorted(out, key=lambda s: (s["from_ffl"], s["name"]))
+
+
+def fit_paths(stairs: list, floors) -> dict:
+    """Put every stair's path on the walk grid it is exported with (``floors``: estate/web/walk.py Floors over the
+    kept cells), so that a viewer walking it never leaves the grid: every SAMPLE m of it has a floor within FLOOR_DZ
+    in its own cell. Flights stand on their treads; it is a landing point (a landing's centre, or the start landing
+    set down a storey) that can fall where the grid has none (in an opened leaf's sweep, within the radius of a
+    wall or column) or whose straight line to the flight clips a corner. Such a point moves to the cell of its
+    landing nearest the centre from which both of its lines are clear, keeping its height; an inner point with no
+    such cell is dropped when the line past it is clear. Removes each stair's ``_lands``; returns dict(moved,
+    dropped, off): the landing points moved and dropped, and the samples of the fitted paths still with no floor
+    (none on the estate's buildings: tests/test_web.py checks the decoded grid)."""
+    moved = dropped = off = 0
+    for s in stairs:
+        lands = s.pop("_lands")
+        P = [list(p) for p in s["path"]]
+        i = 0
+        while i < len(P):
+            prev = P[i - 1] if i else None
+            nxt = P[i + 1] if i + 1 < len(P) else None
+
+            def clear(q, prev=prev, nxt=nxt):
+                return floors.at(*q) and (prev is None or not floors.misses(prev, q)) and \
+                    (nxt is None or not floors.misses(q, nxt))
+            if lands[i] is None or clear(P[i]):
+                i += 1
+                continue
+            x0, y0, z = P[i]
+            cands = sorted({(round(x, R) + 0.0, round(y, R) + 0.0) for x, y in floors.cells_in(lands[i], z, 0.1)},
+                           key=lambda q: (round(float(np.hypot(q[0] - x0, q[1] - y0)), 6), q))
+            pick = next(([x, y, z] for x, y in cands if clear([x, y, z])), None)
+            if pick is not None:
+                P[i] = pick
+                moved += 1
+            elif prev is not None and nxt is not None and not floors.misses(prev, nxt):
+                del P[i], lands[i]
+                dropped += 1
+                continue
+            i += 1
+        s["path"] = [_r(p) for p in P]
+        P = s["path"]
+        off += sum(floors.misses(p, q) for p, q in zip(P[:-1], P[1:])) if len(P) > 1 else \
+            sum(not floors.at(*p) for p in P)
+    return dict(moved=moved, dropped=dropped, off=off)

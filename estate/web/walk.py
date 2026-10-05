@@ -13,16 +13,18 @@ height), the same spans and the same fine door-band test. Then, for the viewer:
    leaves); the cells whose centre lies within the radius of an opened leaf's plan (nav_doorpose.opened_footprint)
    at its door's level are blocked, so a camera cannot walk through it. A leaf whose blocking would cut its door's
    two sides apart within DOOR_REACH of the opening is left unblocked (``leaf_passthrough``). A leaf whose full
-   swing, alone or with another, cuts off an area of POCKET_M2 or more that the street reached before (a shelter
-   door in the sweep of the flat's main door, a yard cut in two) opens less instead (NARROW, ``leaf_narrowed``;
-   the web JSON carries its angle and matrix), or goes through when no smaller opening reconnects it. A leaf that
-   opens above head height (a rolled-up shutter) blocks nothing (``leaf_overhead``).
+   swing, alone or with another, cuts off an area of POCKET_M2 or more that the street reached before, or that the
+   way through its door's opening reached (a shelter door in the sweep of the flat's main door, a yard cut in two,
+   the foot of a stair flight beside its fire door), opens less instead (NARROW, ``leaf_narrowed``; the web JSON
+   carries its angle and matrix), or goes through when no smaller opening reconnects it. A leaf that opens above
+   head height (a rolled-up shutter) blocks nothing (``leaf_overhead``).
 3. Only cells reachable from the street are kept: components of the grid (neighbours whose floors differ by at
    most a step) that hold a start cell on the grid's margin at ground level. Table tops, sills, rail tops and
    closed shafts drop out.
 4. Storey bands. Storey s owns the floors from FFL_s - band_pad up to FFL_{s+1} - band_pad (the lowest storey
-   everything below, the top one everything above). In each cell the floor closest to FFL_s is the layer's main
-   floor and any other floor in the band an overflow record (a stair flight above a landing).
+   everything below, the top one everything above), decided on heights rounded to the mm. In each cell the floor
+   closest to FFL_s is the layer's main floor and any other floor in the band an overflow record (a stair flight
+   above a landing).
 5. Block-local, int16 mm above the storey's FFL, written as SN5W (estate/web/sn5w.py). The reference layer is the
    typical storey (not the lowest, not the top) with the most walkable cells; every other layer is raw, delta or
    the same as it. If the gzipped file would exceed ``max_walk_gz`` the grid falls back to 0.2 m cells, each
@@ -276,16 +278,21 @@ def _leaf_cells(w: Walk, cols: ColumnIndex, lf: dict, angle, wc: WalkConfig) -> 
 
 
 def door_reach(w: Walk, region, a, b, held=None) -> np.ndarray:
-    """The spans of ``region`` (with the door's side cells a and b) that are joined to a or b through spans of the
-    region that ``held`` does not block (no blocking when None)."""
+    """The spans of ``region`` (with the door's side cells a and b) joined to the doorway through spans of the region
+    that ``held`` does not block (no blocking when None). The doorway is the component(s) holding side cells of both
+    a and b, the way through the opening: a side cell an opened leaf has cut off from it (the corner between a leaf
+    and its jamb) does not count, or the area cut off with it would pass as reached. When no component holds both
+    sides, every side cell seeds."""
     region = np.union1d(region, np.concatenate([a, b]))
     alive = region if held is None else region[~held[region]]
     if not len(alive):
         return alive
     ea, eb = grid_edges(w.ix[alive], w.iy[alive], w.k[alive], w.g, w.St)
     lab = nav3d.components(len(alive), ea, eb)
-    seeds = np.isin(alive, np.concatenate([a, b]))
-    return alive[np.isin(lab, np.unique(lab[seeds]))]
+    seeds = np.intersect1d(lab[np.isin(alive, a)], lab[np.isin(alive, b)])
+    if not len(seeds):
+        seeds = np.unique(lab[np.isin(alive, np.concatenate([a, b]))])
+    return alive[np.isin(lab, seeds)]
 
 
 def block_leaves(w: Walk, doors: list, leaves: list, wc: WalkConfig) -> np.ndarray:
@@ -502,24 +509,78 @@ def reachable(w: Walk, blocked: np.ndarray) -> np.ndarray:
     return out
 
 
+FLOOR_DZ = 0.4              # m: a viewer's floorAt takes the closest floor within this of the feet, in their own cell
+SAMPLE = 0.05               # m between the points at which a line is checked against the grid
+
+
+class Floors:
+    """The kept floors of a walk grid by column, block-local: what a viewer reading the exported grid stands on."""
+
+    def __init__(self, w: Walk, keep: np.ndarray, offset):
+        idx = np.nonzero(keep)[0]
+        self.g, self.off = w.g, np.asarray(offset, float)
+        self.ix, self.iy, self.z = w.ix[idx], w.iy[idx], w.fz[idx] - self.off[2]
+        self.cols = ColumnIndex(self.ix, self.iy, w.g.ny)
+
+    def _cells(self, x, y, e=1e-4):
+        """The cells of (x, y) and of the points e off it: a point on a cell edge stands in both cells, so a decoder
+        whose f32 origin rounds the other way finds a floor too."""
+        g, (ox, oy) = self.g, self.off[:2]
+        return {(g.ix(x + ox + dx), g.iy(y + oy + dy)) for dx in (-e, e) for dy in (-e, e)}
+
+    def at(self, x, y, z, dz=FLOOR_DZ) -> bool:
+        """A floor within dz of z in the cell(s) of (x, y)."""
+        for i, j in self._cells(x, y):
+            if not (0 <= i < self.g.nx and 0 <= j < self.g.ny):
+                return False
+            c = self.cols.column(i, j)
+            if not len(c) or not (np.abs(self.z[c] - z) <= dz).any():
+                return False
+        return True
+
+    def misses(self, p, q) -> int:
+        """Points of the line p -> q ([x, y, z], z interpolated), every SAMPLE m and both ends, with no floor."""
+        p, q = np.asarray(p, float), np.asarray(q, float)
+        n = max(2, int(math.ceil(float(np.hypot(*(q[:2] - p[:2]))) / SAMPLE)) + 1)
+        return sum(not self.at(*(p + t * (q - p))) for t in np.linspace(0.0, 1.0, n))
+
+    def cells_in(self, poly, z, dz):
+        """Centres [(x, y)] of the cells inside ``poly`` (block-local) with a floor within dz of z."""
+        g, (ox, oy) = self.g, self.off[:2]
+        x0, y0, x1, y1 = poly.bounds
+        idx = self.cols.box(max(0, g.ix(x0 + ox)), min(g.nx - 1, g.ix(x1 + ox)),
+                            max(0, g.iy(y0 + oy)), min(g.ny - 1, g.iy(y1 + oy)))
+        idx = idx[np.abs(self.z[idx] - z) <= dz]
+        x, y = g.cx(self.ix[idx]) - ox, g.cy(self.iy[idx]) - oy
+        m = shapely.contains_xy(poly, x, y)
+        return list(zip(x[m].tolist(), y[m].tolist()))
+
+
 # ----------------------------------------------------------------------------- layers and the file
+def _mm(v):
+    return np.round(np.asarray(v, float) * 1000.0).astype(np.int64)
+
+
 def band_of(z, ffls, pad):
-    """Storey index owning floor height z (block-local): FFL_s - pad <= z < FFL_{s+1} - pad (clamped)."""
-    i = np.searchsorted(np.asarray(ffls, float) - pad, np.asarray(z, float), side="right") - 1
+    """Storey index owning floor height z (block-local), decided in whole millimetres, the file's own unit:
+    FFL_s - pad <= z < FFL_{s+1} - pad once z, the FFLs and pad are rounded to the mm (clamped below the lowest and
+    above the top storey). Float noise a micron either side of an edge cannot split one height between storeys."""
+    i = np.searchsorted(_mm(ffls) - int(_mm(pad)), _mm(z), side="right") - 1
     return np.clip(i, 0, len(ffls) - 1)
 
 
 def layers(w: Walk, keep: np.ndarray, storeys: list, offset, pad: float):
     """Per-storey main rasters and overflow records of the spans ``keep`` (``storeys``: [(name, block-local FFL)]
     bottom up; ``offset``: the block -> estate translation). Returns (nx, ny, origin (block-local corner of cell
-    (0, 0)), [dict(tag, ffl, raster (int16, nx * ny), overflow [(ix, iy, mm)])], cropped to the kept cells."""
+    (0, 0)), [dict(tag, ffl, raster (int16, nx * ny), overflow [(ix, iy, mm)])], cropped to the kept cells. A
+    floor's height is rounded to the mm once, and both its band and its value come from that (band_of)."""
     idx = np.nonzero(keep)[0]
     if not len(idx):
         raise ValueError("no walkable cell is reachable from the street")
     ffl = np.array([f for _, f in storeys], float)
     z = w.fz[idx] - offset[2]
     s = band_of(z, ffl, pad)
-    mm = np.round((z - ffl[s]) * 1000.0).astype(np.int64)
+    mm = _mm(z) - _mm(ffl)[s]
     if mm.min() < -32768 or mm.max() >= sn5w.BLOCKED:
         raise ValueError(f"a floor lies {mm.min()} .. {mm.max()} mm from its storey's FFL: beyond int16")
     i0, j0 = int(w.ix[idx].min()), int(w.iy[idx].min())

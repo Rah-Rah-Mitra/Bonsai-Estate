@@ -6,12 +6,15 @@ hashes a downstream packer checks it against. Written by cmd_build right after t
      "dirty_scope": "git status --porcelain -- estate config estate.py estate.sh estate.cmd",
      "seed": 20261004, "tools": {"blender": "5.2.x", "ifcopenshell": "0.9.x", "bonsai": "...", "python": "3.13.x"},
      "walk": {"radius": 0.2, "voxel": 0.1, "band_pad": 0.25, "sites": 14, "stamped": 0, "leaves": 0,
-              "leaf_blocked": 0, "leaf_narrowed": 0, "leaf_passthrough": 0, "leaf_overhead": 0},
+              "leaf_blocked": 0, "leaf_narrowed": 0, "leaf_passthrough": 0, "leaf_overhead": 0,
+              "stair_points_moved": 0, "stair_off_grid": 0},
      "manifest_sha256": "<sha256 of model/estate_manifest.json>",
      "files": {"BLK_509/BLK_509_walk.bin": {"sha256": "...", "bytes": 0}, "BLK_509/BLK_509_web.json": {...}, ...}}
 
 ``dirty`` covers only the generator (the scope above): reports the build rewrites do not make an export dirty.
-The walk figures add up the web JSONs present; ``files`` lists every walk grid and web JSON under model/.
+The walk figures add up the web JSONs present (``stair_off_grid``: samples of the stair paths with no floor on
+the walk grid, 0 when every path can be walked); ``files`` lists every walk grid and web JSON under model/, by path
+relative to model/.
 """
 from __future__ import annotations
 
@@ -27,7 +30,8 @@ from estate import env
 
 SCHEMA = "sample-town-n5/export-info/1"
 SCOPE = ("estate", "config", "estate.py", "estate.sh", "estate.cmd")
-WALK_SUMS = ("stamped", "leaves", "leaf_blocked", "leaf_narrowed", "leaf_passthrough", "leaf_overhead")
+WALK_SUMS = ("stamped", "leaves", "leaf_blocked", "leaf_narrowed", "leaf_passthrough", "leaf_overhead",
+             "stair_points_moved", "stair_off_grid")
 
 
 def sha256(path) -> str:

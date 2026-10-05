@@ -39,36 +39,54 @@ B = sn5w.BLOCKED
 
 # ----------------------------------------------------------------------------- the golden file
 def sample_grid() -> dict:
-    """The synthetic grid of tests/fixtures/web/sn5w_sample.bin (240 bytes), the contract the portfolio's decoder is
-    tested against. 4 x 3 cells of 0.1 m for a 0.20 m agent and a 0.40 m step, corner of cell (0, 0) at block-local
-    (-1.25, 2.5); three storeys, the reference L2 (index 1). Rasters are absolute mm above each storey's FFL, row iy
-    = 0 first, B = 0x7FFF (no floor):
+    """The synthetic grid of tests/fixtures/web/sn5w_sample.bin (304 bytes), the contract the portfolio's decoder is
+    tested against. 4 x 3 cells for a 0.20 m agent and a 0.40 m step, corner of cell (0, 0) at block-local
+    (-1.25, 2.5), flagged as the coarse fallback (cell 0.2 m: a decoder reads the cell from the header, never assumes
+    0.1); four storeys, the reference L2 (index 1). The tags are labels (a three-character one, as real files have
+    L10..L25). Rasters are absolute mm above each storey's FFL, row iy = 0 first, B = 0x7FFF (no floor):
 
-        L1  ffl 0.0   delta   [   0,  10,   5, -100 ]   overflow (ix 0, iy 0, 2800), (ix 2, iy 1, 2400)
-                              [-120,   B, 175,    B ]
-                              [   B,   B, 350, 1200 ]
-        L2  ffl 3.5   raw     [   0,   0,   5,    B ]   overflow (ix 1, iy 0, 2600)
-                              [-120,   0, 175,    B ]
-                              [   B,   B, 350, 1200 ]
-        RF  ffl 6.25  same    (L2's raster)            overflow (ix 0, iy 2, 2000)
+        L1   ffl 0.0   delta   [   0,  10,   5, -100 ]   overflow (ix 0, iy 0, 2800), (ix 2, iy 1, 2400)
+                               [-120,   B, 175,    B ]
+                               [   B,   B, 350, 1200 ]
+        L2   ffl 3.5   raw     [   0,   0,   5,    B ]   overflow (ix 1, iy 0, -250), (ix 1, iy 0, 2400)
+                               [-120,   0, 175,    B ]
+                               [   B,   B, 350, 1200 ]
+        L12  ffl 6.25  raw     every cell B             no overflow: count and offset 0
+        RF   ffl 9.0   same    (L2's raster)            overflow (ix 0, iy 2, 2000)
 
-    L1 is stored as int16 (L1 - L2) mod 2^16: [0, 10, 0, 32669 | 0, 32767, 0, 0 | 0, 0, 0, 0]; the 32669 is the
-    wrap of -100 - 32767, the 32767 the wrap of 32767 - 0. Byte layout: header 0..63 (flags 1: a delta layer),
-    table 64..159, L1 raster 160..183, L1 overflow 184..199 (sorted by iy, ix, mm), L2 raster 200..223, L2 overflow
-    224..231, RF overflow 232..239 (RF has no raster: offset and length 0)."""
+    Every floor keeps the band rule (whole mm): storey s owns FFL_s - 250 <= ffl + mm < FFL_s+1 - 250, the lowest
+    everything below, RF everything above; L2's -250 sits exactly on its lower edge. L1 is stored as int16 (L1 - L2)
+    mod 2^16: [0, 10, 0, 32669 | 0, 32767, 0, 0 | 0, 0, 0, 0]; the 32669 is the wrap of -100 - 32767, the 32767 the
+    wrap of 32767 - 0. Byte layout: header 0..63 (flags 3: a delta layer, coarse), table 64..191, L1 raster
+    192..215, L1 overflow 216..231 (sorted by iy, ix, mm), L2 raster 232..255, L2 overflow 256..271, L12 raster
+    272..295, RF overflow 296..303 (RF has no raster: offset and length 0)."""
     ref = [0, 0, 5, B, -120, 0, 175, B, B, B, 350, 1200]
-    return dict(nx=4, ny=3, cell=0.1, radius=0.2, step=0.4, origin=(-1.25, 2.5), ref=1,
-                modes=["delta", "raw", "same"],
+    return dict(nx=4, ny=3, cell=0.2, radius=0.2, step=0.4, origin=(-1.25, 2.5), ref=1, coarse=True,
+                modes=["delta", "raw", "raw", "same"],
                 layers=[dict(tag="L1", ffl=0.0, raster=[0, 10, 5, -100, -120, B, 175, B, B, B, 350, 1200],
                              overflow=[(2, 1, 2400), (0, 0, 2800)]),
-                        dict(tag="L2", ffl=3.5, raster=ref, overflow=[(1, 0, 2600)]),
-                        dict(tag="RF", ffl=6.25, raster=list(ref), overflow=[(0, 2, 2000)])])
+                        dict(tag="L2", ffl=3.5, raster=ref, overflow=[(1, 0, 2400), (1, 0, -250)]),
+                        dict(tag="L12", ffl=6.25, raster=[B] * 12, overflow=[]),
+                        dict(tag="RF", ffl=9.0, raster=list(ref), overflow=[(0, 2, 2000)])])
 
 
 def sample_bytes() -> bytes:
     s = sample_grid()
     return sn5w.encode(s["nx"], s["ny"], s["cell"], s["radius"], s["step"], s["origin"], s["layers"], s["ref"],
-                       modes=s["modes"])
+                       modes=s["modes"], coarse=s["coarse"])
+
+
+def band_errors(t) -> list:
+    """Floors of a decoded grid (main and overflow) outside their layer's band, in whole mm: FFL_s - 250 <= FFL_s +
+    mm < FFL_s+1 - 250 (no lower edge for the lowest layer, no upper one for the top)."""
+    ffl = [int(round(lay["ffl"] * 1000)) for lay in t["layers"]]
+    bad = []
+    for li, lay in enumerate(t["layers"]):
+        lo = ffl[li] - 250 if li else -(1 << 40)
+        hi = ffl[li + 1] - 250 if li + 1 < len(ffl) else 1 << 40
+        mms = [v for v in lay["raster"] if v != B] + [mm for _, _, mm in lay["overflow"]]
+        bad += [(lay["tag"], mm) for mm in mms if not lo <= ffl[li] + mm < hi]
+    return bad
 
 
 class Sn5wFormat(unittest.TestCase):
@@ -78,35 +96,40 @@ class Sn5wFormat(unittest.TestCase):
             GOLDEN.parent.mkdir(parents=True, exist_ok=True)
             GOLDEN.write_bytes(data)
         self.assertEqual(data, GOLDEN.read_bytes())
-        self.assertEqual(len(data), 240)
+        self.assertEqual(len(data), 304)
 
     def test_layout_byte_for_byte(self):
         """The golden file read with struct alone, field by field, as the format's description in sn5w.py says."""
         d = GOLDEN.read_bytes()
         self.assertEqual(d[:4], b"SN5W")
-        self.assertEqual(struct.unpack_from("<HH", d, 4), (1, 1))                    # version 1, flags: delta
+        self.assertEqual(struct.unpack_from("<HH", d, 4), (1, 3))                    # version 1, flags: delta, coarse
         cell, radius, step, ox, oy = struct.unpack_from("<5f", d, 8)
         self.assertEqual((ox, oy), (-1.25, 2.5))
-        self.assertEqual([round(v, 6) for v in (cell, radius, step)], [0.1, 0.2, 0.4])
-        self.assertEqual(struct.unpack_from("<4H", d, 28), (4, 3, 3, 1))           # nx, ny, layers, ref
+        self.assertEqual([round(v, 6) for v in (cell, radius, step)], [0.2, 0.2, 0.4])
+        self.assertEqual(struct.unpack_from("<4H", d, 28), (4, 3, 4, 1))           # nx, ny, layers, ref
         self.assertEqual(d[36:64], b"\0" * 28)
-        table = [struct.unpack_from("<4sfBBHIIIII", d, 64 + 32 * i) for i in range(3)]
-        self.assertEqual(table, [(b"L1\0\0", 0.0, 1, 0, 0, 160, 24, 2, 184, 0),
-                                 (b"L2\0\0", 3.5, 0, 0, 0, 200, 24, 1, 224, 0),
-                                 (b"RF\0\0", 6.25, 2, 0, 0, 0, 0, 1, 232, 0)])
-        self.assertEqual(list(struct.unpack_from("<12h", d, 160)), [0, 10, 0, 32669, 0, 32767, 0, 0, 0, 0, 0, 0])
-        self.assertEqual(list(struct.unpack_from("<12h", d, 200)), [0, 0, 5, B, -120, 0, 175, B, B, B, 350, 1200])
-        self.assertEqual([struct.unpack_from("<HHhH", d, o) for o in (184, 192, 224, 232)],
-                         [(0, 0, 2800, 0), (2, 1, 2400, 0), (1, 0, 2600, 0), (0, 2, 2000, 0)])
+        table = [struct.unpack_from("<4sfBBHIIIII", d, 64 + 32 * i) for i in range(4)]
+        self.assertEqual(table, [(b"L1\0\0", 0.0, 1, 0, 0, 192, 24, 2, 216, 0),
+                                 (b"L2\0\0", 3.5, 0, 0, 0, 232, 24, 2, 256, 0),
+                                 (b"L12\0", 6.25, 0, 0, 0, 272, 24, 0, 0, 0),
+                                 (b"RF\0\0", 9.0, 2, 0, 0, 0, 0, 1, 296, 0)])
+        self.assertEqual(list(struct.unpack_from("<12h", d, 192)), [0, 10, 0, 32669, 0, 32767, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(list(struct.unpack_from("<12h", d, 232)), [0, 0, 5, B, -120, 0, 175, B, B, B, 350, 1200])
+        self.assertEqual(list(struct.unpack_from("<12h", d, 272)), [B] * 12)
+        self.assertEqual([struct.unpack_from("<HHhH", d, o) for o in (216, 224, 256, 264, 296)],
+                         [(0, 0, 2800, 0), (2, 1, 2400, 0), (1, 0, -250, 0), (1, 0, 2400, 0), (0, 2, 2000, 0)])
 
     def test_round_trip(self):
+        """The golden file decodes to the sample grid, and every floor in it keeps the band rule it documents."""
         t = sn5w.decode(GOLDEN.read_bytes())
         s = sample_grid()
-        self.assertEqual((t["nx"], t["ny"], t["ref"], t["delta"], t["coarse"]), (4, 3, 1, True, False))
+        self.assertEqual((t["nx"], t["ny"], t["ref"], t["delta"], t["coarse"]), (4, 3, 1, True, True))
         for got, want, mode in zip(t["layers"], s["layers"], s["modes"]):
             self.assertEqual((got["tag"], got["ffl"], got["mode"]), (want["tag"], want["ffl"], mode))
             self.assertEqual(list(got["raster"]), want["raster"])
             self.assertEqual(got["overflow"], sorted(want["overflow"], key=lambda r: (r[1], r[0], r[2])))
+        self.assertEqual(len(t["layers"]), len(s["layers"]))
+        self.assertEqual(band_errors(t), [])
 
     def test_modes_chosen(self):
         """Without explicit modes: the reference raw, an identical layer 'same', a layer with few differences delta,
@@ -128,15 +151,15 @@ class Sn5wFormat(unittest.TestCase):
 
     def test_strict_reader(self):
         """Anything the format does not account for is refused: a trailing byte, a pad, a reserved byte, a NUL inside a
-        tag, a section moved, a 'same' layer with a raster."""
+        tag, a section moved, a 'same' layer with a raster, an overflow offset with no records."""
         d = GOLDEN.read_bytes()
-        self.assertEqual(sn5w.layer_tags(d), ["L1", "L2", "RF"])
+        self.assertEqual(sn5w.layer_tags(d), ["L1", "L2", "L12", "RF"])
 
         def poke(off, b):
             return d[:off] + b + d[off + len(b):]
-        for bad in (d + b"\0", poke(40, b"x"), poke(64 + 9, b"\1"), poke(64, b"\0"), poke(232 + 6, b"\1"),
-                    poke(64 + 32 + 12, struct.pack("<I", 202)), poke(64 + 64 + 16, struct.pack("<I", 24)), d[:-1],
-                    poke(4, struct.pack("<H", 2))):
+        for bad in (d + b"\0", poke(40, b"x"), poke(64 + 9, b"\1"), poke(64, b"\0"), poke(296 + 6, b"\1"),
+                    poke(64 + 32 + 12, struct.pack("<I", 234)), poke(64 + 96 + 16, struct.pack("<I", 24)), d[:-1],
+                    poke(4, struct.pack("<H", 2)), poke(64 + 64 + 24, struct.pack("<I", 296))):
             with self.assertRaises(ValueError):
                 sn5w.read_table(bad)
 
@@ -184,14 +207,30 @@ class CoarseFallback(unittest.TestCase):
 
 class Bands(unittest.TestCase):
     def test_band_edges(self):
-        """A floor exactly at FFL_s - 0.25 belongs to storey s, a hair lower to s - 1; below the lowest storey is the
-        lowest storey's, above the top one the top one's."""
+        """Bands are decided in whole millimetres, the file's unit: a floor exactly at FFL_s - 0.25 belongs to storey
+        s, and so does one a micron either side of it (float noise: MSCP_513's ramps meet three band edges at
+        edge - 1.7e-6 and edge + 1.7e-6); a millimetre lower belongs to s - 1. Below the lowest storey is the lowest
+        storey's, above the top one the top one's."""
         ffl = [0.0, 3.6, 6.4, 9.2]
         for s in range(1, 4):
-            self.assertEqual(int(walk.band_of(ffl[s] - 0.25, ffl, 0.25)), s)
-            self.assertEqual(int(walk.band_of(ffl[s] - 0.25 - 1e-6, ffl, 0.25)), s - 1)
+            edge = ffl[s] - 0.25
+            for z in (edge, edge - 1e-6, edge + 1e-6, edge - 1.713e-06, edge + 1.712e-06):
+                self.assertEqual(int(walk.band_of(z, ffl, 0.25)), s, (s, z))
+            self.assertEqual(int(walk.band_of(edge - 0.001, ffl, 0.25)), s - 1)
         self.assertEqual(int(walk.band_of(-2.0, ffl, 0.25)), 0)
         self.assertEqual(int(walk.band_of(30.0, ffl, 0.25)), 3)
+
+    def test_layers_at_a_band_edge(self):
+        """A floor a micron under a band edge (as MSCP_513's ramps meet theirs) is stored in the upper storey at
+        -250 mm, as one a micron over it is, never in the lower one at its band's top (+2750 there)."""
+        for z in (-1.713e-06, 1.712e-06):
+            w = _scene([(0, 0, z - 0.2, 6, 3, z)])
+            self.assertTrue(len(w.fz) and np.abs(w.fz - z).max() < 1e-5)
+            nx, ny, origin, lays = walk.layers(w, np.ones(len(w.ix), bool), [("L2", -2.75), ("L3", 0.25)],
+                                               np.zeros(3), 0.25)
+            self.assertFalse((np.asarray(lays[0]["raster"]) != B).any(), z)
+            got = set(np.asarray(lays[1]["raster"])[np.asarray(lays[1]["raster"]) != B].tolist())
+            self.assertEqual(got, {-250}, z)
 
 
 # ----------------------------------------------------------------------------- synthetic scenes
@@ -281,6 +320,26 @@ class Scenes(unittest.TestCase):
                 self.assertFalse(blocked[shapely.contains_xy(poly.buffer(0.3), cx, cy) == 0].any())
         roll = dict(motion="roll", pivot=[0.0, 0.0, 0.0], thickness=0.05, width=2.0, height=2.09, travel=[0, 0, 2.09])
         self.assertGreaterEqual(doorpose.opened_z(roll, (1, 0, 0), (0, 1, 0))[0], 1.8)
+
+    def test_door_reach_seeds_from_the_doorway(self):
+        """door_reach measures what the way through the opening reaches: a side cell cut off from it (the corner
+        between an opened leaf and its jamb) seeds nothing, so the area cut off with it is lost, not reached. Here
+        held cells cut the part of side b right of x = 2.6 off from the opening; side cells of b lie in it, and when
+        every side cell seeded it passed as reached (BLK_509's void-deck stairs, whose leaves at 75 degrees cut the
+        first flight off from the door and still counted as whole)."""
+        d = _door(2.0, 0.9)
+        w = _scene(_wall_with_door(2.0, 0.9), [d])
+        a, b = w.sides[0]
+        x, y = np.round(w.cx(), 3), np.round(w.cy(), 3)
+        held = (x >= 2.6) & (((y >= 1.75) & (y <= 2.05)) | ((x == 2.6) & (y >= 1.75)))
+        pocket = (x >= 2.7) & (y >= 2.1) & (np.abs(w.fz) < 0.1)
+        self.assertTrue(pocket[b].any())                                   # side cells of b lie in the pocket
+        region = np.arange(len(w.ix))
+        self.assertTrue(walk.connected(w, region, a, b, held))
+        joined, reach = walk.door_reach(w, region, a, b), walk.door_reach(w, region, a, b, held)
+        self.assertTrue(np.isin(np.nonzero(pocket)[0], joined).all() and pocket.sum() > 100)
+        self.assertFalse(pocket[reach].any())
+        self.assertTrue(((x < 2.5) & (y > 1.9))[reach].any())             # the rest of side b is still reached
 
     def test_leaf_narrowed_in_a_shallow_room(self):
         """Opened to 90 degrees in a room 1.1 m deep, the leaf meets the far wall and cuts off the part of the room
@@ -407,39 +466,94 @@ class PointBlockWeb(unittest.TestCase):
         self.assertGreater(n, 500)
         self.assertEqual(missing, [])
 
-    def test_doors_connect_with_leaves_blocked(self):
-        """Every passable door joins its two sides within 1.5 m of its opening on the exported grid, with the opened
-        leaves blocked; neighbours are 4-adjacent cells (main or overflow) whose floors differ by at most a step."""
+    def labels(self, idx):
+        """Components of the floors ``idx``: 4-adjacent cells (main or overflow) whose floors differ by at most a
+        step."""
         t, f = self.grid, self.floors
         c = t["cell"]
+        ii = np.round((f["x"][idx] - t["origin"][0]) / c - 0.5).astype(int)
+        jj = np.round((f["y"][idx] - t["origin"][1]) / c - 0.5).astype(int)
+        pos = {}
+        for k, (i, j) in enumerate(zip(ii, jj)):
+            pos.setdefault((int(i), int(j)), []).append(k)
+        ea, eb = [], []
+        for (i, j), ks in pos.items():
+            for di, dj in ((1, 0), (0, 1)):
+                for k in ks:
+                    for k2 in pos.get((i + di, j + dj), ()):
+                        if abs(f["z"][idx[k]] - f["z"][idx[k2]]) <= 0.4 + 1e-6:
+                            ea.append(k)
+                            eb.append(k2)
+        return nav3d.components(len(idx), np.array(ea, np.int64), np.array(eb, np.int64))
+
+    def front(self, p, idx, reach=(0.1, 0.8)):
+        """(along, across, the floors of idx in front of portal p's opening on each side): within its clear width,
+        ``reach`` m off its threshold, at its floor. A door's sides are probed here, not at the portal's ``link``
+        points: those sit at the middle of the rooms' edges, which a counter can fill (NC_514's stall shutters)."""
+        f = self.floors
+        (t0x, t0y, _), (t1x, t1y, _) = p["threshold"]
+        along = np.array([t1x - t0x, t1y - t0y])
+        wl = float(np.linalg.norm(along))
+        along /= wl
+        mid = np.array([(t0x + t1x) / 2, (t0y + t1y) / 2])
+        rel = np.stack([f["x"][idx] - mid[0], f["y"][idx] - mid[1]], 1)
+        u, v = rel @ along, rel @ np.array([-along[1], along[0]])
+        door = next(d for d in self.eng["doors"] if d["node"] == p["node"])
+        ok = (np.abs(u) <= (door.get("clear_width") or wl) / 2) & (np.abs(f["z"][idx] - p["floor_z"]) <= 0.3)
+        return u, v, (np.nonzero(ok & (v < -reach[0]) & (v >= -reach[1]))[0],
+                      np.nonzero(ok & (v > reach[0]) & (v <= reach[1]))[0])
+
+    def test_doors_connect_with_leaves_blocked(self):
+        """Every passable door joins its two sides within 1.5 m of its opening on the exported grid, with the opened
+        leaves blocked: the cells in front of its opening (self.front) on one side and the other fall in one
+        component of the floors within 1.5 m (plan) and 1 m (height) of it."""
+        f = self.floors
         bad, n = [], 0
         for p in self.eng["portals"]:
             if not p["passable"]:
                 continue
             n += 1
-            (ax, ay, az), (bx, by, bz) = p["link"]
-            mx, my = (ax + bx) / 2, (ay + by) / 2
+            (t0x, t0y, _), (t1x, t1y, _) = p["threshold"]
+            mx, my = (t0x + t1x) / 2, (t0y + t1y) / 2
             idx = np.nonzero((np.hypot(f["x"] - mx, f["y"] - my) <= 1.5) & (np.abs(f["z"] - p["floor_z"]) <= 1.0))[0]
-            ii = np.round((f["x"][idx] - t["origin"][0]) / c - 0.5).astype(int)
-            jj = np.round((f["y"][idx] - t["origin"][1]) / c - 0.5).astype(int)
-            pos = {}
-            for k, (i, j) in enumerate(zip(ii, jj)):
-                pos.setdefault((int(i), int(j)), []).append(k)
-            ea, eb = [], []
-            for (i, j), ks in pos.items():
-                for di, dj in ((1, 0), (0, 1)):
-                    for k in ks:
-                        for k2 in pos.get((i + di, j + dj), ()):
-                            if abs(f["z"][idx[k]] - f["z"][idx[k2]]) <= 0.4 + 1e-6:
-                                ea.append(k)
-                                eb.append(k2)
-            lab = nav3d.components(len(idx), np.array(ea, np.int64), np.array(eb, np.int64))
-            sa = [k for k in range(len(idx)) if np.hypot(f["x"][idx[k]] - ax, f["y"][idx[k]] - ay) <= 0.3]
-            sb = [k for k in range(len(idx)) if np.hypot(f["x"][idx[k]] - bx, f["y"][idx[k]] - by) <= 0.3]
-            if not (sa and sb and set(lab[sa].tolist()) & set(lab[sb].tolist())):
+            lab = self.labels(idx)
+            _, _, (sa, sb) = self.front(p, idx)
+            if not (len(sa) and len(sb) and set(lab[sa].tolist()) & set(lab[sb].tolist())):
                 bad.append(p["node"])
         self.assertGreater(n, 400)
         self.assertEqual(bad, [])
+
+    def test_stair_paths_meet_their_doors(self):
+        """For every stair and every passable door into its room on its storey, the start of its path (the landing
+        point and the foot of the first flight) is joined to the stair side of the door's opening within 4 m: an
+        opened leaf never cuts a flight off from its own door."""
+        f = self.floors
+        bad, n = [], 0
+        for s in self.doc["stairs"]:
+            for p in self.eng["portals"]:
+                if not (p["passable"] and p["storey"] == s["storey"] and s["room"] in p["space_names"]):
+                    continue
+                n += 1
+                (t0x, t0y, _), (t1x, t1y, _) = p["threshold"]
+                mx, my = (t0x + t1x) / 2, (t0y + t1y) / 2
+                idx = np.nonzero((np.hypot(f["x"] - mx, f["y"] - my) <= 4.0) & (f["z"] > p["floor_z"] - 1.0)
+                                 & (f["z"] < p["floor_z"] + 2.0))[0]
+                lab = self.labels(idx)
+                u, _, sides = self.front(p, idx)
+                lx, ly, _ = p["link"][p["space_names"].index(s["room"])]
+                side = sides[int(np.dot([lx - mx, ly - my], [-(t1y - t0y), t1x - t0x]) > 0)]
+                doorway = set(lab[side[np.argsort(np.abs(u[side]), kind="stable")[:3]]].tolist())
+                for q in s["path"][:2]:
+                    near = np.nonzero((np.hypot(f["x"][idx] - q[0], f["y"][idx] - q[1]) <= 0.3)
+                                      & (np.abs(f["z"][idx] - q[2]) <= 0.25))[0]
+                    if not (len(side) and len(near) and doorway & set(lab[near].tolist())):
+                        bad.append((s["name"], p["node"], q))
+        self.assertGreater(n, 10)
+        self.assertEqual(bad, [])
+
+    def test_bands(self):
+        """Every floor of the exported grid keeps the band rule, in whole mm."""
+        self.assertEqual(band_errors(self.grid), [])
 
     def test_spawns_and_lift_landings(self):
         """Every spawn point is within 0.3 m of a walkable L1 cell; every lift landing has a walkable cell within
@@ -460,13 +574,18 @@ class PointBlockWeb(unittest.TestCase):
     def test_stairs(self):
         """Every IfcStair: its flights in order, risers and riser heights as the IFC says (and their sum is the
         stair's NumberOfRiser), a path rising no more than 0.40 m between points, from the stair's floor to within
-        0.1 m of the next one, standing on the walk grid along the way."""
+        0.1 m of the next one, standing on the walk grid all the way: every 0.05 m of it has a floor within 0.4 m (a
+        viewer's floorAt) in its own cell."""
         import ifcopenshell
         import ifcopenshell.util.element as uel
         f = ifcopenshell.open(str(PT4))
         by_name = {s.Name: s for s in f.by_type("IfcStair")}
         self.assertEqual(sorted(s["name"] for s in self.doc["stairs"]), sorted(by_name))
-        off_grid = total = 0
+        t = self.grid
+        (ox, oy), c, cols = t["origin"], t["cell"], {}
+        for x, y, z in zip(self.floors["x"], self.floors["y"], self.floors["z"]):
+            cols.setdefault((int(np.floor((x - ox) / c)), int(np.floor((y - oy) / c))), []).append(z)
+        off_grid, total = [], 0
         for s in self.doc["stairs"]:
             st = by_name[s["name"]]
             flights = [p for p in uel.get_decomposition(st) if p.is_a("IfcStairFlight")]
@@ -484,10 +603,16 @@ class PointBlockWeb(unittest.TestCase):
             self.assertEqual(s["to_ffl"], self.eng["storeys"][s["to"]])
             self.assertTrue(s["room"] and "STAIR" in s["room"], s)
             self.assertEqual([round(lg["z"], 3) for lg in s["landings"]][-1], s["to_ffl"])
-            for x, y, z in path:
-                total += 1
-                off_grid += not len(self.near(x, y, z, 0.25, 0.25))
-        self.assertLessEqual(off_grid, 0.05 * total)
+            for p, q in zip(path[:-1], path[1:]):
+                for u in np.linspace(0.0, 1.0, max(2, int(np.ceil(np.hypot(*(q[:2] - p[:2])) / 0.05)) + 1)):
+                    x, y, z = p + u * (q - p)
+                    total += 1
+                    here = cols.get((int(np.floor((x - ox) / c)), int(np.floor((y - oy) / c))), ())
+                    if not any(abs(h - z) <= 0.4 for h in here):
+                        off_grid.append((s["name"], round(float(x), 3), round(float(y), 3), round(float(z), 3)))
+        self.assertGreater(total, 1000)
+        self.assertEqual(off_grid, [])
+        self.assertEqual(self.doc["walk"]["stair_off_grid"], 0)
 
     def test_opened_leaves_match_lod0(self):
         """The closed box nav_doorpose reads from a leaf record holds that leaf's LOD0 mesh (handles stick out a few
@@ -595,11 +720,15 @@ class PointBlockWeb(unittest.TestCase):
         self.assertEqual(b501["files"]["walk"]["sha256"], hashlib.sha256(self.bin).hexdigest())
         self.assertEqual(b501["files"]["web"]["path"], "BLK_501/BLK_501_web.json")
         self.assertEqual(b501["files"]["glb_lod0"], {"path": "BLK_501/BLK_501_lod0.glb", "exists": False})
+        # a .blend by path alone: Blender saves one scene as different bytes each time, and none is released
+        self.assertEqual(b501["files"]["blend"], {"path": "BLK_501/BLK_501.blend", "exists": False})
+        self.assertEqual(d["site"]["files"]["estate_blend"], {"path": "ESTATE.blend", "exists": False})
         self.assertNotIn("walk", d["site"]["files"])
         self.assertEqual(info["files"]["BLK_501/BLK_501_walk.bin"],
                          {"sha256": hashlib.sha256(self.bin).hexdigest(), "bytes": len(self.bin)})
         self.assertEqual(set(info["files"]), {"BLK_501/BLK_501_walk.bin", "BLK_501/BLK_501_web.json"})
         self.assertEqual(info["walk"]["leaves"], self.doc["walk"]["leaves"])
+        self.assertEqual(info["walk"]["stair_off_grid"], 0)
         self.assertEqual((info["walk"]["radius"], info["walk"]["voxel"], info["walk"]["band_pad"]), (0.2, 0.1, 0.25))
         self.assertEqual((info["schema"], info["seed"]), ("sample-town-n5/export-info/1", 20261004))
         self.assertEqual(sorted(info), ["commit", "dirty", "dirty_scope", "files", "manifest_sha256", "schema", "seed",
@@ -609,8 +738,9 @@ class PointBlockWeb(unittest.TestCase):
 
 class StageWiring(unittest.TestCase):
     def test_stage_registered(self):
-        """web runs after estate, is switched by [outputs] web, is keyed on its code with nav3d, the door poses and
-        the mesh cache, and its records are writers of the manifest and export_info (cmd_build's tail)."""
+        """web runs after estate, is switched by [outputs] web, is keyed on its code (not export_info's or the
+        release's, which shape none of its outputs) with nav3d, the door poses and the mesh cache, and its records
+        are writers of the manifest and export_info (cmd_build's tail)."""
         from estate import commands
         from estate.pipeline import hooks, state
         cfg = config.load()
@@ -618,8 +748,13 @@ class StageWiring(unittest.TestCase):
         self.assertEqual(stages[-2:], ["estate", "web"])
         self.assertNotIn("web", commands.default_stages(dict(cfg, outputs=dict(cfg["outputs"], web=False))))
         self.assertIn("web", hooks.STAGES)
-        self.assertEqual(state.STAGE_DEPS["web"], ("estate/web/*.py", "estate/validate/nav3d.py",
-                                                   "estate/validate/nav_doorpose.py", "estate/export/meshcache.py"))
+        self.assertEqual(state.STAGE_DEPS["web"], ("estate/web/__init__.py", "estate/web/export.py",
+                                                   "estate/web/walk.py", "estate/web/sn5w.py", "estate/web/stairs.py",
+                                                   "estate/validate/nav3d.py", "estate/validate/nav_doorpose.py",
+                                                   "estate/export/meshcache.py"))
+        web = {p.name for g in state.STAGE_DEPS["web"] for p in env.ROOT.glob(g)}
+        self.assertEqual(web & {"info.py", "release.py"}, set())
+        self.assertEqual({p.name for p in (env.ROOT / "estate" / "web").glob("*.py")} - web, {"info.py", "release.py"})
         self.assertIn("estate/validate/nav_doorpose.py", state.STAGE_DEPS["glb"])
         nav = {p.resolve() for g in state.STAGE_DEPS["nav"] for p in env.ROOT.glob(g)}
         self.assertIn((env.ROOT / "estate" / "validate" / "nav_doorpose.py").resolve(), nav)
