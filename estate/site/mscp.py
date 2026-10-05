@@ -161,9 +161,10 @@ def style_door_types(W):
 
 def publish(info: dict, out_path: Path):
     """<stem>.build.json next to the IFC: the entrances, lift lobbies and stair doors the masterplan and the site
-    builder read back (model/<id>/<id>.build.json in the pipeline build)."""
+    builder read back (model/<id>/<id>.build.json in the pipeline build). It records the IFC's path project-relative
+    (env.rel), so the published file names no folder of the machine that built it; info keeps the full path."""
     Path(out_path).with_name(f"{Path(out_path).stem}.build.json").write_text(
-        json.dumps(info, indent=1, default=str), encoding="utf-8")
+        json.dumps(dict(info, path=env.rel(info["path"])), indent=1, default=str), encoding="utf-8")
 
 
 def straight_wall(W, p, q, z, h, storey, name, type_key="PARAPET", external=True, climbable=None, defer=None):

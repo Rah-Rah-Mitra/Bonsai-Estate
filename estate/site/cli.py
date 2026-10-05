@@ -86,7 +86,7 @@ def cmd_site(a):
     if a.ifc4 and a.schema.upper() != "IFC4":
         out4 = out.with_name(out.stem + "_ifc4.ifc")
         i4 = builder.write_site(layout, out4, "IFC4", log=print)
-        info["ifc4"] = dict(path=str(out4), elements=i4["elements"], by_class=i4["by_class"])
+        info["ifc4"] = dict(path=env.rel(out4), elements=i4["elements"], by_class=i4["by_class"])
         written.append(out4)
     st = info["graph_stats"]
     print(f"IfcElement by class ({a.schema}): " + ", ".join(f"{k} {v}" for k, v in info["by_class"].items()))
@@ -116,7 +116,7 @@ def cmd_site(a):
         bad += 1
     rep = (out.parent if a.out else env.REPORTS) / "site_build.json"
     rep.parent.mkdir(parents=True, exist_ok=True)
-    rep.write_text(json.dumps(info, indent=1, default=str), encoding="utf-8")
+    rep.write_text(json.dumps(builder.site_report(info), indent=1, default=str), encoding="utf-8")
     print(f"done in {time.time() - t0:.1f} s -> {env.rel(out)}, {env.rel(graph)}"
           f"{', ' + env.rel(png) if png else ''}{', ' + env.rel(svg) if svg else ''}, {env.rel(rep)}")
     return 1 if bad else 0

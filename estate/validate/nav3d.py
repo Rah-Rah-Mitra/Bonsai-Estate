@@ -51,6 +51,7 @@ import shapely
 import ifcopenshell.util.element as uel
 import ifcopenshell.util.placement as uplace
 
+from estate import env
 from estate.export import meshcache
 
 LANDING_RE = re.compile(r"^(?P<level>\S+)\s+lift(?:\s+(?P<k>\d+))?\s+landing door$", re.I)
@@ -1023,7 +1024,7 @@ def check_building(ifc_path, out_dir, radius=0.30, height=1.8, step=0.4, voxel=0
     jamb_src = {}
     for d in M.doors:
         jamb_src[d["jamb_src"]] = jamb_src.get(d["jamb_src"], 0) + 1
-    report = {"file": str(ifc_path), "stem": ifc_path.stem,
+    report = {"file": env.rel(ifc_path), "stem": ifc_path.stem,
               "building": M.building,
               "agent": {"radius": radii, "effective_radius": eff, "height": height, "step": step, "voxel": voxel,
                         "level_tol": level_tol, "door_voxel": door_voxel or None,

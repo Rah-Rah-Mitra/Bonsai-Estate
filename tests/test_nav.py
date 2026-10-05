@@ -22,7 +22,7 @@ bootstrap()
 import numpy as np  # noqa: E402
 import shapely  # noqa: E402
 
-from estate import env  # noqa: E402
+from estate import env, leaks  # noqa: E402
 from estate.validate import nav2d, nav3d, navgraph  # noqa: E402
 
 OUT = env.BUILD / "nav_tests" / "unittest"
@@ -519,6 +519,9 @@ class PointBlock(unittest.TestCase):
         self.assertEqual(s["main_doors_checked_in"], {"entry room": s["flats"]})
         lifts = rep["results"]["0.30"]["lifts"]
         self.assertTrue(lifts and all(not lf["missing_levels"] and lf["step_free_from_street"] for lf in lifts))
+        self.assertEqual(rep["file"], "build/t_pt4.ifc")              # project-relative: no folder of this machine
+        written = json.loads((OUT / "t_pt4" / "t_pt4_nav.json").read_text(encoding="utf-8"))
+        self.assertEqual(leaks.absolute_strings(written), [])
 
 
 if __name__ == "__main__":

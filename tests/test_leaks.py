@@ -1,6 +1,7 @@
 """Leak scan (estate/leaks.py): drive paths, Users folders and the author's username found in JSON strings, in PNG
 text chunks (tEXt, and zTXt / iTXt once inflated), in a GLB's JSON chunk and in zip members, while pixel, vertex and
-compressed bytes are left alone; and the stricter absolute-path test for the pipeline's own JSON.
+compressed bytes are left alone; the stricter absolute-path test for the pipeline's own JSON; and every tracked file
+of the repository scanned clean.
 
 Run: "<blender python>" -I -B tests/test_leaks.py -v
 """
@@ -11,6 +12,7 @@ import io
 import json
 import shutil
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -145,6 +147,21 @@ class JsonAndContainers(unittest.TestCase):
             self.assertIn("2 files scanned, 1 leak(s)", out.getvalue())
         finally:
             shutil.rmtree(d, ignore_errors=True)
+
+
+class TrackedFiles(unittest.TestCase):
+    def test_every_tracked_file_is_clean(self):
+        """Every file git tracks: source, config, the tracked reports and the baseline model files. The only machine
+        path allowed is the default Blender folder in estate.cmd and estate/env.py."""
+        try:
+            out = subprocess.run(["git", "ls-files", "-z"], cwd=env.ROOT, capture_output=True, check=True).stdout
+        except (OSError, subprocess.CalledProcessError):
+            self.skipTest("not a git checkout")
+        files = [env.ROOT / f for f in out.decode("utf-8").split("\0") if f]
+        self.assertGreater(len(files), 100)
+        found = [str(leak) for f in files if f.is_file()
+                 for leak in leaks.scan_file(f, env.ROOT, allow=leaks.BLENDER_INSTALL)]
+        self.assertEqual(found, [])
 
 
 if __name__ == "__main__":
