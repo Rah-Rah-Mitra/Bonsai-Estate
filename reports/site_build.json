@@ -1,5 +1,5 @@
 {
- "path": "C:\\Users\\rapiular\\Documents\\Workspace\\Environment-BIM\\model\\SITE.ifc",
+ "path": "model/SITE.ifc",
  "schema": "IFC4X3",
  "elements": 1805,
  "by_class": {
@@ -14,10 +14,10 @@
   "IfcSlab": 231
  },
  "linked_models": 14,
- "seconds": 2.5,
- "graph": "C:\\Users\\rapiular\\Documents\\Workspace\\Environment-BIM\\model\\SITE_graph.json",
- "site_plan": "C:\\Users\\rapiular\\Documents\\Workspace\\Environment-BIM\\reports\\site_plan.png",
- "site_plan_svg": "C:\\Users\\rapiular\\Documents\\Workspace\\Environment-BIM\\reports\\site_plan.svg",
+ "seconds": 4.7,
+ "graph": "model/SITE_graph.json",
+ "site_plan": "reports/site_plan.png",
+ "site_plan_svg": "reports/site_plan.svg",
  "graph_stats": {
   "nodes": 566,
   "edges": 618,
@@ -61,15 +61,15 @@
   "NC_514 entrance 3: moved 0.6 m along the facade, clear of the ground floor"
  ],
  "timings": {
-  "grounds": 14.94,
-  "roads+greens": 1.6,
-  "driveways": 0.72,
-  "linkways": 1.2,
-  "footpaths": 0.53,
-  "surfaces": 0.63,
-  "landscape": 0.11,
-  "graph": 2.01,
-  "total_plan": 21.75
+  "grounds": 0.71,
+  "roads+greens": 0.56,
+  "driveways": 0.76,
+  "linkways": 1.22,
+  "footpaths": 0.59,
+  "surfaces": 0.86,
+  "landscape": 0.21,
+  "graph": 3.21,
+  "total_plan": 8.15
  },
  "trees": 778,
  "crossings": 10,

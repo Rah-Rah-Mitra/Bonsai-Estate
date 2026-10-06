@@ -141,7 +141,7 @@ def build_site_ifc(schema: str = "IFC4X3") -> dict:
     t0 = time.time()
     try:
         from estate import masterplan
-        from estate.site.builder import build_site
+        from estate.site.builder import build_site, write_site_report
         mp = masterplan.resolve()
         out = env.MODEL / ("SITE.ifc" if schema == "IFC4X3" else "SITE_ifc4.ifc")
         outputs = [out]
@@ -149,7 +149,7 @@ def build_site_ifc(schema: str = "IFC4X3") -> dict:
             graph, png, svg = env.MODEL / "SITE_graph.json", env.REPORTS / "site_plan.png", env.REPORTS / "site_plan.svg"
             info = build_site(mp, out, schema=schema, graph_path=graph, plan_png=png, plan_svg=svg)
             sb = env.REPORTS / "site_build.json"
-            sb.write_text(json.dumps(info, indent=1, default=str), encoding="utf-8")
+            info = write_site_report(info, sb)
             outputs += [graph, png, svg, masterplan.write_json(mp), sb]
         else:
             info = build_site(mp, out, schema=schema)

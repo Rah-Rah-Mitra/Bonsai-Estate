@@ -445,6 +445,22 @@ class SiteGraph(unittest.TestCase):
                          sorted([("IfcRoadPart", "Extra sidewalk"), ("IfcRoadPart", parts[first]["name"] + " (renamed)")]))
         self.assertTrue(any(e.is_a("IfcElementAssembly") for e in a.values()))
 
+    def test_site_build_json_paths_relative(self):
+        """reports/site_build.json as the build and `estate.cmd site` write it (both through write_site_report), read
+        back from disk: every file path project-relative, so the published report names no folder of the machine that
+        built it; the pedestrian graph holds no absolute path either."""
+        from estate import leaks
+        written = builder.write_site_report(self.info, OUT / "site_build.json")
+        rep = json.loads((OUT / "site_build.json").read_text(encoding="utf-8"))
+        self.assertEqual(rep, json.loads(json.dumps(written, default=str)))
+        self.assertEqual([rep[k] for k in builder.REPORT_PATHS],
+                         [env.rel(OUT / n) for n in ("SITE.ifc", "SITE_graph.json", "site_plan.png", "site_plan.svg")])
+        self.assertTrue(rep["path"].startswith("build/site_tests/unittest-"), rep["path"])
+        self.assertEqual(leaks.absolute_strings(rep), [])
+        self.assertEqual(leaks.scan_json(json.dumps(rep)), [])
+        graph = json.loads((OUT / "SITE_graph.json").read_text(encoding="utf-8"))
+        self.assertEqual(leaks.absolute_strings(graph), [])
+
     def test_site_plan_svg(self):
         """reports/site_plan.svg as build_site writes it beside the PNG from the same layout: XML in the PNG's pixel
         frame, one group per theme, one footprint path per site, block numbers and bus stop names as real text,

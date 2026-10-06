@@ -647,7 +647,8 @@ def check_site(mp, site_graph_json=None, site_ifc=None, cell=CELL, out_dir=None,
                              f"Site walk test (graph {env.rel(site_graph_json)}, checked against SITE.ifc): "
                              f"bus stops to lift lobbies")
         except Exception as e:  # noqa: BLE001
-            assumptions.append(f"{env.rel(site_graph_json)} unusable ({type(e).__name__}: {e}); fell back to the grid")
+            assumptions.append(f"{env.rel(site_graph_json)} unusable ({type(e).__name__}: {env.scrub(str(e))}); "
+                               f"fell back to the grid")
     if mode is None:
         routes, grid_info = _grid_routes(mp, targets, site_ifc, cell, assumptions, out_dir if png else None, say)
         mode = grid_info.pop("mode")
@@ -726,7 +727,7 @@ def _grid_routes(mp, targets, site_ifc, cell, assumptions, png_dir, say):
         try:
             ifc = read_site_ifc(site_ifc)
         except Exception as e:  # noqa: BLE001
-            assumptions.append(f"{env.rel(site_ifc)} unreadable ({e}); masterplan geometry used")
+            assumptions.append(f"{env.rel(site_ifc)} unreadable ({env.scrub(str(e))}); masterplan geometry used")
     carriage = unary_union([r["carriage_poly"] for r in mp["roads"]])
     if ifc and ifc["carriageway"]:
         carriage = unary_union([carriage] + ifc["carriageway"])

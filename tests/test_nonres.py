@@ -25,7 +25,7 @@ import ifcopenshell.util.placement as upl  # noqa: E402
 from shapely.geometry import box  # noqa: E402
 from shapely.ops import unary_union  # noqa: E402
 
-from estate import config, env  # noqa: E402
+from estate import config, env, leaks  # noqa: E402
 from estate.site import centre, mscp  # noqa: E402
 from estate.site.cli_buildings import validate  # noqa: E402
 from estate.validate.programme import solid_footprint  # noqa: E402
@@ -178,6 +178,8 @@ class TestBoth(unittest.TestCase):
             pub = json.loads(bj.read_text(encoding="utf-8"))
             self.assertEqual(pub["entrances"], json.loads(json.dumps(info["entrances"])))
             self.assertTrue(pub["lift_lobbies"] and pub["stair_doors"])
+            self.assertEqual(pub["path"], f"build/nonres_tests/unittest/{info['id']}.ifc")   # project-relative
+            self.assertEqual(leaks.absolute_strings(pub), [])
             self.assertLess(info["counts"]["IfcElement"], cfg["budget"]["max_ifc_elements_per_file"])
             self.assertEqual(validate(info["path"]), [], which)
 
