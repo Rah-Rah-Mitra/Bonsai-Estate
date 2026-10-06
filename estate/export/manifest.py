@@ -3,8 +3,8 @@
 The glbs and engine JSONs are block-local (see engine.py); this file carries what an importer needs to assemble the
 neighbourhood: the CRS / georeference, every site with its block -> estate transform, bounds, real lift lobbies and
 entrances (the masterplan resolved with block planning) and the relative paths (+ sha256) of its IFC, IFC4 copy,
-.blend, LOD glbs, per-storey interior chunks (``glb_int``, bottom up) and engine JSON, the roads, the pedestrian
-graph written by the site work (model/SITE_graph.json, embedded when present), bus stops and spawn points. All
+LOD glbs, per-storey interior chunks (``glb_int``, bottom up), engine JSON, walk grid and web JSON, and of its
+.blend (path only), the roads, the pedestrian graph written by the site work (model/SITE_graph.json, embedded when present), bus stops and spawn points. All
 coordinates are estate metres (origin at the south-west corner, +x east, +y north, Z up).
 
 Spawn points stand on the pedestrian network: ``entrance_spawns`` sets each one out from a masterplan entrance
@@ -54,6 +54,12 @@ def _file(path: Path, base: Path) -> dict:
     return {"path": rel, "exists": False}
 
 
+def _blend(path: Path, base: Path) -> dict:
+    """A .blend by path alone: Blender writes different bytes for the same scene on every save, and a .blend is
+    never released (estate/web/release.py), so its hash would only make two builds of one commit differ."""
+    return {"path": Path(os.path.relpath(path, base)).as_posix(), "exists": path.exists()}
+
+
 def _mat(M, nd=9):
     return [[round(float(x), nd) + 0.0 for x in row] for row in np.asarray(M)]
 
@@ -74,9 +80,10 @@ def site_files(folder: Path, stem: str, base: Path, lods=(0, 1, 2), interiors=Tr
     no interior chunks (``interiors`` False). ``glb_int`` lists a building's per-storey interior chunks
     [{storey, elevation, path, sha256, bytes}] bottom up, as its engine JSON names them (``engine``, the parsed
     <stem>_engine.json, read here when not given): the JSON is written with the chunks, so a chunk file left from
-    an older export is never listed. Empty without an engine JSON."""
+    an older export is never listed. Empty without an engine JSON. A building also lists the web stage's walk grid
+    and web JSON (``walk``, ``web``: estate/web); the site has neither."""
     out = {"ifc": _file(folder / f"{stem}.ifc", base), "ifc4": _file(folder / f"{stem}_ifc4.ifc", base),
-           "blend": _file(folder / f"{stem}.blend", base)}
+           "blend": _blend(folder / f"{stem}.blend", base)}
     out.update({f"glb_lod{k}": _file(folder / f"{stem}_lod{k}.glb", base) for k in lods})
     out["engine"] = _file(folder / f"{stem}_engine.json", base)
     if interiors:
@@ -84,6 +91,8 @@ def site_files(folder: Path, stem: str, base: Path, lods=(0, 1, 2), interiors=Tr
         chunks = sorted((eng or {}).get("interior_chunks", {}).items(), key=lambda kv: kv[1]["elevation"])
         out["glb_int"] = [dict(storey=s, elevation=c["elevation"], **_file(folder / c["file"], base))
                           for s, c in chunks]
+        out["walk"] = _file(folder / f"{stem}_walk.bin", base)
+        out["web"] = _file(folder / f"{stem}_web.json", base)
     return out
 
 
@@ -401,7 +410,7 @@ def write_manifest(mp: dict | None = None, out=None, model_dir=None) -> Path:
                           lift_lobbies=[list(p) for p in s.lift_lobbies], entrances=[list(p) for p in s.entrances],
                           files=files))
     estate_files = dict(site_files(model_dir, "SITE", base, lods=(0, 1), interiors=False),
-                        estate_blend=_file(model_dir / "ESTATE.blend", base),
+                        estate_blend=_blend(model_dir / "ESTATE.blend", base),
                         masterplan=_file(model_dir / "masterplan.json", base))
     site_eng = _load(model_dir / "SITE_engine.json")
     roads = [dict(id=r["id"], name=r.get("name"), road_class=r.get("class"),

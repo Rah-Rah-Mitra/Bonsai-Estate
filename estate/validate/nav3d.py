@@ -906,8 +906,11 @@ def door_band(door, tris: Tris, radii, height, step, level_tol, P=DOOR_VOXEL, ca
     return out, False
 
 
-def _door_portal(cells: Cells, g: Grid, door, za, zb, tol, index: CellIndex):
-    """Edges chaining the coarse cells in front of a door on both sides (floors at za and zb), or None."""
+def _door_sides(cells: Cells, g: Grid, door, za, zb, tol, index: CellIndex):
+    """The coarse cells in front of a door on its two sides (floors at za and zb), or None when a side has none.
+
+    Both lie within the opening's width and WALL_HALF + 0.6 m of the door axis; side a is behind the door frame's
+    y axis, side b in front. Shared by _door_portal and the walk grids of the web stage (estate/web/walk.py)."""
     c = _cells_near(cells, g, door["bbox"], door["z"], WALL_HALF + 0.8, index=index)
     if not len(c):
         return None
@@ -920,7 +923,15 @@ def _door_portal(cells: Cells, g: Grid, door, za, zb, tol, index: CellIndex):
     b = c[inx & (ly > 0.02) & (np.abs(fz - zb) <= tol)]
     if not len(a) or not len(b):
         return None
-    fc = np.concatenate([a, b])
+    return a, b
+
+
+def _door_portal(cells: Cells, g: Grid, door, za, zb, tol, index: CellIndex):
+    """Edges chaining the coarse cells in front of a door on both sides (floors at za and zb), or None."""
+    sides = _door_sides(cells, g, door, za, zb, tol, index)
+    if sides is None:
+        return None
+    fc = np.concatenate(sides)
     return fc[:-1], fc[1:]
 
 

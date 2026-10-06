@@ -8,6 +8,8 @@ letter, a colon and a backslash), a Users folder with either slash, or the autho
 - PNG: the text chunks (tEXt, zTXt and iTXt, inflated) and the text entries of an eXIf chunk; pixel data is never
   text;
 - GLB: the JSON chunk, as JSON; the binary chunk holds vertex data;
+- SN5W walk grids (estate/web/sn5w.py): the layer tags, the only text in the format, once the whole file has parsed
+  as SN5W (a file that does not is reported as not scanned);
 - zip (release zips, BCF): every member name and, by type, every member;
 - text (UTF-8 with no NUL byte: IFC, CSV, SVG, HTML, source): the text.
 
@@ -188,6 +190,21 @@ def scan_zip(data: bytes, where: str = "", allow=None) -> list[Leak]:
     return out
 
 
+def scan_sn5w(data: bytes, where: str = "", allow=None) -> list[Leak]:
+    """An SN5W walk grid: its layer tags. The reader checks every section of the file first (estate/web/sn5w.py),
+    so a file with bytes the format does not account for is one UNSCANNABLE finding."""
+    try:
+        from estate.web import sn5w
+    except ImportError:                       # run as a script: the project is not on the path yet
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from estate.web import sn5w
+    try:
+        tags = sn5w.layer_tags(data)
+    except ValueError as e:
+        return [Leak(f"{where} ({e})", UNSCANNABLE)]
+    return [leak for i, tag in enumerate(tags) for leak in find(tag, f"{where} layer {i}", allow)]
+
+
 def text_of(data: bytes) -> str | None:
     """The text of a text file (UTF-8 with no NUL byte), or None for binary data."""
     if b"\0" in data:
@@ -206,6 +223,8 @@ def scan_bytes(data: bytes, name: str = "", allow=None) -> list[Leak]:
     js = glb_json(data)
     if js is not None:
         return scan_json(js, f"{name} JSON chunk", allow)
+    if data[:4] == b"SN5W":
+        return scan_sn5w(data, name, allow)
     if data[:4] in (b"PK\x03\x04", b"PK\x05\x06"):
         try:
             return scan_zip(data, name, allow)

@@ -13,9 +13,14 @@ skipped. Views: iso = ortho from the south-east, top = ortho plan (north up), ae
 from 30 degrees up, cutaway = ortho iso of the cut storey, cutplan = ortho plan of the cut storey. Each placed
 camera renders {prefix}_{view}.png in perspective from its eye (views.look_camera: not fitted to the model, clip
 set explicitly) against a sky-coloured background, before the cut views hide anything.
+
+Every job also writes {prefix}_views.json next to the images: each rendered view's camera (matrix_world row-major
+in the estate frame, lens, sensor, shift, resolution, clip; rounded to 1e-6, no clock, no path), so a viewer can
+match a render exactly (camera_info).
 """
 from __future__ import annotations
 
+import json
 import sys
 import time
 from pathlib import Path
@@ -25,6 +30,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from estate.blender import _boot  # noqa: E402
 
 VIEWS = ("iso", "top", "aerial_NE", "aerial_SW", "cutaway", "cutplan")
+VIEWS_SCHEMA = "sample-town-n5/render-views/1"
+
+
+def _n(v, nd=6):
+    return round(float(v), nd) + 0.0
+
+
+def camera_info(cam, res) -> dict:
+    """The camera of one render: what a viewer needs to reproduce it. Blender cameras look along their local -Z
+    with +Y up; lens and sensor in mm, shifts in units of the larger image side (sensor_fit AUTO)."""
+    cd, M = cam.data, cam.matrix_world
+    out = {"type": cd.type, "matrix_world": [[_n(M[i][j]) for j in range(4)] for i in range(4)],
+           "lens": _n(cd.lens), "sensor_width": _n(cd.sensor_width), "sensor_fit": cd.sensor_fit,
+           "shift_x": _n(cd.shift_x), "shift_y": _n(cd.shift_y), "res": [int(v) for v in res],
+           "clip": [_n(cd.clip_start), _n(cd.clip_end)]}
+    if cd.type == "ORTHO":
+        out["ortho_scale"] = _n(cd.ortho_scale)
+    return out
 
 
 def storeys():
@@ -97,13 +120,14 @@ def run(a: dict) -> dict:
     V.setup_workbench(scene)
     bbox = V.world_bbox()
     assert bbox is not None, f"nothing to render in {blend.name}"
-    files, timings, skipped = [], {}, []
+    files, timings, skipped, cams = [], {}, [], {}
 
     def shot(view, cam, r):
         t = time.time()
         path = out / f"{prefix}_{view}.png"
         V.render_still(cam, path, r, scene)
         files.append(str(path))
+        cams[view] = camera_info(cam, r)
         timings[view] = round(time.time() - t, 2)
 
     for view in wanted:
@@ -144,7 +168,10 @@ def run(a: dict) -> dict:
                     cam = V.fit_camera("R_cutplan", cb, Vector((0.0, 0.0, 1.0)), True, (width, width))
                     shot(f"cutplan_{tag}", cam, (width, width))
     unknown = [v for v in wanted if v not in VIEWS and v not in cameras]
-    return {"blend": str(blend), "out": str(out), "files": files, "render_seconds": timings,
+    views = out / f"{prefix}_views.json"
+    views.write_text(json.dumps({"schema": VIEWS_SCHEMA, "frame": "estate, metres, Z up", "blend": blend.name,
+                                 "views": cams}, indent=1) + "\n", encoding="utf-8")
+    return {"blend": str(blend), "out": str(out), "files": files, "views": str(views), "render_seconds": timings,
             "storey": level[0] if level else None, "skipped": skipped + unknown,
             "bbox": [list(bbox[0]), list(bbox[1])], "resolution": list(res), "cameras": sorted(cameras)}
 

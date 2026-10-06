@@ -1,5 +1,5 @@
 """Estate commands registered on the CLI: catalogue, plan, build, report (+ the area CLIs: site, nonres, validate,
-mutate, nav, export, blend, estate-blend, render)."""
+mutate, nav, export, blend, estate-blend, render, release)."""
 from __future__ import annotations
 
 import csv
@@ -15,7 +15,7 @@ from pathlib import Path
 from estate import env
 
 AREA_CLIS = ["estate.site.cli", "estate.site.cli_buildings", "estate.validate.cli", "estate.validate.nav_cli",
-             "estate.export.cli", "estate.blender.cli"]
+             "estate.export.cli", "estate.blender.cli", "estate.web.release"]
 FLAT_TYPES_ORDER = ["2RF", "3R", "4R", "5R", "3G", "EA"]
 
 
@@ -201,18 +201,39 @@ def write_failures(failed: list, path: Path | None = None) -> Path:
     return path
 
 
+def default_stages(cfg: dict) -> list:
+    """Every build stage in order, minus what config/estate.toml [outputs] switches off."""
+    out = cfg.get("outputs", {})
+    return [s for s, flag in (("ifc", True), ("drawings", True), ("check", True), ("nav", out.get("nav", True)),
+                              ("glb", out.get("glb", True)), ("blend", out.get("blend", True)),
+                              ("render", out.get("renders", True)), ("estate", out.get("estate_blend", True)),
+                              ("web", out.get("web", True)))
+            if flag]
+
+
+def write_provenance(stages, failed: list) -> None:
+    """After the last stage: the estate manifest (it hashes the .blend files, so it comes last) and then
+    export_info.json, which hashes the manifest (estate/web/info.py), whenever a stage that feeds them ran."""
+    if not {"glb", "blend", "estate", "web"} & set(stages):
+        return
+    try:
+        from estate.export.manifest import write_manifest
+        write_manifest()
+    except Exception as e:  # noqa: BLE001
+        failed.append(dict(target="MANIFEST", stage="glb", error=f"{type(e).__name__}: {e}"))
+        return
+    try:
+        from estate.web.info import write_export_info
+        write_export_info()
+    except Exception as e:  # noqa: BLE001
+        failed.append(dict(target="EXPORT_INFO", stage="web", error=f"{type(e).__name__}: {e}"))
+
+
 def cmd_build(a):
     from estate import config
     from estate.pipeline import runner, state as st
     cfg = config.load()
-    if a.stages:
-        stages = a.stages.split(",")
-    else:       # everything, minus what config/estate.toml [outputs] switches off
-        out = cfg.get("outputs", {})
-        stages = [s for s, flag in (("ifc", True), ("drawings", True), ("check", True), ("nav", out.get("nav", True)),
-                                    ("glb", out.get("glb", True)), ("blend", out.get("blend", True)),
-                                    ("render", out.get("renders", True)), ("estate", out.get("estate_blend", True)))
-                  if flag]
+    stages = a.stages.split(",") if a.stages else default_stages(cfg)
     tg = runner.targets(cfg, a.only, include_site=not a.no_site)
     S = st.load()
     failed = []
@@ -322,12 +343,7 @@ def cmd_build(a):
                     failed.append(dict(target="*", stage=stage, error=f"{type(e).__name__}: {e}",
                                        trace=traceback.format_exc()[-3000:]))
                     print(f"  stage {stage}: CRASHED {type(e).__name__}: {e}")
-        if {"glb", "blend", "estate"} & set(stages):   # the manifest hashes the .blend files: write it last
-            try:
-                from estate.export.manifest import write_manifest
-                write_manifest()
-            except Exception as e:  # noqa: BLE001
-                failed.append(dict(target="MANIFEST", stage="glb", error=f"{type(e).__name__}: {e}"))
+        write_provenance(stages, failed)
     finally:
         print(f"build finished in {time.time() - t0:.0f} s, {len(failed)} failures")
         write_failures(failed)
@@ -426,7 +442,8 @@ def register(sub):
 
     p = sub.add_parser("build", help="build targets stage by stage (incremental)")
     p.add_argument("--only", nargs="*", help="target ids (BLK_507, MSCP_513, NC_514, SITE) or block numbers")
-    p.add_argument("--stages", help="comma list: ifc,drawings,check,nav,glb,blend,render,estate (default: all, in that order)")
+    p.add_argument("--stages", help="comma list: ifc,drawings,check,nav,glb,blend,render,estate,web (default: all, in that "
+                                    "order)")
     p.add_argument("--jobs", type=int, default=10)
     p.add_argument("--blender-jobs", type=int, default=4)
     p.add_argument("--force", action="store_true")

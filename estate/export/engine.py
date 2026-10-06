@@ -61,6 +61,7 @@ import ifcopenshell.util.placement as upl
 
 from estate import env
 from estate.export import glb, meshcache
+from estate.validate.nav_doorpose import leaf_frame, leaf_record, leaf_spec
 from estate.rules import AGENT_HEIGHT, AGENT_RADIUS, AGENT_STEP, PALETTE
 
 LOD0_BUDGET_PER_FLAT = 5000
@@ -709,8 +710,7 @@ class BuildingExport:
         else:
             node = W.node(name, matrix=glb.matrix_to_yup(M), parent=parent, extras=extras)
         for i, lf in enumerate(leaves):
-            P = np.eye(4)
-            P[:2, 3] = lf["pivot"]
+            P = leaf_frame(lf["pivot"])
             b = _Batch()
             b.add(d, 0, loc - (*lf["pivot"], 0.0), sel=labels == i)
             sfx = leaf_suffix(i, len(leaves))
@@ -750,7 +750,8 @@ class BuildingExport:
         (add_door_representation) put panels and handles strictly between the jambs and above the threshold, and
         linings, casings and the threshold outside that box; panels are the tall items, handles go with the panel
         they sit on. A rolling door's curtain counts as a panel even where it reaches the floor (a shutter has no
-        threshold). Returns (labels, leaf specs); no leaves when a face cannot be matched to an item."""
+        threshold). Returns (labels, leaf specs: nav_doorpose.leaf_spec); no leaves when a face cannot be matched
+        to an item."""
         none = (np.full(len(loc), -1), [])
         try:
             items = [xf(T, self._item_tris(it).reshape(-1, 3)).reshape(-1, 3, 3) for it, T in self._body_items(el)]
@@ -789,27 +790,7 @@ class BuildingExport:
         if dist.max() > 1e-3:
             return none
         labels = owner[item_of[near]]
-        leaves = []
-        for k, p in enumerate(panels):
-            (x0, y0, z0), (x1, y1, z1) = lo[p], hi[p]
-            first, last = k == 0, k == len(panels) - 1
-            spec = dict(thickness=round(float(y1 - y0), 4), width=round(float(x1 - x0), 4),
-                        height=round(float(z1 - z0), 4), z0=round(float(z0), 4))
-            if "SLIDING" in op:
-                sgn = -1.0 if op.endswith("LEFT") or (len(panels) > 1 and first) else 1.0
-                spec.update(motion="slide", pivot=(float(x0 if sgn < 0 else x1), float((y0 + y1) / 2)),
-                            travel=(sgn * float(x1 - x0), 0.0, 0.0))
-            elif "ROLLING" in op:
-                spec.update(motion="roll", pivot=(float(x0), float((y0 + y1) / 2)), travel=(0.0, 0.0, float(z1 - z0)))
-            elif "SWING" in op:
-                right = (len(panels) > 1 and last and not first) or (len(panels) == 1 and op.endswith("RIGHT"))
-                both = "DOUBLE_SWING" in op
-                spec.update(motion="swing", pivot=(float(x1 if right else x0), float((y0 + y1) / 2 if both else y1)),
-                            open_sign=-1 if right else 1, both_ways=both, max_angle_deg=90.0)
-            else:
-                spec.update(motion="none", pivot=(float(x0), float((y0 + y1) / 2)))
-            leaves.append(spec)
-        return labels, leaves
+        return labels, [leaf_spec(op, lo[p], hi[p], k, len(panels)) for k, p in enumerate(panels)]
 
     # ---- site-only file: tiles
     def _site_lod0(self, W, root, stem, shared):
@@ -1078,16 +1059,7 @@ class BuildingExport:
                 side, hinge = "left", O
             else:
                 side, hinge = "none", O
-            leaves = []
-            for lf in self.door_leaves.get(g, []):
-                rec = dict(node=lf["node"], motion=lf["motion"], pivot=r3(xf(M, [*lf["pivot"], 0.0])),
-                           thickness=lf["thickness"], width=lf["width"], height=lf["height"])
-                if lf["motion"] == "swing":
-                    rec.update(axis=r3(M[:3, 2]), open_sign=lf["open_sign"], both_ways=lf["both_ways"],
-                               max_angle_deg=lf["max_angle_deg"])
-                elif "travel" in lf:
-                    rec["travel"] = r3(M[:3, :3] @ np.array(lf["travel"]))
-                leaves.append(rec)
+            leaves = [leaf_record(M, lf) for lf in self.door_leaves.get(g, [])]
             swing = next((lf for lf in leaves if lf["motion"] == "swing"), None)
             if swing is not None:
                 hinge = np.array(swing["pivot"])

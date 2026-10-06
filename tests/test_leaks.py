@@ -192,8 +192,9 @@ class JsonAndContainers(unittest.TestCase):
         self.assertIn("Users", found[0].text)
 
     def test_binary_of_no_known_format_fails_closed(self):
-        """A walk grid, or any binary the scanner has no reader for, is one "not scanned" finding rather than a raw
-        read: 1 MB of random bytes matches the drive pattern by chance (once, for this seed). Text is still read."""
+        """A binary the scanner has no reader for (here named like a walk grid, but not SN5W) is one "not scanned"
+        finding rather than a raw read: 1 MB of random bytes matches the drive pattern by chance (once, for this
+        seed). Text is still read. (A real walk grid is read as SN5W: tests/test_web.py.)"""
         noise = random.Random(20261005).randbytes(1 << 20)
         self.assertTrue(leaks.find(noise.decode("latin-1")))
         self.assertEqual(leaks.scan_bytes(noise, "BLK_509_walk.bin"),
@@ -287,14 +288,14 @@ class TrackedFiles(unittest.TestCase):
         self.assertEqual(found, [])
 
 
-GENERATED = (".json", ".png", ".glb")
+GENERATED = (".json", ".png", ".glb", ".bin")
 
 
 def generated_files(state: dict, tracked) -> tuple[list[Path], list[Path]]:
-    """The generated JSON, PNG and GLB files under model/ and reports/ (not Bonsai's link caches, not the tracked
-    reports: TrackedFiles scans those), split into (written by the current code, written by older code). A file is
-    older only when every stage record listing it names other code than the stage has now (state.code_hash); a
-    file no stage records (estate_manifest.json, the flat gallery, ...) counts as current."""
+    """The generated JSON, PNG, GLB and walk-grid (SN5W, .bin) files under model/ and reports/ (not Bonsai's link
+    caches, not the tracked reports: TrackedFiles scans those), split into (written by the current code, written by
+    older code). A file is older only when every stage record listing it names other code than the stage has now
+    (state.code_hash); a file no stage records (estate_manifest.json, the flat gallery, ...) counts as current."""
     from estate.pipeline import state as st
     current, older = set(), set()
     for stages in state.values():

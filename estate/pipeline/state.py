@@ -41,9 +41,14 @@ STAGE_DEPS = {   # code/config each stage depends on (globs relative to the proj
               "estate/export/meshcache.py", "config/rules.toml"),
     "nav": ("estate/validate/nav*.py", "estate/export/meshcache.py"),
     "blend": ("estate/blender/*.py",),
-    "glb": ("estate/export/*.py",),
+    "glb": ("estate/export/*.py", "estate/validate/nav_doorpose.py"),
     "drawings": ("estate/draw/*.py",),
     "render": ("estate/blender/*.py",),
+    # the web stage's own modules only: estate/web/info.py and release.py (export_info.json, the release zips) shape
+    # no walk grid or web JSON, so editing them reruns nothing
+    "web": ("estate/web/__init__.py", "estate/web/export.py", "estate/web/walk.py", "estate/web/sn5w.py",
+            "estate/web/stairs.py", "estate/web/walkcheck.py", "estate/validate/nav3d.py",
+            "estate/validate/nav_doorpose.py", "estate/export/meshcache.py"),
 }
 
 
