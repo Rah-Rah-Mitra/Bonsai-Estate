@@ -88,6 +88,10 @@ carries them as zips; the v1.0 and v1.1 zips were withdrawn because they held ab
   path leads from each published stair discharge (the MSCP's stair 3) to the nearest footway, shown as an 'escape'
   edge in SITE_graph.json. `siteplan.py` draws the site plan once, through a backend interface: PIL writes
   `site_plan.png` and svgwrite writes `site_plan.svg`.
+  Trees are one `IfcGeographicElementType` per species (`ifc/vegetation.py`), a Bark trunk under Foliage crown shells,
+  each species with a crown of its own: rain tree a flattened umbrella, angsana a drooping dome, tembusu a narrow
+  cone, yellow flame three tiers, sea apple a cluster of four lobes. Every tree stays under 600 triangles (one
+  shared mesh per species in the engine export), and placements are translations only.
 - `draw/`: `raster.py` draws the generator's plates. `sections.py` and `iplans.py` draw stair sections and floor plans cut from the IFC.
 - `validate/`:
   - `ifcqa.py`: schema and EXPRESS rules, IDS, containment, openings, psets, IFA bands.
