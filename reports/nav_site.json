@@ -346,7 +346,7 @@
  "graph": {
   "nodes": 566,
   "edges": 618,
-  "ifc_sha256": "1722b93f3de75a0879769952c4c1869e0b90efc4703536e662dd50a830c70c8f",
+  "ifc_sha256": "d12d13a411c2323b95c6e91fc56b9607c612907d1e1941d40e244c6d5205e112",
   "not_step_free_edges": []
  },
  "graph_checks": {
@@ -2272,5 +2272,5 @@
   "step_free_ok": true,
   "ok": true
  },
- "timing_s": 3.11
+ "timing_s": 4.62
 }

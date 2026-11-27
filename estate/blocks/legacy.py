@@ -246,7 +246,7 @@ def build_legacy(storeys=12, schema="IFC4X3", seed=1, georef=None):
     W.slab(box(4.0, -28.0, 7.0, -Y), -0.12, "Footpath to void deck", W.site, "USERDEFINED", "paving", 0.1, "Footpath")
     W.slab(box(-34, -28, 34, -21), -0.10, "Sample Avenue 1", W.site, "USERDEFINED", "asphalt", 0.1, "Road")
     from estate.ifc.vegetation import tree_types
-    ttypes = tree_types(W)
+    ttypes = tree_types(W, style="legacy")
     for (tx, ty) in [(-20, -17), (-12, -17), (12, -17), (20, -17), (-24, 0), (24, 0), (-20, 16), (0, 16), (20, 16),
                      (-10, 20), (10, 20)]:
         t = W.product("IfcGeographicElement", "Tree", None, frame((tx, ty, -0.15), (1, 0)), W.site)
