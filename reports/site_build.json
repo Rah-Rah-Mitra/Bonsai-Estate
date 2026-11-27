@@ -14,7 +14,7 @@
   "IfcSlab": 231
  },
  "linked_models": 14,
- "seconds": 5.6,
+ "seconds": 2.6,
  "graph": "model/SITE_graph.json",
  "site_plan": "reports/site_plan.png",
  "site_plan_svg": "reports/site_plan.svg",
@@ -61,15 +61,15 @@
   "NC_514 entrance 3: moved 0.6 m along the facade, clear of the ground floor"
  ],
  "timings": {
-  "grounds": 1.95,
-  "roads+greens": 1.18,
-  "driveways": 1.11,
-  "linkways": 1.8,
-  "footpaths": 0.74,
-  "surfaces": 1.08,
-  "landscape": 0.26,
-  "graph": 4.32,
-  "total_plan": 12.46
+  "grounds": 1.75,
+  "roads+greens": 1.25,
+  "driveways": 0.47,
+  "linkways": 0.79,
+  "footpaths": 0.33,
+  "surfaces": 0.55,
+  "landscape": 0.12,
+  "graph": 2.08,
+  "total_plan": 7.36
  },
  "trees": 778,
  "crossings": 10,
@@ -145,7 +145,7 @@
    },
    "MSCP_513": {
     "source": "model/MSCP_513/MSCP_513.ifc",
-    "sha256": "2f1f4920b893127f8ef3bf4b428fd4fe570cd6fe80e8c1282bf8b297a56d6c36"
+    "sha256": "55061ebc78a3ec57eb671ba1c7195f6c6284b827c97594518a74b7760ecb8556"
    },
    "NC_514": {
     "source": "model/NC_514/NC_514.ifc",
